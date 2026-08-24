@@ -1,4 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glover Engenharia — Financeiro</title>
+
+<!-- Mapa de importações: diz ao navegador onde buscar "react", "recharts" etc.
+     (usa o esm.sh, que serve pacotes do npm prontos para rodar direto no navegador) -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.383.0?external=react",
+    "xlsx": "https://esm.sh/xlsx@0.18.5"
+  }
+}
+</script>
+
+<!-- Babel: converte o código React/JSX para JavaScript puro, direto no navegador -->
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F5F1; }
+  #root { min-height: 100vh; }
+  #gf-loading-fallback {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #667066; font-size: 14px;
+  }
+  #gf-config-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #B23A34; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px; padding: 10px 16px; text-align: center; display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Este aviso só aparece se o Supabase ainda não foi configurado (ver PASSO 5 do guia) -->
+<div id="gf-config-banner">
+  ⚠️ Este sistema ainda não está conectado a um banco de dados compartilhado — os dados vão ficar salvos
+  só neste navegador. Edite este arquivo e preencha SUPABASE_URL e SUPABASE_ANON_KEY (veja o guia).
+</div>
+
+<div id="root"><div id="gf-loading-fallback">Carregando o sistema…</div></div>
+
+<!-- ======================================================================
+     CONFIGURAÇÃO DO BANCO DE DADOS COMPARTILHADO (Supabase)
+     Preencha as duas linhas abaixo com os dados do SEU projeto Supabase.
+     Enquanto estiverem vazias, o sistema funciona normalmente, mas salva
+     os dados só neste navegador (sem compartilhar com a equipe).
+====================================================================== -->
+<script>
+  window.SUPABASE_URL = "";        // exemplo: "https://abcdefgh.supabase.co"
+  window.SUPABASE_ANON_KEY = "";   // a chave "anon public" do seu projeto
+</script>
+<!-- ====================================================================== -->
+
+<!-- "Atalho" de armazenamento: fora do Claude não existe window.storage, então esta
+     versão implementa a mesma API usando o Supabase (dados compartilhados, na nuvem)
+     para o que é de equipe, e a memória do navegador (localStorage) para o que é
+     pessoal de cada dispositivo (ex: sessão de login). -->
+<script>
+(function () {
+  const SUPABASE_URL = window.SUPABASE_URL || "";
+  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
+  const configured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
+  if (!configured) {
+    document.getElementById("gf-config-banner").style.display = "block";
+  }
+
+  function personalKey(key) { return "gf-pessoal:" + key; }
+
+  async function supabaseGet(key) {
+    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value";
+    const res = await fetch(url, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+    });
+    if (!res.ok) throw new Error("Erro ao ler dados compartilhados (verifique SUPABASE_URL/SUPABASE_ANON_KEY e a tabela kv_store)");
+    const rows = await res.json();
+    if (!rows.length) throw new Error("chave não encontrada: " + key);
+    return rows[0].value;
+  }
+
+  async function supabaseSet(key, value) {
+    const url = SUPABASE_URL + "/rest/v1/kv_store";
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({ id: key, value: value, updated_at: new Date().toISOString() }),
+    });
+    if (!res.ok) throw new Error("Erro ao salvar dados compartilhados (verifique SUPABASE_URL/SUPABASE_ANON_KEY e a tabela kv_store)");
+  }
+
+  window.storage = {
+    async get(key, shared) {
+      if (shared && configured) {
+        const value = await supabaseGet(key);
+        return { key, value, shared: true };
+      }
+      const raw = localStorage.getItem(personalKey(key));
+      if (raw === null) throw new Error("chave não encontrada: " + key);
+      return { key, value: raw, shared: !!shared };
+    },
+    async set(key, value, shared) {
+      if (shared && configured) {
+        await supabaseSet(key, value);
+        return { key, value, shared: true };
+      }
+      localStorage.setItem(personalKey(key), value);
+      return { key, value, shared: !!shared };
+    },
+    async delete(key, shared) {
+      if (shared && configured) return { key, deleted: true, shared: true };
+      localStorage.removeItem(personalKey(key));
+      return { key, deleted: true, shared: !!shared };
+    },
+    async list(prefix, shared) {
+      return { keys: [], prefix, shared: !!shared };
+    },
+  };
+})();
+</script>
+
+<!-- Código do sistema (React + JSX). O navegador lê isso, o Babel traduz para
+     JavaScript puro, e o mapa de importações lá em cima resolve as bibliotecas usadas. -->
+<script type="text/babel" data-type="module" data-presets="react">
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createRoot } from "react-dom/client";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -25,6 +161,7 @@ const DEFAULT_APROPRIACOES = [
 const OBRA_STATUS = ["Em planejamento", "Em execução", "Concluída", "Cancelada"];
 const SEM_OBRA = "__sem_obra__";
 const STORAGE_KEY = "glover-financeiro-v1";
+const SESSION_KEY = "glover-financeiro-sessao-local-v1";
 
 const DEFAULT_SOCIOS = [
   { id: "pedro", nome: "Pedro", participacao: 60 },
@@ -84,10 +221,10 @@ const ASSISTENTE_PERMS = {
 };
 
 const DEFAULT_USUARIOS = [
-  { id: "pedro", nome: "Pedro", papel: "admin", ativo: true, perms: permsAllTrue() },
-  { id: "fabio", nome: "Fabio", papel: "admin", ativo: true, perms: permsAllTrue() },
-  { id: "assistente", nome: "Assistente Administrativo", papel: "operacional", ativo: true, perms: ASSISTENTE_PERMS },
-  { id: "perfil4", nome: "4º usuário (a definir)", papel: "customizavel", ativo: true, perms: permsAllFalse() },
+  { id: "pedro", nome: "Pedro", papel: "admin", ativo: true, senha: "glover2026", perms: permsAllTrue() },
+  { id: "fabio", nome: "Fabio", papel: "admin", ativo: true, senha: "glover2026", perms: permsAllTrue() },
+  { id: "assistente", nome: "Assistente Administrativo", papel: "operacional", ativo: true, senha: "1234", perms: ASSISTENTE_PERMS },
+  { id: "perfil4", nome: "4º usuário (a definir)", papel: "customizavel", ativo: true, senha: "1234", perms: permsAllFalse() },
 ];
 
 const PAPEL_LABEL = { admin: "Administrador", operacional: "Operacional", customizavel: "Personalizado" };
@@ -618,81 +755,104 @@ export default function App() {
   const [auditLog, setAuditLog] = useState([]);
   const [savedTick, setSavedTick] = useState(null);
   const firstLoad = useRef(true);
+  const firstLoadSession = useRef(true);
+  const lastRemoteJson = useRef(null);
 
-  // Carregar dados salvos
+  const applyRemoteData = (d) => {
+    setAccounts(d.accounts || []);
+    setObras(d.obras || []);
+    setApropriacoes(d.apropriacoes && d.apropriacoes.length ? d.apropriacoes : DEFAULT_APROPRIACOES);
+    setEntries(d.entries || []);
+    setTransfers(d.transfers || []);
+    setFornecedoresSeed(d.fornecedoresSeed || []);
+    setSocios(d.socios && d.socios.length ? d.socios : DEFAULT_SOCIOS);
+    setMovimentosSocios(d.movimentosSocios || []);
+    setContasPagar(d.contasPagar || []);
+    setOrcamentoItens(d.orcamentoItens || []);
+    setDividas(d.dividas || []);
+    setInvestimentos(d.investimentos || []);
+    setUsuarios(d.usuarios && d.usuarios.length ? d.usuarios : DEFAULT_USUARIOS);
+    setAuditLog(d.auditLog || []);
+  };
+
+  const applySeedData = () => {
+    const seed = seedData();
+    setAccounts(seed.accounts);
+    setObras(seed.obras);
+    setApropriacoes(seed.apropriacoes);
+    setEntries(seed.entries);
+    setTransfers(seed.transfers);
+    setFornecedoresSeed(seed.fornecedoresSeed);
+    setSocios(seed.socios);
+    setMovimentosSocios(seed.movimentosSocios);
+    setContasPagar(seed.contasPagar || []);
+    setOrcamentoItens(seed.orcamentoItens || []);
+    setDividas(seed.dividas || []);
+    setInvestimentos(seed.investimentos || []);
+    setUsuarios(DEFAULT_USUARIOS);
+  };
+
+  // Carregar dados salvos — os dados do negócio são COMPARTILHADOS (toda a equipe vê o mesmo),
+  // a sessão de login é PESSOAL (cada dispositivo guarda o seu próprio usuário logado).
   useEffect(() => {
     (async () => {
       try {
-        const res = await window.storage.get(STORAGE_KEY, false);
+        const res = await window.storage.get(STORAGE_KEY, true);
         if (res && res.value) {
-          const d = JSON.parse(res.value);
-          setAccounts(d.accounts || []);
-          setObras(d.obras || []);
-          setApropriacoes(d.apropriacoes && d.apropriacoes.length ? d.apropriacoes : DEFAULT_APROPRIACOES);
-          setEntries(d.entries || []);
-          setTransfers(d.transfers || []);
-          setFornecedoresSeed(d.fornecedoresSeed || []);
-          setSocios(d.socios && d.socios.length ? d.socios : DEFAULT_SOCIOS);
-          setMovimentosSocios(d.movimentosSocios || []);
-          setContasPagar(d.contasPagar || []);
-          setOrcamentoItens(d.orcamentoItens || []);
-          setDividas(d.dividas || []);
-          setInvestimentos(d.investimentos || []);
-          setUsuarios(d.usuarios && d.usuarios.length ? d.usuarios : DEFAULT_USUARIOS);
-          setAuditLog(d.auditLog || []);
-          setCurrentUserId(d.currentUserId || null);
+          applyRemoteData(JSON.parse(res.value));
+          lastRemoteJson.current = res.value;
         } else {
-          const seed = seedData();
-          setAccounts(seed.accounts);
-          setObras(seed.obras);
-          setApropriacoes(seed.apropriacoes);
-          setEntries(seed.entries);
-          setTransfers(seed.transfers);
-          setFornecedoresSeed(seed.fornecedoresSeed);
-          setSocios(seed.socios);
-          setMovimentosSocios(seed.movimentosSocios);
-          setContasPagar(seed.contasPagar || []);
-          setOrcamentoItens(seed.orcamentoItens || []);
-          setDividas(seed.dividas || []);
-          setInvestimentos(seed.investimentos || []);
-          setUsuarios(DEFAULT_USUARIOS);
+          applySeedData();
         }
       } catch (e) {
-        const seed = seedData();
-        setAccounts(seed.accounts);
-        setObras(seed.obras);
-        setApropriacoes(seed.apropriacoes);
-        setEntries(seed.entries);
-        setTransfers(seed.transfers);
-        setFornecedoresSeed(seed.fornecedoresSeed);
-        setSocios(seed.socios);
-        setMovimentosSocios(seed.movimentosSocios);
-        setContasPagar(seed.contasPagar || []);
-        setOrcamentoItens(seed.orcamentoItens || []);
-        setDividas(seed.dividas || []);
-        setInvestimentos(seed.investimentos || []);
-        setUsuarios(DEFAULT_USUARIOS);
+        applySeedData();
       }
+      try {
+        const sess = await window.storage.get(SESSION_KEY, false);
+        if (sess && sess.value) setCurrentUserId(JSON.parse(sess.value).currentUserId || null);
+      } catch (e) { /* sem sessão salva ainda */ }
       setReady(true);
     })();
   }, []);
 
-  // Salvar dados (debounced)
+  // Salvar dados do negócio (compartilhado entre todos os usuários da equipe)
   useEffect(() => {
     if (!ready) return;
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
-        await window.storage.set(
-          STORAGE_KEY,
-          JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog, currentUserId }),
-          false
-        );
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog });
+        await window.storage.set(STORAGE_KEY, json, true);
+        lastRemoteJson.current = json;
         setSavedTick(Date.now());
       } catch (e) { /* silencioso */ }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog, currentUserId, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog, ready]);
+
+  // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
+  // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
+  useEffect(() => {
+    if (!ready) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await window.storage.get(STORAGE_KEY, true);
+        if (res && res.value && res.value !== lastRemoteJson.current) {
+          lastRemoteJson.current = res.value;
+          applyRemoteData(JSON.parse(res.value));
+          setSavedTick(Date.now());
+        }
+      } catch (e) { /* silencioso */ }
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [ready]);
+
+  // Salvar sessão de login (pessoal deste dispositivo/navegador — não é compartilhada)
+  useEffect(() => {
+    if (!ready) return;
+    if (firstLoadSession.current) { firstLoadSession.current = false; return; }
+    window.storage.set(SESSION_KEY, JSON.stringify({ currentUserId }), false).catch(() => {});
+  }, [currentUserId, ready]);
 
   const currentUser = usuarios.find((u) => u.id === currentUserId) || null;
 
@@ -703,7 +863,7 @@ export default function App() {
   };
 
   const resetDemo = async () => {
-    if (!window.confirm("Isso vai apagar todos os dados atuais e recarregar os dados de exemplo. Continuar?")) return;
+    if (!window.confirm("Isso vai apagar os dados atuais para TODA A EQUIPE e recarregar os dados de exemplo. Continuar?")) return;
     const seed = seedData();
     setAccounts(seed.accounts); setObras(seed.obras); setApropriacoes(seed.apropriacoes);
     setEntries(seed.entries); setTransfers(seed.transfers); setFornecedoresSeed(seed.fornecedoresSeed);
@@ -713,7 +873,7 @@ export default function App() {
   };
 
   const clearAll = async () => {
-    if (!window.confirm("Isso vai apagar TODOS os dados (contas, obras, lançamentos). Continuar?")) return;
+    if (!window.confirm("Isso vai apagar TODOS os dados (contas, obras, lançamentos) para TODA A EQUIPE. Continuar?")) return;
     setAccounts([]); setObras([]); setEntries([]); setTransfers([]); setFornecedoresSeed([]);
     setApropriacoes(DEFAULT_APROPRIACOES);
     setMovimentosSocios([]); setSocios(DEFAULT_SOCIOS); setContasPagar([]); setOrcamentoItens([]);
@@ -1077,6 +1237,18 @@ function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, onReset, onCle
 
 function LoginScreen({ usuarios, onLogin }) {
   const [selecionado, setSelecionado] = useState(null);
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+
+  const escolher = (id) => { setSelecionado(id); setSenha(""); setErro(""); };
+
+  const entrar = (e) => {
+    e?.preventDefault();
+    const u = usuarios.find((x) => x.id === selecionado);
+    if (!u) return;
+    if ((u.senha || "") !== senha) { setErro("Senha incorreta. Tente novamente."); return; }
+    onLogin(selecionado);
+  };
 
   return (
     <div className="gf-login">
@@ -1086,11 +1258,11 @@ function LoginScreen({ usuarios, onLogin }) {
         </div>
         <div className="gf-brand-sub" style={{ color: "var(--gf-muted)", marginBottom: 18 }}>financeiro</div>
         <h2 style={{ fontFamily: "var(--gf-font-display)", fontSize: 18, margin: "0 0 4px", color: "var(--gf-primary)" }}>Quem está acessando?</h2>
-        <p className="gf-field-hint" style={{ marginBottom: 16 }}>Selecione seu usuário para entrar com o seu nível de permissão.</p>
+        <p className="gf-field-hint" style={{ marginBottom: 16 }}>Selecione seu usuário e informe a senha.</p>
 
         <div className="gf-login-users">
           {usuarios.filter((u) => u.ativo).map((u) => (
-            <button key={u.id} className={`gf-login-user ${selecionado === u.id ? "is-selected" : ""}`} onClick={() => setSelecionado(u.id)}>
+            <button key={u.id} className={`gf-login-user ${selecionado === u.id ? "is-selected" : ""}`} onClick={() => escolher(u.id)}>
               <div className="gf-sidebar-avatar" style={{ background: "var(--gf-primary)" }}>{u.nome.slice(0, 1)}</div>
               <div>
                 <div className="gf-login-user-name">{u.nome}</div>
@@ -1101,12 +1273,21 @@ function LoginScreen({ usuarios, onLogin }) {
           ))}
         </div>
 
+        {selecionado && (
+          <form onSubmit={entrar}>
+            <Field label="Senha" className="gf-login-senha-field">
+              <input type="password" autoFocus value={senha} onChange={(e) => { setSenha(e.target.value); setErro(""); }} placeholder="Digite sua senha" />
+            </Field>
+            {erro && <div className="gf-warn" style={{ marginTop: 6 }}>{erro}</div>}
+          </form>
+        )}
+
         <button className="gf-btn gf-btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
-          disabled={!selecionado} onClick={() => selecionado && onLogin(selecionado)}>
+          disabled={!selecionado || !senha} onClick={entrar}>
           Entrar
         </button>
         <p className="gf-field-hint" style={{ marginTop: 14, textAlign: "center" }}>
-          Ambiente de demonstração: a seleção de usuário aqui não usa senha real. Em produção isso seria substituído por um login autenticado no servidor.
+          Acesso restrito à equipe da Glover Engenharia. As senhas podem ser alteradas por um administrador na página Usuários.
         </p>
       </div>
     </div>
@@ -3745,7 +3926,7 @@ function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit }
 
 function UsuarioModal({ usuario, onClose, onSave }) {
   const [f, setF] = useState(usuario ? { ...usuario, perms: { ...usuario.perms } } : {
-    nome: "", papel: "customizavel", ativo: true, perms: permsAllFalse(),
+    nome: "", papel: "customizavel", ativo: true, senha: "", perms: permsAllFalse(),
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
   const togglePerm = (key) => setF((s) => ({ ...s, perms: { ...s.perms, [key]: !s.perms[key] } }));
@@ -3755,7 +3936,7 @@ function UsuarioModal({ usuario, onClose, onSave }) {
   };
   const submit = (e) => {
     e.preventDefault();
-    if (!f.nome.trim()) return;
+    if (!f.nome.trim() || !String(f.senha || "").trim()) return;
     onSave({ ...f, nome: f.nome.trim() });
   };
 
@@ -3763,6 +3944,9 @@ function UsuarioModal({ usuario, onClose, onSave }) {
     <Modal title={usuario ? "Editar usuário" : "Novo usuário"} onClose={onClose} width={640}>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
         <Field label="Nome"><input required value={f.nome} onChange={(e) => upd({ nome: e.target.value })} /></Field>
+        <Field label="Senha" hint="Visível apenas para administradores nesta tela">
+          <input required value={f.senha || ""} onChange={(e) => upd({ senha: e.target.value })} placeholder="Defina uma senha" />
+        </Field>
         <Field label="Status">
           <select value={f.ativo ? "ativo" : "inativo"} onChange={(e) => upd({ ativo: e.target.value === "ativo" })}>
             <option value="ativo">Ativo</option><option value="inativo">Inativo</option>
@@ -4643,6 +4827,7 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
 .gf-login-user-role{ font-size:11px; color:var(--gf-muted); }
 .gf-login-logo-tile{ background:var(--gf-primary); border-radius:12px; padding:16px 20px; display:inline-flex; margin-bottom:10px; }
 .gf-login-logo-img{ width:170px; height:auto; display:block; }
+.gf-login-senha-field{ margin-top:12px; }
 
 /* Controle orçamentário */
 .gf-orcamento-chip{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--gf-muted); margin-top:8px; font-weight:600; }
@@ -4779,3 +4964,16 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
   .gf-topbar{ padding:16px; }
 }
 `;
+
+
+/* ---------------------------------------------------------------
+   Bootstrap (monta o app na página) - usado apenas na versão HTML exportada
+--------------------------------------------------------------- */
+const rootEl = document.getElementById("root");
+const root = createRoot(rootEl);
+root.render(<App />);
+
+</script>
+
+</body>
+</html>
