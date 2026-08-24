@@ -54,8 +54,8 @@
      os dados só neste navegador (sem compartilhar com a equipe).
 ====================================================================== -->
 <script>
-  window.SUPABASE_URL = "";        // exemplo: "https://abcdefgh.supabase.co"
-  window.SUPABASE_ANON_KEY = "";   // a chave "anon public" do seu projeto
+  window.SUPABASE_URL = "https://ctaenjjuwdfgrxrhimum.supabase.co/rest/v1/";        // exemplo: "https://abcdefgh.supabase.co"
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0YWVuamp1d2RmZ3J4cmhpbXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDMxNDUsImV4cCI6MjEwMzA3OTE0NX0.KCGID8irF42yHmNDdrSEVkvfFjSaDXC03jfNYmLh3_0";   // a chave "anon public" do seu projeto
 </script>
 <!-- ====================================================================== -->
 
