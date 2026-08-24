@@ -39,23 +39,21 @@
 </head>
 <body>
 
-<!-- Este aviso só aparece se o Supabase ainda não foi configurado (ver PASSO 5 do guia) -->
+<!-- Este aviso só aparece se o Supabase ainda não foi configurado -->
 <div id="gf-config-banner">
   ⚠️ Este sistema ainda não está conectado a um banco de dados compartilhado — os dados vão ficar salvos
-  só neste navegador. Edite este arquivo e preencha SUPABASE_URL e SUPABASE_ANON_KEY (veja o guia).
+  só neste navegador. Edite este arquivo e preencha SUPABASE_URL e SUPABASE_ANON_KEY.
 </div>
 
 <div id="root"><div id="gf-loading-fallback">Carregando o sistema…</div></div>
 
 <!-- ======================================================================
      CONFIGURAÇÃO DO BANCO DE DADOS COMPARTILHADO (Supabase)
-     Preencha as duas linhas abaixo com os dados do SEU projeto Supabase.
-     Enquanto estiverem vazias, o sistema funciona normalmente, mas salva
-     os dados só neste navegador (sem compartilhar com a equipe).
+     Já preenchido com os dados do projeto "Glover-Financeiro".
 ====================================================================== -->
 <script>
-  window.SUPABASE_URL = "https://ctaenjjuwdfgrxrhimum.supabase.co/rest/v1/";        // exemplo: "https://abcdefgh.supabase.co"
-  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0YWVuamp1d2RmZ3J4cmhpbXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDMxNDUsImV4cCI6MjEwMzA3OTE0NX0.KCGID8irF42yHmNDdrSEVkvfFjSaDXC03jfNYmLh3_0";   // a chave "anon public" do seu projeto
+  window.SUPABASE_URL = "https://ctaenjjuwdfgrxrhimum.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0YWVuamp1d2RmZ3J4cmhpbXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDMxNDUsImV4cCI6MjEwMzA3OTE0NX0.KCGID8irF42yHmNDdrSEVkvfFjSaDXC03jfNYmLh3_0";
 </script>
 <!-- ====================================================================== -->
 
@@ -91,7 +89,7 @@
   async function supabaseSet(key, value) {
     // on_conflict=id diz ao Supabase: "se já existir uma linha com este id, ATUALIZE
     // em vez de tentar criar outra" — sem isso, só o primeiro salvamento funciona e
-    // os seguintes falham silenciosamente (foi exatamente o bug corrigido aqui).
+    // os seguintes falham silenciosamente.
     const url = SUPABASE_URL + "/rest/v1/kv_store?on_conflict=id";
     const res = await fetch(url, {
       method: "POST",
@@ -226,7 +224,7 @@ const ASSISTENTE_PERMS = {
   contaspagar_criar: true, contaspagar_editar: true, contaspagar_ratear: true, contaspagar_baixar: true,
   contasbancarias_visualizar: true, contasbancarias_transferir: true,
   fornecedores_cadastrar: true, apropriacoes_gerenciar: true,
-  relatorios_acessar: true,
+  relatorios_acessar: true, socios_acessar: true,
 };
 
 const DEFAULT_USUARIOS = [
@@ -457,6 +455,18 @@ function addDaysISO(iso, days) {
   return d.toISOString().slice(0, 10);
 }
 
+// Migra a antiga lista de nomes de fornecedores (texto livre) para o cadastro formal.
+// Se já existir um cadastro salvo, usa ele; senão, reconstrói a partir do histórico.
+function migrarFornecedoresCadastro(d) {
+  if (d.fornecedoresCadastro && d.fornecedoresCadastro.length) return d.fornecedoresCadastro;
+  const nomes = new Set(d.fornecedoresSeed || []);
+  (d.entries || []).forEach((e) => { if (e.fornecedor && e.fornecedor !== "Não se aplica") nomes.add(e.fornecedor); });
+  (d.contasPagar || []).forEach((c) => { if (c.fornecedor) nomes.add(c.fornecedor); });
+  return [...nomes].filter(Boolean).sort((a, b) => a.localeCompare(b, "pt-BR")).map((nome) => ({
+    id: uid("forn"), nome, documento: "", telefone: "", email: "", observacao: "", ativo: true,
+  }));
+}
+
 function seedData() {
   const acc1 = uid("acc"), acc2 = uid("acc"), acc3 = uid("acc");
   const obra1 = uid("obra"), obra2 = uid("obra"), obra3 = uid("obra");
@@ -551,9 +561,13 @@ function seedData() {
     valorAplicado: 100000, dataVencimento: addDaysISO(todayISO(), 275), liquidez: "No vencimento", obraId: SEM_OBRA, status: "Ativo", createdAt: Date.now(),
   }];
 
+  const fornecedoresCadastro = fornecedores.map((nome) => ({
+    id: uid("forn"), nome, documento: "", telefone: "", email: "", observacao: "", ativo: true,
+  }));
+
   return {
     accounts, obras, apropriacoes: apropriacoesComOrcamento, entries: [...entries, ...dividaEntries, ...investimentoEntries], transfers: [],
-    fornecedoresSeed: fornecedores, socios: DEFAULT_SOCIOS, movimentosSocios,
+    fornecedoresSeed: fornecedores, fornecedoresCadastro, socios: DEFAULT_SOCIOS, movimentosSocios,
     contasPagar: seedContasPagar({ obra1, obra2, fornecedores }),
     orcamentoItens, dividas, investimentos,
   };
@@ -740,6 +754,52 @@ function EmptyState({ icon: Icon, title, body }) {
   );
 }
 
+// Campo de seleção com busca (combobox). options: [{ value, label }]
+function SearchableSelect({ value, onChange, options, placeholder = "Buscar…", disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    const onClickOutside = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); setQuery(""); } };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+  const filtered = query.trim()
+    ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
+
+  return (
+    <div className={`gf-searchselect ${disabled ? "is-disabled" : ""}`} ref={wrapRef}>
+      <button
+        type="button" className="gf-searchselect-trigger" disabled={disabled}
+        onClick={() => { setOpen((v) => !v); setQuery(""); }}
+      >
+        <span className={selected ? "" : "gf-searchselect-placeholder"}>{selected ? selected.label : placeholder}</span>
+        <Search size={13} />
+      </button>
+      {open && (
+        <div className="gf-searchselect-panel">
+          <input autoFocus placeholder="Digite para buscar…" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <div className="gf-searchselect-list">
+            {filtered.length === 0 && <div className="gf-searchselect-empty">Nenhum resultado encontrado</div>}
+            {filtered.map((o) => (
+              <div
+                key={o.value} className={`gf-searchselect-item ${o.value === value ? "is-selected" : ""}`}
+                onClick={() => { onChange(o.value); setOpen(false); setQuery(""); }}
+              >
+                {o.label}{o.value === value && <Check size={13} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------
    App principal
 --------------------------------------------------------------- */
@@ -753,6 +813,7 @@ export default function App() {
   const [entries, setEntries] = useState([]);
   const [transfers, setTransfers] = useState([]);
   const [fornecedoresSeed, setFornecedoresSeed] = useState([]);
+  const [fornecedoresCadastro, setFornecedoresCadastro] = useState([]);
   const [socios, setSocios] = useState(DEFAULT_SOCIOS);
   const [movimentosSocios, setMovimentosSocios] = useState([]);
   const [contasPagar, setContasPagar] = useState([]);
@@ -775,6 +836,7 @@ export default function App() {
     setEntries(d.entries || []);
     setTransfers(d.transfers || []);
     setFornecedoresSeed(d.fornecedoresSeed || []);
+    setFornecedoresCadastro(migrarFornecedoresCadastro(d));
     setSocios(d.socios && d.socios.length ? d.socios : DEFAULT_SOCIOS);
     setMovimentosSocios(d.movimentosSocios || []);
     setContasPagar(d.contasPagar || []);
@@ -793,6 +855,7 @@ export default function App() {
     setEntries(seed.entries);
     setTransfers(seed.transfers);
     setFornecedoresSeed(seed.fornecedoresSeed);
+    setFornecedoresCadastro(seed.fornecedoresCadastro || []);
     setSocios(seed.socios);
     setMovimentosSocios(seed.movimentosSocios);
     setContasPagar(seed.contasPagar || []);
@@ -831,7 +894,7 @@ export default function App() {
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog });
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
         setSavedTick(Date.now());
@@ -841,7 +904,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -883,6 +946,7 @@ export default function App() {
     const seed = seedData();
     setAccounts(seed.accounts); setObras(seed.obras); setApropriacoes(seed.apropriacoes);
     setEntries(seed.entries); setTransfers(seed.transfers); setFornecedoresSeed(seed.fornecedoresSeed);
+    setFornecedoresCadastro(seed.fornecedoresCadastro || []);
     setSocios(seed.socios); setMovimentosSocios(seed.movimentosSocios); setContasPagar(seed.contasPagar || []);
     setOrcamentoItens(seed.orcamentoItens || []);
     setDividas(seed.dividas || []); setInvestimentos(seed.investimentos || []);
@@ -891,6 +955,7 @@ export default function App() {
   const clearAll = async () => {
     if (!window.confirm("Isso vai apagar TODOS os dados (contas, obras, lançamentos) para TODA A EQUIPE. Continuar?")) return;
     setAccounts([]); setObras([]); setEntries([]); setTransfers([]); setFornecedoresSeed([]);
+    setFornecedoresCadastro([]);
     setApropriacoes(DEFAULT_APROPRIACOES);
     setMovimentosSocios([]); setSocios(DEFAULT_SOCIOS); setContasPagar([]); setOrcamentoItens([]);
     setDividas([]); setInvestimentos([]);
@@ -972,6 +1037,11 @@ export default function App() {
     entries.forEach((e) => { if (e.fornecedor && e.fornecedor !== "Não se aplica") set.add(e.fornecedor); });
     return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [entries, fornecedoresSeed]);
+
+  const fornecedorOptions = useMemo(
+    () => fornecedoresCadastro.filter((f) => f.ativo).map((f) => f.nome).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    [fornecedoresCadastro]
+  );
 
   const supplierStats = useMemo(() => {
     const map = {};
@@ -1062,7 +1132,7 @@ export default function App() {
           {page === "lancamentos" && (
             <LancamentosPage
               accounts={accounts} obras={obras} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
-              entries={entries} setEntries={setEntries} supplierNames={supplierNames}
+              entries={entries} setEntries={setEntries} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions}
               dividas={dividas} setDividas={setDividas} investimentos={investimentos} setInvestimentos={setInvestimentos}
               currentUser={currentUser} logAudit={logAudit}
             />
@@ -1086,6 +1156,8 @@ export default function App() {
           {page === "fornecedores" && (
             <FornecedoresPage
               supplierNames={supplierNames} supplierStats={supplierStats} entries={entries} obras={obras}
+              fornecedoresCadastro={fornecedoresCadastro} setFornecedoresCadastro={setFornecedoresCadastro}
+              currentUser={currentUser} logAudit={logAudit}
             />
           )}
           {page === "contaspagar" && (
@@ -1093,7 +1165,7 @@ export default function App() {
               contasPagar={contasPagar} setContasPagar={setContasPagar}
               entries={entries} setEntries={setEntries}
               accounts={accounts.filter((a) => a.status === "Ativa")}
-              obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames}
+              obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions}
               saldoAtualTotal={dashboard.saldoTotal}
               orcamentoItens={orcamentoItens}
               currentUser={currentUser} logAudit={logAudit}
@@ -1316,7 +1388,7 @@ function LoginScreen({ usuarios, onLogin }) {
    Página: Lançamentos
 --------------------------------------------------------------- */
 
-function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entries, setEntries, supplierNames, dividas, setDividas, investimentos, setInvestimentos, currentUser, logAudit }) {
+function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entries, setEntries, supplierNames, fornecedorOptions, dividas, setDividas, investimentos, setInvestimentos, currentUser, logAudit }) {
   const blankForm = {
     id: null, tipo: "saida", contaId: accounts.find((a) => a.status === "Ativa")?.id || "",
     obraId: SEM_OBRA, data: todayISO(), valor: "", fornecedor: "", apropriacao: apropriacoes[0] || "", descricao: "",
@@ -1508,7 +1580,10 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     return { entradas, saidas, resultado: entradas - saidas };
   }, [filtered]);
 
-  const datalistOptions = form.tipo === "entrada" ? ["Não se aplica", ...supplierNames] : supplierNames;
+  const fornecedorSelectOptions = useMemo(() => {
+    const base = fornecedorOptions.map((f) => ({ value: f, label: f }));
+    return [{ value: "Não se aplica", label: "Não se aplica" }, ...base];
+  }, [fornecedorOptions]);
 
   return (
     <div className="gf-stack">
@@ -1540,10 +1615,12 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
               </select>
             </Field>
             <Field label="Centro de custo" hint="Obra vinculada ou custo interno (salários, escritório, etc.)">
-              <select value={form.obraId} onChange={(e) => updateForm({ obraId: e.target.value })}>
-                <option value={SEM_OBRA}>Administrativo / Custos internos</option>
-                {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
-              </select>
+              <SearchableSelect
+                value={form.obraId}
+                onChange={(v) => updateForm({ obraId: v })}
+                options={[{ value: SEM_OBRA, label: "Administrativo / Custos internos" }, ...obras.map((o) => ({ value: o.id, label: o.nome }))]}
+                placeholder="Selecione o centro de custo…"
+              />
             </Field>
             <Field label="Data">
               <input type="date" required value={form.data} onChange={(e) => updateForm({ data: e.target.value })} />
@@ -1552,12 +1629,13 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
               <input ref={valorRef} type="number" min="0.01" step="0.01" required placeholder="0,00"
                 value={form.valor} onChange={(e) => updateForm({ valor: e.target.value })} />
             </Field>
-            <Field label={form.tipo === "entrada" ? "Cliente / origem" : "Fornecedor"}>
-              <input list="gf-fornecedores" placeholder="Digite ou selecione…" value={form.fornecedor}
-                onChange={(e) => updateForm({ fornecedor: e.target.value })} />
-              <datalist id="gf-fornecedores">
-                {datalistOptions.map((f) => <option key={f} value={f} />)}
-              </datalist>
+            <Field label={form.tipo === "entrada" ? "Cliente / origem" : "Fornecedor"} hint={form.tipo !== "entrada" ? "Só fornecedores cadastrados na página Fornecedores" : undefined}>
+              <SearchableSelect
+                value={form.fornecedor}
+                onChange={(v) => updateForm({ fornecedor: v })}
+                options={fornecedorSelectOptions}
+                placeholder="Buscar fornecedor…"
+              />
             </Field>
             <Field label="Apropriação">
               {!addingApropriacao ? (
@@ -2635,9 +2713,32 @@ function ApropriacaoOrcamentoModal({ linha, obra, contasPagar, allEntries, onClo
    Página: Fornecedores
 --------------------------------------------------------------- */
 
-function FornecedoresPage({ supplierNames, supplierStats, entries, obras }) {
+function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornecedoresCadastro, setFornecedoresCadastro, currentUser, logAudit }) {
   const [selected, setSelected] = useState(null);
+  const [showNew, setShowNew] = useState(false);
+  const [editingFornecedor, setEditingFornecedor] = useState(null);
+  const podeCadastrar = can(currentUser, "fornecedores_cadastrar");
   const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
+
+  const salvarFornecedor = (data) => {
+    if (!podeCadastrar) return;
+    if (data.id) {
+      const anterior = fornecedoresCadastro.find((f) => f.id === data.id);
+      setFornecedoresCadastro((prev) => prev.map((f) => (f.id === data.id ? data : f)));
+      if (anterior && anterior.nome !== data.nome) {
+        logAudit?.({ tipoOperacao: "Alteração de fornecedor", registroAlterado: data.nome, valorAnterior: anterior.nome, valorNovo: data.nome });
+      }
+    } else {
+      setFornecedoresCadastro((prev) => [...prev, { ...data, id: uid("forn") }]);
+      logAudit?.({ tipoOperacao: "Cadastro de fornecedor", registroAlterado: data.nome, valorAnterior: "—", valorNovo: data.nome });
+    }
+    setShowNew(false); setEditingFornecedor(null);
+  };
+
+  const toggleAtivo = (f) => {
+    if (!podeCadastrar) return;
+    setFornecedoresCadastro((prev) => prev.map((x) => (x.id === f.id ? { ...x, ativo: !x.ativo } : x)));
+  };
 
   const rows = supplierNames
     .map((name) => ({ name, ...(supplierStats[name] || { total: 0, count: 0, obras: new Set(), last: null }) }))
@@ -2646,12 +2747,52 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras }) {
 
   return (
     <div className="gf-stack">
-      <div className="gf-toolbar"><h2>Fornecedores</h2></div>
+      <div className="gf-toolbar">
+        <h2>Fornecedores</h2>
+        {podeCadastrar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNew(true)}><Plus size={15} /> Novo fornecedor</button>}
+      </div>
 
-      {rows.length === 0 ? (
-        <div className="gf-card"><EmptyState icon={Users} title="Nenhum fornecedor com pagamentos" body="Fornecedores aparecem aqui automaticamente ao lançar saídas com o campo Fornecedor preenchido." /></div>
-      ) : (
-        <section className="gf-card">
+      <section className="gf-card">
+        <div className="gf-card-head"><h2>Fornecedores cadastrados</h2></div>
+        {fornecedoresCadastro.length === 0 ? (
+          <EmptyState icon={Users} title="Nenhum fornecedor cadastrado" body="Cadastre um fornecedor para poder selecioná-lo nos lançamentos e contas a pagar." />
+        ) : (
+          <div className="gf-table-wrap">
+            <table className="gf-table">
+              <thead><tr><th>Nome</th><th>Documento</th><th>Telefone</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                {fornecedoresCadastro.map((f) => (
+                  <tr key={f.id} className={!f.ativo ? "row-neg" : ""}>
+                    <td><b>{f.nome}</b></td>
+                    <td>{f.documento || "—"}</td>
+                    <td>{f.telefone || "—"}</td>
+                    <td><Badge tone={f.ativo ? "green" : "gray"}>{f.ativo ? "Ativo" : "Inativo"}</Badge></td>
+                    <td>
+                      {podeCadastrar && (
+                        <div className="gf-row-actions">
+                          <button className="gf-icon-btn" title="Editar" onClick={() => setEditingFornecedor(f)}><Pencil size={14} /></button>
+                          <button className="gf-icon-btn" title={f.ativo ? "Inativar" : "Reativar"} onClick={() => toggleAtivo(f)}>
+                            {f.ativo ? <X size={14} /> : <Check size={14} />}
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="gf-field-hint" style={{ marginTop: 10 }}>
+          Só fornecedores <b>ativos</b> aparecem para seleção nos lançamentos e contas a pagar. Inativar um fornecedor não afeta o histórico já lançado.
+        </p>
+      </section>
+
+      <section className="gf-card">
+        <div className="gf-card-head"><h2>Pagamentos por fornecedor</h2></div>
+        {rows.length === 0 ? (
+          <EmptyState icon={Users} title="Nenhum fornecedor com pagamentos" body="Fornecedores aparecem aqui automaticamente ao lançar saídas com o campo Fornecedor preenchido." />
+        ) : (
           <div className="gf-table-wrap">
             <table className="gf-table">
               <thead>
@@ -2677,7 +2818,15 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras }) {
               </tbody>
             </table>
           </div>
-        </section>
+        )}
+      </section>
+
+      {(showNew || editingFornecedor) && (
+        <FornecedorCadastroModal
+          fornecedor={editingFornecedor}
+          onClose={() => { setShowNew(false); setEditingFornecedor(null); }}
+          onSave={salvarFornecedor}
+        />
       )}
 
       {selected && (
@@ -2687,6 +2836,35 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras }) {
         />
       )}
     </div>
+  );
+}
+
+function FornecedorCadastroModal({ fornecedor, onClose, onSave }) {
+  const [f, setF] = useState(fornecedor || { nome: "", documento: "", telefone: "", email: "", observacao: "", ativo: true });
+  const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.nome.trim()) return;
+    onSave({ ...f, nome: f.nome.trim() });
+  };
+  return (
+    <Modal title={fornecedor ? "Editar fornecedor" : "Novo fornecedor"} onClose={onClose}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <Field label="Nome" className="gf-span-2"><input required autoFocus value={f.nome} onChange={(e) => upd({ nome: e.target.value })} placeholder="Ex: Cimento Forte Materiais" /></Field>
+        <Field label="Documento (CNPJ/CPF)" hint="Opcional"><input value={f.documento} onChange={(e) => upd({ documento: e.target.value })} /></Field>
+        <Field label="Telefone" hint="Opcional"><input value={f.telefone} onChange={(e) => upd({ telefone: e.target.value })} /></Field>
+        <Field label="E-mail" hint="Opcional"><input type="email" value={f.email} onChange={(e) => upd({ email: e.target.value })} /></Field>
+        <Field label="Status">
+          <select value={f.ativo ? "ativo" : "inativo"} onChange={(e) => upd({ ativo: e.target.value === "ativo" })}>
+            <option value="ativo">Ativo</option><option value="inativo">Inativo</option>
+          </select>
+        </Field>
+        <Field label="Observação" className="gf-span-2" hint="Opcional"><input value={f.observacao} onChange={(e) => upd({ observacao: e.target.value })} /></Field>
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">Salvar fornecedor</button>
+        </div>
+      </form>
+    </Modal>
   );
 }
 
@@ -2780,7 +2958,7 @@ function FornecedorDetail({ nome, entries, obras, onClose }) {
    Página: Contas a Pagar
 --------------------------------------------------------------- */
 
-function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, obras, apropriacoes, supplierNames, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
+function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, obras, apropriacoes, supplierNames, fornecedorOptions, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [baixaFor, setBaixaFor] = useState(null);
   const [grupoId, setGrupoId] = useState(null);
@@ -3163,7 +3341,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
 
       {showNew && (
         <NovaContaPagarModal
-          obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} podeRatear={podeRatear}
+          obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions} podeRatear={podeRatear}
           orcamentoItens={orcamentoItens} contasPagar={contasPagar} allEntries={entries}
           onClose={() => setShowNew(false)} onSave={saveNovaConta}
         />
@@ -3188,7 +3366,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
   );
 }
 
-function NovaContaPagarModal({ obras, apropriacoes, supplierNames, podeRatear = true, orcamentoItens = [], contasPagar = [], allEntries = [], onClose, onSave }) {
+function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOptions = [], podeRatear = true, orcamentoItens = [], contasPagar = [], allEntries = [], onClose, onSave }) {
   const [tipo, setTipo] = useState("unica");
   const [f, setF] = useState({
     centroCusto: SEM_OBRA, fornecedor: "", apropriacao: apropriacoes[0] || "", descricao: "",
@@ -3319,9 +3497,13 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, podeRatear = 
           <button type="button" className={tipo === "recorrente" ? "is-active" : ""} onClick={() => setTipo("recorrente")}>Recorrente</button>
         </div>
 
-        <Field label="Fornecedor">
-          <input list="gf-cp-fornecedores" value={f.fornecedor} onChange={(e) => upd({ fornecedor: e.target.value })} placeholder="Digite ou selecione…" />
-          <datalist id="gf-cp-fornecedores">{supplierNames.map((s) => <option key={s} value={s} />)}</datalist>
+        <Field label="Fornecedor" hint="Só fornecedores cadastrados na página Fornecedores">
+          <SearchableSelect
+            value={f.fornecedor}
+            onChange={(v) => upd({ fornecedor: v })}
+            options={fornecedorOptions.map((s) => ({ value: s, label: s }))}
+            placeholder="Buscar fornecedor…"
+          />
         </Field>
         <Field label="Apropriação">
           <select value={f.apropriacao} onChange={(e) => upd({ apropriacao: e.target.value })}>
@@ -4371,14 +4553,24 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
   }));
 
   // Equilíbrio: as retiradas (excluindo pró-labore e aportes) devem seguir a % de participação de cada sócio.
+  // Para isso, usamos como referência o "total implícito" do sócio que mais retirou até agora
+  // (ex.: se alguém com 40% retirou R$4.000, isso implica um total "correto" de R$10.000, dos quais
+  // os outros 60% — R$6.000 — são do outro sócio). Assim, quem está atrás fica com saldo a receber
+  // e quem retirou além do que os outros já retiraram (proporcionalmente) fica devendo.
   const balanco = useMemo(() => {
-    const rows = socios.map((p) => {
+    const impliedTotals = socios.map((p) => {
+      const pct = (Number(p.participacao) || 0) / 100;
       const real = socioStats[p.id]?.retiradas || 0;
-      const ideal = totalRetiradas * ((Number(p.participacao) || 0) / 100);
+      const implied = pct > 0 ? real / pct : 0;
+      return { p, real, implied };
+    });
+    const referencePool = Math.max(0, ...impliedTotals.map((x) => x.implied));
+    const rows = impliedTotals.map(({ p, real }) => {
+      const ideal = referencePool * ((Number(p.participacao) || 0) / 100);
       return { id: p.id, nome: p.nome, participacao: p.participacao, real, ideal, diff: real - ideal };
     });
     return rows.sort((a, b) => b.diff - a.diff);
-  }, [socios, socioStats, totalRetiradas]);
+  }, [socios, socioStats]);
 
   const EPS = 0.5;
   const devedor = balanco[0];
@@ -4408,7 +4600,7 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
             <strong>{devedor.nome} está à frente nas retiradas.</strong>
             <span>
               Considerando a participação de {devedor.participacao}% / {credor.participacao}%, {devedor.nome} deve{" "}
-              <b className="mono neg">{BRL(devedor.diff)}</b> a {credor.nome} para equilibrar as retiradas conforme a sociedade.
+              <b className="mono neg">{BRL(-credor.diff)}</b> a {credor.nome} para equilibrar as retiradas conforme a sociedade.
             </span>
           </div>
         ) : (
@@ -4725,6 +4917,32 @@ const CSS = `
 .gf-topbar-actions{ display:flex; align-items:center; gap:12px; }
 .gf-saved{ font-size:11.5px; color:var(--gf-muted); }
 .gf-saved-error{ color:var(--gf-danger); font-weight:600; }
+
+.gf-searchselect{ position:relative; width:100%; }
+.gf-searchselect-trigger{
+  width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:9px 10px; border-radius:8px; border:1px solid var(--gf-border); background:#fff;
+  font-family:var(--gf-font-body); font-size:13.5px; color:var(--gf-ink); cursor:pointer; text-align:left;
+}
+.gf-searchselect-trigger:hover{ border-color:var(--gf-accent); }
+.gf-searchselect.is-disabled .gf-searchselect-trigger{ background:var(--gf-gray-100); color:var(--gf-muted); cursor:not-allowed; }
+.gf-searchselect-placeholder{ color:var(--gf-muted); }
+.gf-searchselect-trigger svg{ color:var(--gf-muted); flex:0 0 auto; }
+.gf-searchselect-panel{
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:30; background:#fff;
+  border:1px solid var(--gf-border); border-radius:10px; box-shadow:0 10px 28px rgba(14,59,46,.14); overflow:hidden;
+}
+.gf-searchselect-panel input{ width:100%; border:none; border-bottom:1px solid var(--gf-border); padding:10px 12px; font-size:13px; }
+.gf-searchselect-panel input:focus{ outline:none; }
+.gf-searchselect-list{ max-height:220px; overflow-y:auto; }
+.gf-searchselect-item{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 12px;
+  font-size:13px; cursor:pointer; color:var(--gf-ink);
+}
+.gf-searchselect-item:hover{ background:var(--gf-gray-100); }
+.gf-searchselect-item.is-selected{ background:var(--gf-accent-soft); color:var(--gf-accent); font-weight:600; }
+.gf-searchselect-item svg{ flex:0 0 auto; }
+.gf-searchselect-empty{ padding:14px 12px; font-size:12.5px; color:var(--gf-muted); text-align:center; }
 .gf-menu-wrap{ position:relative; }
 .gf-menu{ position:absolute; right:0; top:calc(100% + 6px); background:#fff; border:1px solid var(--gf-border); border-radius:10px; box-shadow:0 8px 24px rgba(14,59,46,.12); display:flex; flex-direction:column; min-width:220px; z-index:20; overflow:hidden; }
 .gf-menu button{ padding:10px 14px; text-align:left; background:none; border:none; font-size:13px; cursor:pointer; font-family:var(--gf-font-body); color:var(--gf-ink); }
