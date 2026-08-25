@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Glover Engenharia — Financeiro</title>
 
+<!-- Permite "Adicionar à tela de início" no celular, como se fosse um app -->
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#0E3B2E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Glover Financeiro" />
+<meta name="mobile-web-app-capable" content="yes" />
+
 <!-- Mapa de importações: diz ao navegador onde buscar "react", "recharts" etc.
      (usa o esm.sh, que serve pacotes do npm prontos para rodar direto no navegador) -->
 <script type="importmap">
@@ -87,9 +97,6 @@
   }
 
   async function supabaseSet(key, value) {
-    // on_conflict=id diz ao Supabase: "se já existir uma linha com este id, ATUALIZE
-    // em vez de tentar criar outra" — sem isso, só o primeiro salvamento funciona e
-    // os seguintes falham silenciosamente.
     const url = SUPABASE_URL + "/rest/v1/kv_store?on_conflict=id";
     const res = await fetch(url, {
       method: "POST",
@@ -961,6 +968,38 @@ export default function App() {
     setDividas([]); setInvestimentos([]);
   };
 
+  const exportarBackup = () => {
+    const dados = {
+      accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
+      socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, usuarios, auditLog,
+      exportadoEm: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const carimbo = new Date().toISOString().slice(0, 16).replace(/[-T:]/g, "");
+    a.href = url;
+    a.download = `backup-glover-financeiro-${carimbo}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importarBackup = (file) => {
+    if (!file) return;
+    if (!window.confirm("Isso vai SUBSTITUIR os dados atuais (de toda a equipe) pelo conteúdo deste arquivo de backup. Continuar?")) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const dados = JSON.parse(e.target.result);
+        applyRemoteData(dados);
+        logAudit?.({ tipoOperacao: "Restauração de backup", registroAlterado: "Sistema", valorAnterior: "—", valorNovo: dados.exportadoEm || "arquivo importado" });
+      } catch (err) {
+        window.alert("Não foi possível ler este arquivo. Verifique se é um backup válido gerado pelo próprio sistema.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   /* --------------------- cálculos derivados --------------------- */
 
   const accountStats = useMemo(() => {
@@ -1125,7 +1164,7 @@ export default function App() {
         <TopBar
           curMonth={curMonth} prevMonth={prevMonth} pct={pct}
           dashboard={dashboard} savedTick={savedTick} saveError={saveError}
-          onReset={resetDemo} onClear={clearAll}
+          onReset={resetDemo} onClear={clearAll} onExport={exportarBackup} onImport={importarBackup}
           currentUser={currentUser} onLogout={doLogout}
         />
         <div className="gf-page">
@@ -1242,8 +1281,9 @@ function Sidebar({ page, setPage, currentUser }) {
   );
 }
 
-function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onReset, onClear, currentUser, onLogout }) {
+function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onReset, onClear, onExport, onImport, currentUser, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const importInputRef = useRef(null);
   const deltaEntradas = pct(curMonth.entradas, prevMonth.entradas);
   const deltaSaidas = pct(curMonth.saidas, prevMonth.saidas);
   const deltaResultado = pct(curMonth.resultado, prevMonth.resultado);
@@ -1276,6 +1316,10 @@ function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onR
               <button className="gf-btn gf-btn-ghost" onClick={() => setMenuOpen((v) => !v)}>Opções</button>
               {menuOpen && (
                 <div className="gf-menu" onMouseLeave={() => setMenuOpen(false)}>
+                  <button onClick={() => { onExport(); setMenuOpen(false); }}>⬇️ Baixar backup (JSON)</button>
+                  <button onClick={() => { importInputRef.current?.click(); setMenuOpen(false); }}>⬆️ Restaurar backup</button>
+                  <input ref={importInputRef} type="file" accept="application/json" style={{ display: "none" }}
+                    onChange={(e) => { onImport(e.target.files[0]); e.target.value = ""; }} />
                   <button onClick={() => { onReset(); setMenuOpen(false); }}>Recarregar dados de exemplo</button>
                   <button onClick={() => { onClear(); setMenuOpen(false); }}>Apagar todos os dados</button>
                 </div>
