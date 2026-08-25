@@ -1162,6 +1162,7 @@ export default function App() {
       <Sidebar page={page} setPage={setPage} currentUser={currentUser} />
       <main className="gf-main">
         <TopBar
+          page={page}
           curMonth={curMonth} prevMonth={prevMonth} pct={pct}
           dashboard={dashboard} savedTick={savedTick} saveError={saveError}
           onReset={resetDemo} onClear={clearAll} onExport={exportarBackup} onImport={importarBackup}
@@ -1281,13 +1282,14 @@ function Sidebar({ page, setPage, currentUser }) {
   );
 }
 
-function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onReset, onClear, onExport, onImport, currentUser, onLogout }) {
+function TopBar({ page, curMonth, prevMonth, pct, dashboard, savedTick, saveError, onReset, onClear, onExport, onImport, currentUser, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const importInputRef = useRef(null);
   const deltaEntradas = pct(curMonth.entradas, prevMonth.entradas);
   const deltaSaidas = pct(curMonth.saidas, prevMonth.saidas);
   const deltaResultado = pct(curMonth.resultado, prevMonth.resultado);
   const isAdmin = can(currentUser, "config_alterar");
+  const showResumo = page === "saldos";
 
   const Delta = ({ v }) => {
     if (v === null || !isFinite(v)) return null;
@@ -1304,8 +1306,12 @@ function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onR
     <header className="gf-topbar">
       <div className="gf-topbar-row">
         <div>
-          <div className="gf-eyebrow">Resumo geral</div>
-          <h1>Painel financeiro</h1>
+          {showResumo && (
+            <>
+              <div className="gf-eyebrow">Resumo geral</div>
+              <h1>Painel financeiro</h1>
+            </>
+          )}
         </div>
         <div className="gf-topbar-actions">
           <span className={saveError ? "gf-saved gf-saved-error" : "gf-saved"}>
@@ -1332,35 +1338,37 @@ function TopBar({ curMonth, prevMonth, pct, dashboard, savedTick, saveError, onR
           </div>
         </div>
       </div>
-      <div className="gf-tiles">
-        <div className="gf-tile gf-tile-primary">
-          <span className="gf-tile-label">Saldo total em bancos</span>
-          <span className="gf-tile-value">{BRL(dashboard.saldoTotal)}</span>
+      {showResumo && (
+        <div className="gf-tiles">
+          <div className="gf-tile gf-tile-primary">
+            <span className="gf-tile-label">Saldo total em bancos</span>
+            <span className="gf-tile-value">{BRL(dashboard.saldoTotal)}</span>
+          </div>
+          <div className="gf-tile">
+            <span className="gf-tile-label">Entradas no mês</span>
+            <span className="gf-tile-value pos">{BRL(curMonth.entradas)}</span>
+            <Delta v={deltaEntradas} />
+          </div>
+          <div className="gf-tile">
+            <span className="gf-tile-label">Saídas no mês</span>
+            <span className="gf-tile-value neg">{BRL(curMonth.saidas)}</span>
+            <Delta v={deltaSaidas} />
+          </div>
+          <div className="gf-tile">
+            <span className="gf-tile-label">Resultado do mês</span>
+            <span className={`gf-tile-value ${curMonth.resultado >= 0 ? "pos" : "neg"}`}>{BRL(curMonth.resultado)}</span>
+            <Delta v={deltaResultado} />
+          </div>
+          <div className="gf-tile">
+            <span className="gf-tile-label">Total gasto nas obras</span>
+            <span className="gf-tile-value">{BRL(dashboard.totalGastoObras)}</span>
+          </div>
+          <div className="gf-tile">
+            <span className="gf-tile-label">Obras em andamento</span>
+            <span className="gf-tile-value">{dashboard.obrasAndamento}</span>
+          </div>
         </div>
-        <div className="gf-tile">
-          <span className="gf-tile-label">Entradas no mês</span>
-          <span className="gf-tile-value pos">{BRL(curMonth.entradas)}</span>
-          <Delta v={deltaEntradas} />
-        </div>
-        <div className="gf-tile">
-          <span className="gf-tile-label">Saídas no mês</span>
-          <span className="gf-tile-value neg">{BRL(curMonth.saidas)}</span>
-          <Delta v={deltaSaidas} />
-        </div>
-        <div className="gf-tile">
-          <span className="gf-tile-label">Resultado do mês</span>
-          <span className={`gf-tile-value ${curMonth.resultado >= 0 ? "pos" : "neg"}`}>{BRL(curMonth.resultado)}</span>
-          <Delta v={deltaResultado} />
-        </div>
-        <div className="gf-tile">
-          <span className="gf-tile-label">Total gasto nas obras</span>
-          <span className="gf-tile-value">{BRL(dashboard.totalGastoObras)}</span>
-        </div>
-        <div className="gf-tile">
-          <span className="gf-tile-label">Obras em andamento</span>
-          <span className="gf-tile-value">{dashboard.obrasAndamento}</span>
-        </div>
-      </div>
+      )}
     </header>
   );
 }
