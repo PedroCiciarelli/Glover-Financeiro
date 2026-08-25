@@ -762,7 +762,7 @@ function EmptyState({ icon: Icon, title, body }) {
 }
 
 // Campo de seleção com busca (combobox). options: [{ value, label }]
-function SearchableSelect({ value, onChange, options, placeholder = "Buscar…", disabled = false }) {
+function SearchableSelect({ value, onChange, options, placeholder = "Buscar…", disabled = false, error = false }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const wrapRef = useRef(null);
@@ -779,7 +779,7 @@ function SearchableSelect({ value, onChange, options, placeholder = "Buscar…",
     : options;
 
   return (
-    <div className={`gf-searchselect ${disabled ? "is-disabled" : ""}`} ref={wrapRef}>
+    <div className={`gf-searchselect ${disabled ? "is-disabled" : ""} ${error ? "is-error" : ""}`} ref={wrapRef}>
       <button
         type="button" className="gf-searchselect-trigger" disabled={disabled}
         onClick={() => { setOpen((v) => !v); setQuery(""); }}
@@ -1432,6 +1432,11 @@ function LoginScreen({ usuarios, onLogin }) {
    Página: Lançamentos
 --------------------------------------------------------------- */
 
+const LANCAMENTO_FIELD_LABELS = {
+  contaId: "Conta bancária", obraId: "Centro de custo", data: "Data",
+  valor: "Valor", fornecedor: "Fornecedor", apropriacao: "Apropriação",
+};
+
 function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entries, setEntries, supplierNames, fornecedorOptions, dividas, setDividas, investimentos, setInvestimentos, currentUser, logAudit }) {
   const blankForm = {
     id: null, tipo: "saida", contaId: accounts.find((a) => a.status === "Ativa")?.id || "",
@@ -1450,6 +1455,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
   const [addingApropriacao, setAddingApropriacao] = useState(false);
   const [novaApropriacao, setNovaApropriacao] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const valorRef = useRef(null);
   const podeCriar = can(currentUser, "lancamentos_criar");
   const podeEditar = can(currentUser, "lancamentos_editar");
@@ -1461,11 +1467,35 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
 
   const activeAccounts = accounts.filter((a) => a.status === "Ativa");
 
-  const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
+  const updateForm = (patch) => {
+    setForm((f) => ({ ...f, ...patch }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(patch).forEach((k) => delete next[k]);
+      return next;
+    });
+  };
 
   const submit = (e) => {
     e.preventDefault();
-    if (!form.contaId || !form.valor || Number(form.valor) <= 0 || !form.data) return;
+
+    // Validação de campos obrigatórios. Para lançamentos de gasto (saída), exige também
+    // Centro de custo, Fornecedor e Apropriação, além de Conta bancária, Data e Valor.
+    const errors = {};
+    if (!form.contaId) errors.contaId = true;
+    if (!form.data) errors.data = true;
+    if (!form.valor || Number(form.valor) <= 0) errors.valor = true;
+    if (form.tipo === "saida") {
+      if (!form.obraId) errors.obraId = true;
+      if (!form.fornecedor || !form.fornecedor.trim()) errors.fornecedor = true;
+      if (!form.apropriacao) errors.apropriacao = true;
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+
     if (editingId && !can(currentUser, "lancamentos_editar")) return;
     if (!editingId && !can(currentUser, "lancamentos_criar")) return;
 
@@ -1548,7 +1578,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     } else {
       setEntries((prev) => [payload, ...prev]);
     }
-    setEditingId(null); setEditingClassificacao(null);
+    setEditingId(null); setEditingClassificacao(null); setFieldErrors({});
     setForm({ ...blankForm, contaId: form.contaId, obraId: form.obraId, tipo: form.tipo });
     setTimeout(() => valorRef.current?.focus(), 0);
   };
@@ -1557,6 +1587,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     if (!can(currentUser, "lancamentos_editar")) return;
     setEditingId(entry.id);
     setEditingClassificacao(entry.classificacao || (entry.dividaId ? "divida" : entry.investimentoId ? "investimento" : null));
+    setFieldErrors({});
     setForm({
       ...blankForm,
       id: entry.id, tipo: entry.tipo, contaId: entry.contaId, obraId: entry.obraId,
@@ -1565,7 +1596,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     window.scrollTo?.({ top: 0, behavior: "smooth" });
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditingClassificacao(null); setForm(blankForm); };
+  const cancelEdit = () => { setEditingId(null); setEditingClassificacao(null); setForm(blankForm); setFieldErrors({}); };
 
   const duplicate = (entry) => {
     if (!can(currentUser, "lancamentos_criar")) return;
@@ -1643,17 +1674,17 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
         </div>
         <form onSubmit={submit} className="gf-entry-form">
           <div className="gf-segmented">
-            <button type="button" className={form.tipo === "entrada" ? "is-active pos" : ""} onClick={() => updateForm({ tipo: "entrada" })}>
+            <button type="button" className={form.tipo === "entrada" ? "is-active pos" : ""} onClick={() => { updateForm({ tipo: "entrada" }); setFieldErrors({}); }}>
               <ArrowUpRight size={14} /> Entrada
             </button>
-            <button type="button" className={form.tipo === "saida" ? "is-active neg" : ""} onClick={() => updateForm({ tipo: "saida" })}>
+            <button type="button" className={form.tipo === "saida" ? "is-active neg" : ""} onClick={() => { updateForm({ tipo: "saida" }); setFieldErrors({}); }}>
               <ArrowDownRight size={14} /> Saída
             </button>
           </div>
 
           <div className="gf-form-grid">
             <Field label="Conta bancária">
-              <select required value={form.contaId} onChange={(e) => updateForm({ contaId: e.target.value })}>
+              <select required className={fieldErrors.contaId ? "gf-input-error" : ""} value={form.contaId} onChange={(e) => updateForm({ contaId: e.target.value })}>
                 <option value="" disabled>Selecione…</option>
                 {activeAccounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
               </select>
@@ -1664,13 +1695,15 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
                 onChange={(v) => updateForm({ obraId: v })}
                 options={[{ value: SEM_OBRA, label: "Administrativo / Custos internos" }, ...obras.map((o) => ({ value: o.id, label: o.nome }))]}
                 placeholder="Selecione o centro de custo…"
+                error={!!fieldErrors.obraId}
               />
             </Field>
             <Field label="Data">
-              <input type="date" required value={form.data} onChange={(e) => updateForm({ data: e.target.value })} />
+              <input type="date" required className={fieldErrors.data ? "gf-input-error" : ""} value={form.data} onChange={(e) => updateForm({ data: e.target.value })} />
             </Field>
             <Field label="Valor (R$)">
               <input ref={valorRef} type="number" min="0.01" step="0.01" required placeholder="0,00"
+                className={fieldErrors.valor ? "gf-input-error" : ""}
                 value={form.valor} onChange={(e) => updateForm({ valor: e.target.value })} />
             </Field>
             <Field label={form.tipo === "entrada" ? "Cliente / origem" : "Fornecedor"} hint={form.tipo !== "entrada" ? "Só fornecedores cadastrados na página Fornecedores" : undefined}>
@@ -1679,12 +1712,13 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
                 onChange={(v) => updateForm({ fornecedor: v })}
                 options={fornecedorSelectOptions}
                 placeholder="Buscar fornecedor…"
+                error={!!fieldErrors.fornecedor}
               />
             </Field>
             <Field label="Apropriação">
               {!addingApropriacao ? (
                 <div className="gf-inline-select">
-                  <select value={form.apropriacao} onChange={(e) => updateForm({ apropriacao: e.target.value })}>
+                  <select className={fieldErrors.apropriacao ? "gf-input-error" : ""} value={form.apropriacao} onChange={(e) => updateForm({ apropriacao: e.target.value })}>
                     {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
                   </select>
                   <button type="button" className="gf-icon-btn" title="Nova apropriação" onClick={() => setAddingApropriacao(true)}>
@@ -1833,6 +1867,12 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
             )}
           </div>
 
+          {Object.keys(fieldErrors).length > 0 && (
+            <div className="gf-warn gf-form-error">
+              Preencha os campos obrigatórios: {Object.keys(fieldErrors).map((k) => LANCAMENTO_FIELD_LABELS[k] || k).join(", ")}.
+            </div>
+          )}
+
           <div className="gf-form-actions">
             <button type="submit" className="gf-btn gf-btn-primary" disabled={editingId ? !podeEditar : !podeCriar}>
               {editingId ? "Salvar alterações" : "Lançar movimento"}
@@ -1890,12 +1930,12 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
             <thead>
               <tr>
                 <th>Data</th><th>Tipo</th><th>Conta</th><th>Centro de custo</th><th>Fornecedor</th>
-                <th>Apropriação</th><th>Descrição</th><th className="num">Valor</th><th></th>
+                <th className="num">Valor</th><th>Descrição</th><th></th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={9}><EmptyState icon={Receipt} title="Nenhum lançamento encontrado" body="Ajuste os filtros ou registre um novo lançamento acima." /></td></tr>
+                <tr><td colSpan={8}><EmptyState icon={Receipt} title="Nenhum lançamento encontrado" body="Ajuste os filtros ou registre um novo lançamento acima." /></td></tr>
               )}
               {filtered.map((e) => (
                 <tr key={e.id} className={e.tipo === "entrada" ? "row-pos" : "row-neg"}>
@@ -1904,7 +1944,9 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
                   <td>{accountName(e.contaId)}</td>
                   <td>{obraName(e.obraId)}</td>
                   <td>{e.fornecedor || "—"}</td>
-                  <td>{e.apropriacao}</td>
+                  <td className={`num mono ${e.tipo === "entrada" ? "pos" : "neg"}`}>
+                    {e.tipo === "entrada" ? "+" : "−"} {BRL(e.valor)}
+                  </td>
                   <td className="gf-td-desc" title={e.descricao}>
                     {e.descricao || "—"}
                     {e.dividaId && <span className="gf-mini-tag" title="Vinculado a uma dívida"> · Dívida</span>}
@@ -4987,6 +5029,10 @@ const CSS = `
 .gf-searchselect-item.is-selected{ background:var(--gf-accent-soft); color:var(--gf-accent); font-weight:600; }
 .gf-searchselect-item svg{ flex:0 0 auto; }
 .gf-searchselect-empty{ padding:14px 12px; font-size:12.5px; color:var(--gf-muted); text-align:center; }
+
+.gf-input-error{ border-color:var(--gf-danger) !important; background:var(--gf-danger-soft); }
+.gf-searchselect.is-error .gf-searchselect-trigger{ border-color:var(--gf-danger); background:var(--gf-danger-soft); }
+.gf-form-error{ margin-top:10px; }
 .gf-menu-wrap{ position:relative; }
 .gf-menu{ position:absolute; right:0; top:calc(100% + 6px); background:#fff; border:1px solid var(--gf-border); border-radius:10px; box-shadow:0 8px 24px rgba(14,59,46,.12); display:flex; flex-direction:column; min-width:220px; z-index:20; overflow:hidden; }
 .gf-menu button{ padding:10px 14px; text-align:left; background:none; border:none; font-size:13px; cursor:pointer; font-family:var(--gf-font-body); color:var(--gf-ink); }
