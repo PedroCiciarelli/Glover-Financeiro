@@ -158,7 +158,7 @@ import {
   LayoutGrid, Receipt, Wallet, Building2, Users, Plus, Search, Pencil, Trash2,
   Copy, X, ArrowLeftRight, Download, ChevronRight, ArrowUpRight, ArrowDownRight,
   TrendingUp, TrendingDown, Filter, ChevronLeft, Check, Scale, BarChart3,
-  CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut,
+  CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut, ClipboardCheck,
 } from "lucide-react";
 
 const GLOVER_LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA1QAAADsCAYAAABzEOfYAABAuklEQVR4nO3d218Ud74v/G+lrWqatmm6aRqkQQQPqC22BzxiDuozk4CT2Rmz9ihkTaJrLibPzb5a+5/Ys6/WczPrtV/zzGTWHjWzJu7ntUwkmSw1Bx0PISpqx0MMCAhC0wJN2zR0h9RzgW1Q6aYP9fvV6fO+mYlgVUlVNb/P7/D9Cf/jt78lACUUSRK1tbfJX138im7c/EZQ+3oAAAAAAFh7Qe0LAGNIhSmPp5xa9rXSrh07ZLWvCQAAAACANQQqKNjcMJWyo7mZWltaEKoAAAAAwNAWqX0BoG/OxQ7a/w/7nwpTKX6/n4hIPtnRgel/AAAAAGBICFSQN6+njNra35IlSUr7PX6/n0qdTvn48ePCVCLB8eoAAAAAANjDlD/ISzZhKsVXXU1t7W1yURbfCwAAAACgJwhUkLNcwlSKx1OOUAUAAAAAhoNABTnJJ0yleDzl9Jt335W9njIGVwYAAAAAwB8CFWStkDCVIkkStbW/hVAFAAAAAIaAQAVZWVlXLxcaplIQqgAAAADAKBCoYEHr1qyV33hzPykRplIkSaJ3Dh2W161Zi72qAAAAAEC3EKggo3Vr1sot+1qZHb9lXyshVAEAAACAXiFQQVqsw1RKy75W2rxxI0IVAAAAAOgOAhXMi1eYStmzdy+1trQgVAEAAACAriBQwXN4h6kUv9+PUAUAAAAAurJI7QsAbWltaZH9fr9q5/f7/VRUZJNPfvShMJVIqHYdAAAAAADZwAgVPKF2mEpZvrye2trb5CIFqwoCAAAAALCAQAVEpJ0wleLxlCNUAQAAAIDmIVCB5sJUisdTTocOH8YGwAAAAACgWQhUJqfVMJXicDiorf0thCoAAAAA0CQEKpMqkiTa/4v9mg5TKZIkIVQBAAAAgCYhUJlQkSRRW3ubvHx5vdqXkjVJkuidQ4fldWvWoqw6AAAAAGgGApXJpMKUx1Ou9qXkpWVfKyFUAQAAAIBWIFCZCI8wlUgkKBweYXZ8otlQtXnjRoQqAAAAAFAdApVJ8ApTR4/8WTh65KjAOlTt2buXWltaEKoAAAAAQFUIVCbAM0yFwg9pKpGgo0eOCt99183sfEREfr8foQoAAAAAVIVAZXBeTxn95t13mYapaDT6JEylTCUSdPz/HBeCwSCz8xLNhqr9v9iPDYABAAAAQBUIVAbm9ZRRW/tbssQwbITDI/THP/zhqTA118mODuahavnyemprb0OoAgAAAADuEKgMileYOnrkqDCVSGT8vpMdHcLpU6eYXQcRkcdTTuUeD6b/AQAAAABXCFQGpKUwlfL1lStCx0cnmV0PAAAAAIAaFql9AaAsLYaplBs3vxGISN77k/+LWF4fAAAAAAAvGKEykJV19bJWw1TKjZvfCEeP/FlI5Pn3AQAAAAC0BIHKINatWSu/8eZ+piM/wWCQ/vDH9/IOUymh8ENCqAIAAAAAI0CgMoB1a9bKLftamZ4jGAzSyY4OQanjhcIP6Y//7x+YbwAMAAAAAMASApXO6TFMpUQeRenokaMIVQAAAACgWwhUOqbnMJUylUjQ0SNHhWg0yuoUAAAAAADMIFDplBHCVMpUIkETkQjr0wAAAAAAKA5l03Vo7+498qbNm5ie4/y5c3T2/HnmYQoAAAAAQM8QqHSmtaVF9vv9TM/R8dHJ1J5RAJqTmEnS2FSEJr+Py4+ScUr8kKQH0xML/j33Ihs5xGKSLIuoVCoRXEVOkiwihysG4Gs4Fqbvf/ieRqcnZCKi3vjDrP6e7QWRvNYSIiLy2tyCZBHJVeRkd6EAAAaBQKUjCFNgRsOxMIXio3JoeoIeJKI0mozndZxuGpv7nzIRkWgRqUZaTLW2MvLa3EKF3aPAFQPwMzYVoVD8oXx/crSg9yMlGAul/q+c+j8+q4OWSA5aUlxG3uIywS4WF3QOAACjQaDSCYQpMItYcpLuPxqSv300TN3xsYX/QgGSM0nqjo+lziMTEfntXqoudlP14ko0HEFzYslJCk0+lLsfDdOdqTFKziSZn3NgOkoD01Gi6CARkewWbVRf5KLaxZVCeXEZRnqBqeFYWO1L0AyMGmsXApUOIEyB0SVmktQz0S/fmBiYbbipKBgLzfbSj9ySfVYHrSvxUV1JjWCURuO/3DkpL/xdudvtXkGNnlX4DGEgMZOkgUdD8uXxe6q/H0REo8k4jSbj1BkdfNIJsbqkWvA5KtW+NLo91i1/MnKL2fHrbS76Wc0OQz/n18N35DOjd5kdX7SI9H8v/0nWP8P3By4x+czSIyWev+FYWPM/U5/VQdYXFtESawktFm1UKpVofgYJApWGFUkS7dm7l2mYSiQSdOrT/0SYAlUMx8J0Y/yePGeakaYMTEdpYOQW0cgtuclRRctLqjX/oQ7GMRwL03cT9+XO2ZEhzXrcCSGLIZG2OqpotatOtdHdupIaQRz9TmY1ctcdH6OxqYhhRwkSM0k6G+lleo5dzlqmxwf9S3UczZmlIhPNBsqViyvIaysTtPYOIlBpWFt7m+zxlDM7fiKRoKNH/iyEwtktWAZQSk+kXz43erfg9R48dUYHqTM6KPusDtpUuozqnDXohAAmeiL9cnDiPvMpr0pLziTp3HgvnRvvVa0DQrKItMtZSyxHWG6O9cg7l2ww5Ps/8GiIWRglmh2danDVGfJnB+zNnaLvFm20pbRWM9PzEag0DGEKjEaPQepZA9NRGhi+Tu7Ru3KzewWCFSjGCO9HSqoDot7moi3ulVyDVb2zWjgzepfZlKbO6CAFPKtIC404pZ1jGESJiALF5VhzB4oYTcbpkzkzSAKeVaoGKwQqE0KYAt6GY2E6G74pa2H9h1JGk3E68ThY7fas0cT6EdCn4ViYvhr9VtbbiFQ2uuNj1D1wiWuDxy4WU5OjilhOleyO3JeNtmZwIDrEPMwHDPYzA21IdeD47V7a7l2rSrBCoDIZhCngKZacpAuhbzS7RkoJo8k4ffDgslw/7qLm8rWam9cN2pWYSdKXQ12Gfj9SUg0eXsVLAp5VQqpoBgtnI73U6FnF6vCquDLew7RQQZOjypCjeqAdwViIgj0hubm0lhrLVnEtJoVAZSIIU8DT7bFu+fTod1zKOmtBd3yMuvvOqfJBDvpjtvcj5czoXeqKDsg/8TYynQZoF4up3uZitg4tOZOknki/bJQpv2NTEeZr9paXVBviZwXad268l27GQlxnj7zA5SygunB4hP71d79DmALmYslJ+rD/vPzJyC3TNRaJZj/I/9J3VsbeKTAfs78fRLOjuu8PXJK/DgXlBMOfwRb3SqYNeNbrjXi6OcZ2dKre5iJUSAWeUrNHvg4FuZSIR6AygXB4hI4eOSpMJRJqXwoY3EB0iP7Ud86Qa0FykWowXg/f0fReH8AX3o+nnRvvpRP3L8hjUxEmx6+we8hndTA5NtHse26EjpNYcpLpejMioo2lqOwH6jg33ksf9H7JtPOGCIHK8BCmgJevQ0H5gweXmZbc1Zszo3fpg94v5VhyUu1LAZXh/ZjfwHSUjg1cknsi/Uw6HzaVLmNx2Ce+Gv1W950m3ZH7TP8NbtFGKNoDahqYjtLv733GrPOGCIHK8BCmgLXETJI+7D8vnxtnuxmkXg1MR+lPfecwBdCk8H4sLDmTpBPD14nF1Jw6Z43gFm1KH/aJ7vgY6b3DhPVGvs3uFUyPD5CN5EySjg1cYhaqEKiytHf3HnnXjh2664lCmAKWYslJOnH/AqYwLSA5k6T3GfbCgzbh/cjNufFe+vuDq4pPzdlSWqvo8Z7VpeOpvT2Rfqajpm7Rhr36QDNYhioEqiy0trTImzZvoh3NzdTa0iIXSZLalwSgurGpCP2p75yh9pZi7cTwdfr7g6u6bXxB9vB+5KczOkgn7l9QNFTVldQIIsOqm53RQWK9PoMV5hv5OnxMjw+QK1ahCoEqgyJJosOH3pH9fv+TP/P7/dTW3iY7F7Nb6AqgdWNTETo2cAnrQfLQGR1EqDI4vB+FGZiOKhqqJItIu5xsR6luM66Sx8JwLMx0I1/RIlKDC8UoQHtSoUrJ6boIVGkUSRK1tbfJHk/5c1/zeMrp0D8dlr2eMhWuDEBdaCwWDqHKuPB+KEPpUFXvZLsHUld0gOXhmWBdUGOro4qwHx9oVXImSR8Pfq3YZwwC1Ty8nrK0YSpFkiR659Bhed2atWgUgWmgsaicBwlMBTMavB/KUjJU2cVianJUKXBV8xtNxklPayRjyUnmG/muxugUaNzAdJSuP1RmDSQC1TNmw9RbGcPUXC37Wmnv7j26+RAFyFcsOYnGooL2VKxHY8NAEKbYUDJUrWHcwL88fo/l4RXFupBGk6OK7GIxy1MAKOLceC8NRIcKPg4C1RypMCXlWHRi0+ZN1H7wIIpVgGElHg+No7GojN3uFeQqcqp9GaCQxEySTg9fw/vByMB0lDoVKKnuKnJSvc2lxCXNa2A6qouNfhMzSeYb+bIOrwBKOhO+WXCnDQLVY+vWrJXfOXQ45zCV4quuprb2NqyrAkP622AnqpUpxGd1UKNnFRobBoL3g73O6CBdV2BUZYt7JdN378b4Pc3PWGFdQKPe5kKHEejKaDJe8NQ/BCqaDVMt+1oLPo7HU05t7W/JNVVVmv9ABcjW16Eg9tFREKb6GQveD37OjN4teGpOhd1DLDf6DcZCmt/ol3UBDdahFYCFc+O9Bb27ixS8Fl3avHGjvGfvXsWOJ0kSHWxvp9OnTslfX7mCDxXQtYHoEJ0b71X7MtKqt7loibWEpBdE8trcT963CruHEjNJSu0z8f0P39Po9IQcmp6gB4ko01LBmWCqn7Ho4f1wL7KRQyx+6v1wFTlJsog0NhV5sn/S5Pdx+VEyTmq/Iwv5j9B1+e2iEqGQ9TnN7hV0Yvi6glf1tFtjPfJmr1+Tv/97Iv0yy3vrFm1UYfcwOz4AS13hO/LOJRvyendNHahaW1qe2mNKSXv27qWKykr5ZEeHJj9UARYSS07Sf4Sua2q01S3aaI3dS5W2MsHnqMz4vZJFfOoXu89R+eRdjCUnKTT5UO5+NEzBWIjdBc+BqX7GouX3o9peIWTTqH0m3D/1bCZmkjTwaEh+MPmQuiZHSCvrw1Kljt+sfTHvd6nOWSO4R+8yCxaXooPUWLZKkyXDWRfOaHavYHp8AJY6o4MU8KzKq6CKaQMVyzCV4vf7qaLCKx89clSYSiSYngtAaWeGujSzyL7JUUXLS6qzaiRmwy4WU52zWKhz1tCLjxuOwYn7TMsIY6qfsWjl/RAtIm11VFF9SbWg5OinZBGpzlkj1DlraCfNjsbdmrgv8+qAyGRgOkrXw3fkQjooAg4fnRm9q+RlPZGcSVLPRL/c4KrX1Ds/HAsTy7V+btFGdc4aTf2bM0n9XlH7OnKhxZA+V73NRbW2wmoJ9MYfUn/ikWqdOPmOUpkuUBVJEu3fv1/2VVdzOZ/HU06HDh+Wj3/wVyEUfsjlnACFuj3Wrfq6ENEi0i5nLdU7qwua3rOQuQ3HsakI3RzrkZWugIWpfsaihffDLdqo2b2CfIsrBR6NLJ+jknyOSmF7cpK6wncUf0dydWb0LlUvrsj7vWpw1QlnI73MQvFX473U4Kpncux8sS6YEXD4WB5ecQ6xGNMTFVZrKyt4Jkbj4/8diA7RlfEe7p+1XZMj1DSTzDm8mqooRZEkUVt7G7cwleJwOKit/S1sAgy6EEtO0unR71S9hiZHFb29tFlo9KxiGqae5Spy0s4lG4Rf170i+O1eRY6JqX7Govb7IVpEerV8Nf1j3W6hzlnDJUzNZReLn7wjLDfKzcbp4Wt5/06VHo/ssaK1jX5jyUmm05tFi0gNKJUOCvI5KulnNTuEA76tgs/q4Hbe5ONZK7n+PdMEKudiB7W1t2W9Ya/SJEmiln2ttGvHDs18wALM50LoG9WmMvmsDvrV0mZh55INXIPUs+xiMe31NSnyQY6pfsai5lS/5tJa+vWyVwQtTCVLBatfLW3m2tiZKzX1L9+/v5pxAAhO3Gd5+Jyw3sh3q6NK89PRQJ8q7B56s/ZFobm0lts5ux8N5/x3TBGovJ4yOvRPh1ULU3PtaG6m1pYWbAIMmjQcC3Mr0vCs3e4V9Gbti4quAylU6oN8d54LrTHVz1iGY2Gm6+zSES0iHfBtFTZ7/dxHpBbiKnIW9I4U6mykl/LdkNMuFhPLUbbu+JgmNvpNzCSpa3KE6TlYh1OAzV6/8HpF48LfqIB82kGGD1ReTxm1tb+V94a9LPj9fmprb5Odi9Xp1QNI52z4JvcR1FRjUcvT4ho9q3LuicdUP+P5VIWqfvU2F/162SuKFWRhJfWOiJwDX3ImSZ2hYN73ZQ3jIPDdxH3VZ6XcHuthOqra5KjKqyoaQK7qnDXCq+WruZwr184QQweqdWvWyloLUykeTzkd+qfDstdTWDUUAKX0RPpllhWg5uOzOujtpc2abywSzfbEv169Pat1I6JFxFQ/g2G9f898mhxV9LOaHZoblUrHVeSkXy97hfsUwM7oYN4bcrqKnFRvcyl8RT8q5NqUwnojX9ahFGCuBle9YmucMwnFR3PqDDFsoFq3Zq3csq+VtBimUiRJoncOHUaxCtCEc4xKCKfjszro9ertqq6VypVkEWnnkg0LTjvY416OqX4Gw/v9eL2ikfLdYFJNkkXMuuNBSYWsEdriXsn059wdUW+UinVHQL3Nhc864O7FygDz0fDeeG6VuQ0ZqDZv3Ci37GtV+zKy1rKvlRCqQE28e99TYUovPe/PqnPWpJ3eVG9zkRaKBoByeL8fr1c06mo/n2elOh54hqpCRoIq7B5yizaFr+hHhazzKhTrwhiswygoT6+/d+eSHm+rwlJ/4lFO32+4QNXa0iLv2btX7cvIWWkpenhAPTx73/UeplJcRU56+5l1VaJFpN2VATQwDIbn+6H3MDUX71BVyChVM8OiGvmWYS4U6yIqPqsD+zjpkFFGFFmX6c913aGhAlVrS4vs9/vVvgwAXRmOhYlX77tRwlSKXSym16u3PwlVe9zLsTjbYAaiQ9zej+bSWsOEqZQmr5/bmqrO6GDeI0F1zhqB5SgV7ymjROwLYmwqXcby8AAZSRaRWK+lyqUwhSECVZEkUfvBgwhTAHm4MX6PS8+paBHptarNhglTKak1I82ltZjqZ0BXxnu4vB9+u5c2e/2Ge35S7wev6n+3x/K/XwGHT8lLecpoMk4D0SFmx39WLDlJndFBZsd3izbDhX/Qn+pit9qX8ITuA1WRJFFbe5vsq65mep5weISOHTlC4TDbvRwAeIolJ7ntO/Vzb6OuClDkQrKIhmwMm10sOcll3ym3aKMXDTxVVLKIdNC3lcu/r5CKdg2uOqbBj1c4JyK6VUCwzMYWjpusAqRTKpVo5nNT14EqFaZYb9gbDAbp6JGjQv/goHD0yFEhGAwyPR8AL/c5zetvLq0ln6OSx6kAFMOrOtu+JZsMN3L7LFeRk3hs/juajOe9ma5kEWkr441+eZRQT8wk6RLD0SnRIlJdCUanQH1a+tzUbaDyesroN+++yyVMnezoEKYSCSIimkok6GRHh3D61Cmm5wXg4cYE2/1JiGZ73xvLsMEt6A/r/XuIiHa7VxhmkfhCGj2ruKynKmTt0GrGC90LKZyRrZ6JfqYb+e5y1mqqIQvmpaXPTl0GKq+njHhs2Hv568t0sqNj3g/Xr69cEd774x+ExOOgBaA3Y1MR4rGR70+8jYbvfQfjGZuKMC9G4RZtzCtVaQ2PDa+7JvOfmm8Xi4llZcJCCmdk66vxXqbHr3dWm+qZBe3KdzSaBd0FqpV19TKPMNXx0Uk6deZ0xg+NUPgh/evvfidEo+wbpQBKC8UfMu8p9du9KKsLutTNuEIa0WypbrN1NriKnEwDC9HjMuUFFIBYwzjkFlI4YyGs90xrclShkinAPHQVqNatWSu/8eZ+4hGmbtz8JqsP1KlEgiYiEabXA8ACj+l+271r0ZMJunQvPsr0+PU2l2mrpAU87KcADxXQYeQqclK9zaXk5TzlbITdCBLrjXx53DuAbIXio9z3d0tHN4Fq3Zq1csu+VqbnSCQS9P99cDzrMAWgV4mZJPPpfujJBL2KJSeZvx8bS8011W8u1tPqiIhuFli9dIt7JbP7k5xJUk+kX/GG4NhUhGlVynqbC5/poCl3YsNMj79Yyv5510Wgam1p4RKmjh75s/BtT7dpf8mBeYxMPmR+DtbTZgBYCU2ynQ7rFm2mr3rJeqRjNBkvqKJehd1Detvo9ybrUukMQyZArnh0fOXSgaD5QNXa0sJ8w95UmAqF2TcyAbSgkOkw2ai3uTRVfQcgF6PTE0yPjz18ZhsqfruX6TnGpwq7j80My7wXUt59Pqw38vVZHVgPC5rCumJmrhVJNRuoiiSJ9v9iP/MwFQ6P0L/+7ncIU2AqDxg3GP0lbDfaBmCJ9fop7OEza3UJ22pxhXYc1TlrBJajVDfG7ynWIGS9Z9qm0mUsDw+Qk7GpCNMOBCKiJVJugWoRo+soCK8Ne8PhETp65OiTPaYAzILlPHsiIt/iSjQYQbdYTiPx272mq+yXjs9RSWJIJFZ7JinRcRRw+OgMg+l5RETBWIi2JycLXpeUmEkyLXThFm2GLKByZvQunRm9q5miBnMd8G0VMCKY3unha8zvW1lRSU7fr7kRKl5h6rvvuhGmwJTGpthWpUSDEfSM9b4m9YsrmB5fbwLF7H7XK9Fx1OCqE0SGn2dKTFsaeDTEdCNfTFEFLfn7g6syjz00vbaynDoRNBWovJ4y+s277zIPU8FgkI7/n+MIU2BKk4w3K0WDEfRs8vs423n5GL19ypLiMqbHL6QwBRGRZBFpK8OKhF2TIwVv9MuiwEWKaBExRRU04+8Prsqsp/oRzY7K5roOXDOByuspIx4b9gaDQTrZ0YEPBzCt0ekJpg1Gb3FuvToAWvKIYYeDz+rA6O0zWAfMR4nCAhUR0WqGFUuTM8mCNvodiA4Ry418dzlr8cyC6hIzSTo10MklTBERrcmjYI4mAtXKunqZR5g6feoUwhSYXohhQQrRImKfEtA1lu9HrouczUCyiEzLk48nCu9AYr1vVlc0/03Wr4yzLZXegO0vQGU9kX759/c+k4MF7i2Xi/o8CuaoXpSCx4a9REQdH53Ehr0ARBT/gd1c+xppMbNj5+Nf7pzU5ILjfLlFG/1j3W58jjHE8v3IdZGzWSyRHMxGWRIz3ytynDWuOqEzOsjk82Q0GaeeSL+ca+GHWHKSaYGhJkcVRqdAFbHkJN1/NCR/Nd7LdAR2PvlM9yNSOVDxCFOJRIJOffqfCFMAj03/oEwDYz61NrbrIcyO9y8WMxr/forZsUulEvwemofXWkKsep+jBa6hSnEVOane5mIWYIIT96nOWZPT32G9Dw/rzZfBeLqiA9Rb4HYF/YlHzCp/ZiPf/edUC1R7d++RN23exPQc2LAX4Hksq+NIFtUHvQEKwjK0LpYwHXY+ixlO+Rv9Xrn7ucW9UugeuMQkxHTHx2g4Fs5689zETJLpPjx+uxfTtyFno8m4rjv+RIuY97pOVdZQtba0IEwBGBB64NkrtGoZqAcN1PkVL7Lp4nOjwu5hut7ru4nsN+ctpJBFNtaVLtPFPQFQUiFFWLgGqiJJotaWFtnv9zM9z+yGvQhTAGA8SlQtA4D85DsdKBud0cGsO0xYbuRbb3NlPVIGYBRu0UaNBUxz5RqoWvf9jFOYOoowBQAAmsFyZEPv9DQVss5ZI7C8l7eyGHnqifQz3cjXX1LN7NgAWrXbs6agUVm+I1RWtmXRU2EKG/YCqCOfyjgAZlC6qEjtS9AsvU2FDDh8zI59KTq44Ea/LDfydYs2yrXaIIDe+e1e8jkqCzqGJvahUkIwGKQ//PE9hCkAFaHELgAYXYOrThAZfdYlZ5LUM9GfdpRqOBZmuuif5ZRGAC0SLSK9WBkouBPBEIEqGAxiw14ADRiOhdW+BABNYrlfkN7p7XNDsogUKC5ndvyvxtOvj/pq9FtmxSgKqXAGoFf7KzcKSnQG6z5QXf76MsIUAAAAcMNyj6bRZJwGokPP/TnrjXwLqXAGoEevlq9WrACLrgNVx0cn6dSZ0whTAAAAwI1dLKYmRxWz418Zf744BeuNfBtcdWhPQUH0VHynyVFFDa56xZ553Qaqjo9O0o2b3+DlB9CQye/jTH/hA+iZ3qa28RKKj+ryc2N5STWzNkh3fIzGpiJP/jsxk6SuyRFWp6MmRxVGp6BgAYeP6m0utS9jQU2OKtq5ZIOi76/uAlUikaBjR44gTAHkiWUP0iMd75AOQERMGwPf//A9s2PrWeIHdiXAa21lzI5dYfcwfV5uzimhfnush2mpdJZTGMFcdlcGmBVtUQKLMEWkw0B18sSH1D84iBcfIE8syzeHpieYHRtA70anJ3Q5EsPaAx1/bmwsZTdNbu5Gv13RAVanIb/dq7vS9aBddrGY9riXq30Z89rtXsEkTBHpMFBNTU+pfQkAumZ7gV3P0YNElNmxAXhwL2I3gtsbx4bz82FZaGEx4zUdPkcl01H/7sh9uSfSL7Mslb6udBk6qUFRDa56QUtT/0SLSG8u2SQ0MhyJ1V2gAoDCeK0lzI49mow/6VEFNhZL6ElmycGwpx6l05/Hel1Z8SIb87DAcu+ms5Feujx+j9nx620uxaqcAcyllal/fruXfr3sFaHQjXsXgkAFYDKse2xDkw8xrYkhTM1hy20tYdoAR2GKp92PDTP9vHAVOVkenoiI6pw1TDf6HZhmN/LPcsoimJvaU//coo3eXLJJ2OtrUmSfqYUsYn4GANCU0tkGI7NGzIPJh1TnrGF1eACmSovYjeASzQaICrsHjdjH7sVHmR3bLdq4Va7b5aylM6N3uZxLKW7RRqx77bWsyVHFtFJjIXh0BPDQ4KoXvn00LPMcnXeLNmp2r6A6Zw3Xe4tABWAyrD+ouyZHaCfTM5iXluakG5VdLCbRIhKrimo3YyHaTH4mx9abWHKS6ejLEsnB7NjPanDVCWcjvUwr8SmN5VRFPXCIxZjuyMHuyoDQ33eO+bshWkTaX7lRUOueYsofgAmxbJgnZ5LUE+nHtD/QrRppMbNjjybjNBAdYnZ8Pbk19vzmtUpiuV70WZJFpEBxObfzFUq0iNx78MGceE39S84kVd3TDoEKwISWMG5oBCfuMz2+WbHcUwd+xPrnfGviPjociOhSdJDp8b02N9fAoKe9nHY5a9W+BDARXlX/zozefWpDbJ4w5Q/AhCptZQKN9zJr1HXHxyiWnFS9gMJ/W9XKtYEzHAvT+wOXmP1cWRcUgVmPG+LM7mMwFqLtGng/1NQT6Wc+BYj31B+7WExNjirqZBwUCyVaRGpwoRgF8MVr6t9HDy7Lv1y6i0shirkwQgVgQuXF7Ec6usJ30AuvsFLGFehgFo+GuNnfj3OMCziotd5Qq0UO5goUl3Mr1gGQwmvq32gyTp2hIPfPVwQqABOSLCLzBkdndNB0e1KNJyZ0XwIaZvntXqbHN+P7kcJ6o1oiopWLK5geP50Ku0fzxWP0NDURjIXX1L/O6CD3taoIVAAmxaPBcSH0jal64R9OTTA7ttYbaUZTz+H9ODPUZar3g4goMZOkj8O3mJ+nenGlaqFBy3s7NTmqTD3VFNTHa8Pf/whdl3l2WiFQAZgUjwZHMBYy1Uam3VPs9tpAQQq+fBzej+74mOkq/l1/eIf5Ggqf1aFqaPA5Ksmt0fWOepiSCMbGs+ofz04rBCoAk7KLxeSzst+n5dPQdTmho71Z8jU2FSGW05h4VywzO8kiMp/2RzTbi2qG94NotmjLufFe5udZV+Jjfo6FaHGPp3qbC/sugSbwmvrXHR+j65zWqyJQAZjYptJlzM+h1gJR3roZl8JGQ4g/HtP+kjNJ+tIEU/8SM0n6NHSdy79Tzel+KXXOGi7TmnKh5amIYD68pv7xKqWOQAVgYr7FlVw+0Dqjg4be7Dcxk2S6pw6PkRJ4Hq9GcTAWottj3YZ9P4iI/jbYybwQBdHsu6KVNUJa2uvJLdrI56hU+zIAnuA19Y9otpQ665kACFRgGI2BgNqXoDuSRaRAcTmXc50Yvq7ahnus3R7rYbouhMdICcxvq6OKy3k+Gbll2PWGX4eCcnec3frCuVZraI1Qg6tOM6NUWpyCCMBr6h+PmTIIVGAYfr+f2g8elIskSe1L0RWeJXSPDVySjRaqEjNJOhthuy6ER4EEmN9qjhugHh+6Yrj3oyfSL/NYN0WkvVEYnh1WmYgWkeqcNfgMAU3iNfWPdSl1BCowFF91NbW1tyFU5cAuFnMryZ2cSRouVH051MV0dMpv92ITThXZxWJq4jRKZbT3oyfSL58Yvs7tfFochdHCnk9amnoI8CyeU/9YllJHoALD8XjKEapytMW9ktsvfSM1Gnsi/XIwFmJ6Dkz3Ux/PRrFR3g/eYcot2jQ5CsMzkM9HtIjUwHGUFSAfvKb+sSyljkAFhuTxlNOhw4dlrwd792Sjwu7hunFsqtGo5zUjY1MRYt1gxFQdbeDdKNb7+/F1KMg1TBFpc3QqRc29nwLF5RjhBl3gNfWPVSl1BCowLIfDQW3tbyFUZYnnKBXRbKPx/YFLsh6rm41NRejYwCXm142pOtrBe+qWHt+PxEySTg10clszlaLV0akU3h1Wc2lhyiFANnhO/TszelfxIkAIVGBokiQhVGWpwu5RZWrKJyO36NRAp242N+2J9MvHBi4xXTeVUu/UTsUys7OLxdRcyj/g6uX9GJuK0F/6zjKfAjuf3Z41mn9P1NgDqslRpZkS8gDZ4DX1j4joU4U3VUegAk0Yj7BbL5AKVevWrNVNT69aAp5VqpT5DcZC9Pt7n8la36vqeviOfGL4OvEIU2gMaU9jmbrvB8sKVflKzCTpeviO/G9957jsM/WseptLU5X90vE5Kskt2riecw3WToEO8Zr6N5qMK7qpOgIVaMLJjg4hGAwyO74kSdSyr5UQqjLjOeT+rORMkk4MX6cP+89rbu3I2FSEPuj9Uj4zepfbOTFVR3ski6jq+/HBg8vyh/3nmVWpylVPpF/+S99Zru/Fs3ZXBnTznvBc51Vvc5GryMntfABK4dkOCcZCpFRHLgIVaAbrUEVECFVZaHDVCz6rQ7Xzd8fH6P2BS7IWglUsOUl/f3BV/re+c/LAdJTbeTE6pV08p6TMpzs+Rr/v+Uz++4OrqgWrgegQfdh/Xj4xfJ3UGJVK2e1eoav3pM5Zw22Ek/eaWAAl8fyc/Th8i5T4LEWgAk3hFar27t6DUJXBnor1qv8yTgWr/91zRr491s11DclwLEx/f3BV/n3PZ3JndJDbeYlmK/s1ef2q//whPV5TUjLpjA7S73s+k08NdHKZCpiYSdLtsW75f/eckT94cFnujo8xP2cmPquDGnU4isuj0IxbtFGF3cP8PAAs8fqcTc4k6ePBrwtuEy5S4mIAlHSyo0MgItnv9zM7x6bNm8haZJUfnwue4Spy0qvlq+mTkVtqXwqNJuOz1zFyS/bbvVRd7KbqxZWC0j3Tw7Ew3Y8NyzdjIVV73fe4l+uyzHFv/CERg1K0LC3OszpcakqKFt6PYCxEwVhIFkMibXVUUaWtTFBqTVEsOUmhyYdy96NhUqPYRDqiRdREp08+Glx1wtlIL9OiNlouIa8lZvrM0iOen7MD01G6Hr4jF9JJg0AFmnSyo0Pou9crt+xrZXaOx4ENoSqNBle9cH9yVJWqXek8bjwSjdySRYtIq4pc5LWWkNtaIix6YVFWvbKJmSSNTUVo8vu4/CgZp974Q1K7tz3FZ3VQg6tel89jd3xMMz/HbNXbXFTnrMnr72rt/UjOJOnceC/ReK9MD2b/bbW2Mlos2qh4kU1Y6N2IJSfpUWKSxhMT8sOpCXqQiBLPaa652ONertv1QZJFpEBxObEa+dZ6CXktMdtnlh41uOqFbx8NcxkRPzN6l7w2d96juwhUoFk3bn4jEBHzUFXqdMrHjx8XphIJZufRqxcrA8KDvrOqVO9aSHIm+WPAInqul9Et2qh0UREREfUnHnGpzFcovfa6m9WLlQFh/P4FruvrsvVMY/Gp9yP1bujlvZiryVGl206HlIBnldAZHWQyMhJw+FgcFkA1uysDQn/fOS5blXwaui7/cukuIZ9ZIlhDBZp24+Y3QsdHJ5mew1ddTW3tbboa9udFsoi0b8km1deL5GM0GX/SqNRDo3G3e4Vue93NSno89Uxv70fq3dDDezGXz+owxPpCu1jMZM8/0SJSA0qlg8HwrPpXSCl1BCrQPB6hyuMpZ3p8PXMVOek1z2q1L8PQ9LrAHmbfj597G3HvGBMtIr1WtTmvnmMtWl6i/KbdWx1Vulx/CbAQnlX/8i2ljkAFunDj5jfCsSNHKIFpeaqoc9YIr1c0qn0ZhpRqKKp9HZA/n6OS8H6wI1pEOujbqnghGjVV2D2kdANxNUanwMB4VlfNp5Q6AhXoRv/goHD0yJ8FhCp11DlrhOZS9iV/zWZ/5UZDNRTNCu8HO/srNwpGnA67sVS5AIS968DoeE79y6eUOgIV6Eoo/JAQqtSz2esXWMz9N6vXKxqxX4yB4P1QnpHfEZ+jktyiTZFjrcHoFJgAz6l/qVLq2X4/AhXoDkKVunYu2YBGowKaS2tR3tiA8H4o5/WKRsO/I0rsGVVvc6GgDZgGz6l/Z0bv0nAsnNX3IlBp1Lo1a1F1LoNUqAqHR9S+FFPauWSDsBubR+atyVFFmw1QrQzmh/ejMKJFpAO+rYLRwxQRkW9xZcGNwy3ulYb/OQGk8Jz6RzRbSj2RRUVUBCoNam1pYbr3klHMhqqjCFUqafSsQqGKPDQ5qmjnkg1oABkc3o/8pApQGHWa37Mki0i7nPmvvXOLNsNOiQRIh+fUv2xLqSNQaUiRJFH7wYOy3+9X+1J0YyqRoKNHjqJxqpI6Z41wwLdVd/vwqKW5tBZhykTqnDXCmzrdx00NPquD3l7abMgCFJkUsneUElMGAfSI59S/bEqpcwtURZJEJU5zfUjmwlu5hNra22RfdbXal6I7U1hLpaoKu4cO+rYKPqtD7UvRtNcrGjHNz4R8jkq8H1nw2730evV2U1a8lCxiXhv9ukWb4deYAaTDe+rfQqXUuQSqIkmitvY22eHAL5R0li+vx+ayoFuuIie9Xr0di/HnYab1IDC/1Pvht3vVvhRNerV8Ne31NRlm0958BPLY2HsLyvSDyfGc+rdQKXXmgSoVphAWAIxNsoi0c8kGTHGaIzWFCWscQLKItNfXJLxe0Uh4P2a5RRv9ammz0OCqN31ng10splwCt2gRqa4EnTQAPKf+ZSqlzjRQeT1ldOjwYYQpABPxOSrp18teMX1vfHNpLb1Z+6IppzBBenXOGuHtpc3celW1qrm0ln65dJfp1ktlsq50WdYBaZezlsw8ogeQwnvqX7pS6swClddTRm3tb2GaH4AJpXrj31yySVBq40q9cIs2OuDbKmC9FKRjF4vpZzU7TDla5bM66FdLm4XNXr+pp/jNp8LuoWyDdr2zGp8vAI/xnPpHNH8pdSaBKhWmJElicXjIEsqJg9p8jkr65dJdwm73CsM3HEWLSLvdK+gf63Zjih9kpc5ZI/x62StCswnWwogWkV6vaKQ3a1/EqFQG/pKFC1M1OaoII98AT/tpVRO3qX/zlVJfpPRJ1q1Ziz2UNOC777rp5EcfogcLVCdZRGr0rBIaXHV0/eEd+dx4r9qXpLgmRxUFPKswvQ9yJllE2uz1C6tdddQVviN3RgfVviRFiY/3WWpw1WFEKgt1zhrBPXpXHk3G035PPgUsAIxOsoj0c2+j8MGDywvuGaWEYCxE9ZF+OVVwStFAhTClDZe/vkynzpzGBy5oytyGY3fkvnw20kvJLHYf1zIEKVCKXSymnUs2CAHPKkMEKwSp/DW7V9CJ4evzfq3e5sLoFEAaPkcl+Se8FIyFuJzv4/Ateru4jOxisXKBavPGjfKevXuVOty8wuERGgmHERTSSCQSdOrT/6QbN7/Bzwg0yy4WPxmx6pnol78a76VMvbFaI1pEChSXI0gBE3ODlR47HnxWB20qXYb9kQrgW1wpiOFb8nz3fYt7JX6uABm8WBkQ7tz7bN73R2mpUupv1r4oKBKoWltaZL/fr8Sh0gqHR+jokaMCNnGdXyKRoKNH/iyEwg/VvhSArEgWkRpc9UKDq57GpiJ0c6xH7poc0WzjMdVQ9C2uRI87MJfqeGj0rKKB6BDdmrgv8+p1zZVoEWmro4rqS6qxPkoB0uPRvTOjd5/6c5/VQVifCZAZ76l/qVLqBQcqHmEqGAzSyY4O9MqkgbAJeucqctLOJRuEnUQ0EB2iofhD+WYspPrIVb3NRSsXV1D14kqMRoFqfI5K8jkqhRdnkjTwaEjufjRMd6bGVO18cIs2WmP3UqWtTPA5KlW7DqNqcNUJZ0bvPtUg3FS6TKWrAdAX3lP/zozezX/KX5EkUeu+n8nLl9creU3PQZjKLBgM0ulTpxCmwDBSjcfN5KdYcpJCkw/lB5MP6UEiSgPTUabnrre5aIm1hCptZUJ5cZkh93n5b6ta8XmqU5JFpDpnjVDnrKG9RDQcC1MoPir3xh9Sf+IR04DlFm1UX+SisqISdDBwIFlEanJUUWotnVu0mXYaJT6zlGeGn+leX5PAdiHS0/IKVEWSRG3tbcw37EWYyuz0qVP09ZUr+PmAYdnFYqpzFgt1zponfzYcC9Pk93H5UTJOoekJiv+QpPHvp7IezfJZHWR9YRG5F9nIIRaT21oiFIs2wlQl0JsKu4cq7B6h8fF/x5KT9CgxSaH4qJz4IUkPpieIiKg7PpbV8USLSDXSYiIiqrWVkWRZRKVSieAqchqyc0HrAp5VQmd0UCYi2mKC0voAepZzoOIVps6fO0dnz59HWJhHIpGgkyc+pG97uvHzAdN5vIYAzz7AM+xiMdnFYqqwe/B+GIBdLCa/3Ut3psaorsSco1MAepFToPJ6ymj/m/8gOxwOVtdDREQdH51Epbo0otEoHf/gryg+AQAAYHDbvWuFTTNJjBACaFzWgcrrKaO29rdkSZJYXg/CVAYD9+/T8ePHsV4KAADABGZHHdW+CgBYSFaBqqaqSt7/D/9ALMMU9lDKDOvJAAAAAAC0Z8FAtW7NWrllXyvTi8AeSplh1A4AAAAAQJsyBiqEKXUlEgk6/te/Uv/gIMIUAAAAAIAGpQ1Uu3bskHc0NzM9OcJUeuHwCH304Yf42QAAAAAAaNi8gaq1pUX2+/1MTxwOj9Dxvx4XIo/YbtSpR999100nP/oQxScAAAAAADTuuUDFK0wdPXIUgWEel7++TKfOnMYUPwAAAAAAHXgSqIokifbv3y/7qquZnhBhKj0UnwAAAAAA0JdFRLNhqq29TfZ4ypmeDPsozQ9ryQAAAAAA9GkRrzCFfZTmhxE7AAAAAAD9WvSbd9+VWW7YS4QwlU4wGKTTp04hTAEAAAAA6NQihCl1nD93js6eP4+fCwAAAACAjmXc2LdQKLLwvEQiQSdPfEjf9nTj5wIAAAAAoHPMAhXC1POi0Sgd/+CvKD4BAAAAAGAQTAIVwtTzUHwCAAAAAMB4FA1UmM42P6wjAwAAAAAwJsUCFfZSmh9G6wAAAAAAjEuRQIUw9bxEIkHH//pX6h8cRJgCAAAAADAoRQLVyRMfEsLUj8LhEfroww8RMAEAAAAADE6RQDU1PaXEYQxh4P59On78OIpPAAAAAACYANN9qMzm8teX6dSZ05jiBwAAAABgEghUCkHxCQAAAAAA80GgUgCm+AEAAAAAmNMLal+AESBMAQAAAACYEwIVAAAAAABAnhCoAAAAAAAA8oRABQAAAAAAkCcEKgAAAAAAgDwhUAEAAAAAAOQJgQoAAAAAACBPCFQAAAAAAAB5QqACAAAAAADIEwIVAAAAAABAnhCoAAAAAAAA8oRABQAAAAAAkCcEKgAAAAAAgDwhUAEAAAAAAOQJgQoAAAAAACBPCFQAAAAAAAB5QqACAAAAAADIEwIVAAAAAABAnhCoAAAAAAAA8rRI7QsAAAD+GlaskG/fvSuofR2sOR0OWt2wWq6sqqKiIistXbr0ydcmIhEaj0ToXncPDQ8N0b37/Yb/eeTCLM+I3jkdDtq+fYf8yad/w70yCNxT/UGgAgBg5L//8z/LSh/zt//zfyryC/bnb7xBf/v4E7nrxnXFfmFn+vcqdd3ZCqxrlDds2kBeb0Xa7ylxOqnE6XwSsiYiEfnWrdt09eoVIRKNcrlOPCM/UvIZUfo8Wnq2n7Vhw0a5YXUDff75ZzSVSKh5KXk9z319fTT0YIiGHgwSzwCPewpKQqACADCpn772KhGRog1mtS2rrpFfbXmNSpzOnP9uidNJW7dtpa3btsrXuq7RhQvnuQUrrTLiM2IkRZJEgQ0BslqtFFgfkC92fqW7+7R06dKnOjUunL9AZn7ejHBPzQhrqAAATOynr71K25q2KD5KooaXX3xJ/q8HD+QVpp61PrCe3jl0SDbKz6YQRnpGjCawPiBbrVYiItq2YzsVSZLKV1SYEqeTfvraq/Rffv5fZL3/W/JltHtqFghUAAAm99IrL9OrP/mpbhvMRZJE77z9K3nrtq2KHtdqtdJLr7xs6sZdit6fEaPatmP7k/9vtVqpYVWDIe7RqlUr6cDBA6Z874x6T40OgQoAAGh9YL0uG8xFkkQHDh6QM62VKtSqVSvJqcCol97p9RkxqsC6xicjGSnb5zTG9c7rraADBw+Y6nkz+j01MgQqAAAgIn02mF99rYVpmCIi+uKzz2l4ZITpOfRCj8+IUc3X0C5xOimwrtEw98frrTDVdFMz3FOjQlEKAAB4Yn1gPRGRLsr1bmvaIq9atXLB75uenqbbt27TvZ5u6u3rE1JVsyrKy2lZ7TJ59drVaasBTkQi1HWtS/M/C5709IwYVWBdo5xureCGTRuo68Z1zlfEzkuvvEy3bt8ioxeIMdM9NSIEKgAAFahdljcTPTSYnQ4HvfTKywt+36WLl+jixQvCfKWHh0dGaHhkRLjY+VXa6oCfnTmjWtliPCOQzuq1a9J+zeutoGXVNbLW9lWb73kukiQKrA/I23Zsp2enus21YcNG+fMvv9DUv0dperyn8CNM+QMAgOdofWrXay0tGa9tenqa/v3Y+/T5l1/MG6aede9+v/Dee+8J17quPfmzvr4+rvvi6I3WnxGjWlZdI8/doHo+23bu4HQ1hZlKJOhi51fC+8eOCdPT02m/b/XqBo5XxZ+R7qlZIVABAMC8tNpgrigvp0yNj+npaXr/2DEh197cqUSCPvn0b8LfPv6EiIg+7uhAmFqAVp8RI8umYb106VKqKC/ncDXKGB4ZoYvnL6T9eonTaejy4Ua8p2aDQAUAAGlpscG8YcPGjNfzSUdHQUUkum5cF/703num39Q3W1p8RozK6XBk7EyYa6H3RGsWWqtY6a3Q1b8nW0a+p2aCQAUAABmtD6ynA7/8pWb2hGnIMP3nzp1vFZmmh6p+udHaM2JU27fvyLpBvT6wnpwOB8vLUZRaaxXVZuR7aiYIVAAAsKClS5dqYqPNhhUrntunZa7PzpzGND2VaOUZMSqnw5EqBpK1XBrralsoKMSnpwz3bhv9npoJAhUAAGQltdGmmg3m0lJX2q/dufOt4Usra50WnhGjyme6V8PqBt2sPVro32fEUWOj31MzQdl0AAAV/Pd//uecfpFqpYR2qsH8/rH3s6qep7Rl9XVpvzY0OMjxStjDM8JGrj9XLSiSJApsCOT896xWKwXWB+SLnV9p4tlIJ7CuUd66bWvar/f19XG8Gj6Mfk/NBoEKAACeEgoNp93olkjdBnNRUfrpfsNDQ1kfZ1vTloIa1bdu3zJ10QotPyNGFFgfSDvVdSISoQvnL9BPX3t13q9v27Gduq51qb5GaVl1zXPvnLO0lFavXbNgUYZb39xkdl1qMcI9hR8hUAEAwFPeP/a+cODgAVmLDeZM15RLmfRsNgVegKl7iLX8jBjRth3b037twvkL1HXjurB9x3b52Y2pibQzovFfDx7I6+9NRCJ0+85tw71rRrin8COsoQIAgKdMJRL0/rH3hVBoOOP3Yb2MeeEZ4SewrjHtSMb09PSTsHH1ytW0x9iwcQOLS+PiszNnDDcSY/Z7akQIVAAA8Bw0mGEheEb42J5hJOPi+QtPwkbXtS5henp63u8rcTopsK5R1bVj6a4tk0sXLymyDYLWGOWewo8QqAAAYF65Nph5XFOmRhn2Z+FPi8+IkQTWNc475Stl7ma4U4kEdV3tSvu9mRrxPHzS0ZHT93/x2ef0+ZdfGC5MGemewo8QqAAAIK1cGsw8DA+nv47Kigo02FWgtWfESFavXZP2a9e6rj03Fe7q1StpA0iJ0zlvYQhebt+9K9y58+2C39fX10f/fux9Mur6ICPdU/gRilIAAKhAKyWus5FqMC9UhICH8bHxtBXBltXV0+27d7lcRy4VBfOFZ4SNfH6uapRaX1ZdI2eqfnfhwvnn/h2RaJSudV1Lu1nstp076N5f+pW7yBx98nGHUFnhTTtCMz09TR93dBi2gqYR7ynMQqACAIAFaaXBPPTgQdqGRcPqBvr888+yWsCeTaM6UyN6LDKum7DDi1aeEaPYtnNH2q9l2sT66tUrwvrA+nmf3aVLl9Ky6ho5l4qYSppKJOiTjo/TVvyzWq30xi/ekN/7078Z8v0y4j2FWZjyBwAAWcl2ahdLmconp0oJK3GeTNNoJiKRtA0fs9PCM2IETocj495MXZcvp/3a8MhIxo1wG9akn3LGw737/cKli5fSft3rrSh4nzgtMvI9BYxQAQBADtQehZhKJOjOnW9p1aqV8379pVdepnu992h4ZKSg82RqoNy711vQsY1O7WfECLZv35ExUDwe4ckrdKwPrKcLF86r2ilw8eIFYfXqhrRT/1565WUaHhoy1KiL0e+p2WGECgAAcqL2KESmnlwiogMHD8qFVPxzOhxppxUSEd3r6c772Gah9jOiZws9f0pYqHHPWmrqXyavtrxGRim1b4Z7anYIVAAAkDM1G8z37vdnPK/VaqV3Dh2SK8rLcz52kSTRG794I+N0PyPui8MCQlV+NmzYyLxhvD6wXvWwstDUvxKnk159rcUQIcEs99TMEKgAACAvajaYPz/9WcavW61Wevudd+RtTVuy3lB2WXWN/M4772Scpnb1ytUcrhIQqnJTJEkU2BDgci6l1hsW4uLFC8JEJJL266tWrdT95rVmu6dmhTVUAAAqyLcMs9ZKaau1XuZx77a8ddvWjN/30isv07Yd2+Xbt27TvZ5uGhoefqokc0V5OS2rXSYvq6/LuGCcaHZ0iufeOHhGzCewPiBbrVYu59q2Yzt1XevKqiomKwtV/SMienn3K3Sv955u1weZ7Z6aFQIVAAAURK0G8+dffiEsq6td8JxWq5XWB9an1jDk3YO70JoPSA+hKjvbdmzndq5UVUy1N9BdqHNE76XUzXhPzQiBCgAACqZWg5nXOb/47HMyUsUxNSBUZRZY15hxJOP/+Zd/EfIZeXj5xZfShpUNGzfQxc6vcj6m0haq+pcqpa63oGDme2o2WEMFAACKUGO9DI9zXuu6xnWqn5FhTVV62zOMZFzrupb3NK6rV6+kfXZLnE5NrFHKpurfS6+8nHF/OC0y8z01GwQqAABQjFqh6r0//VvGimH5+tvHn9Ann/4NYUpBCFXPC6xrTDs6Q0R04cL5vJ/BSDRKd+58m/brmRr9PN273y988dnnGb9HT6XUcU/NBYEKAAAUpVaD+fMvvxD+/dj7lKlqWLb6+vroT++9J3TduI4wxQBC1dM2bNqQ9mt9fX0FF2TItHdbidOpmZGfi51fZXwm9FRKHffUXBYdO3Kk4IOMhMP4hQOqUuI5BgDlqFn971//1/+iwLpGefXaNQtW7ntWX18f3frmJiFIsYc1VbOWVddk/Pdf/Pv5gs/xeO+2tOfZtnMH3ftLf8HnUcLHHR8Lb7/zTtowkCqlruV3FPfUfIT/8dvfqn0NAABgUEWSRAcOHlCtQpfT4aBltcvkyiVLqNRV+lzA6uvro/GxcRofG6Nbt28Jei3NrGdqPyMAAIX6/wEINPXiAf5rowAAAABJRU5ErkJggg==";
@@ -213,6 +213,9 @@ const PERMISSION_GROUPS = [
   { group: "Sócios", keys: [
     { key: "socios_acessar", label: "Acessar a página de Sócios" },
   ] },
+  { group: "Aprovações", keys: [
+    { key: "lancamentos_aprovar", label: "Aprovar lançamentos, contas a pagar e movimentos de sócios" },
+  ] },
   { group: "Administração", keys: [
     { key: "relatorios_acessar", label: "Acessar relatórios e dashboards" },
     { key: "config_alterar", label: "Alterar configurações do sistema" },
@@ -251,6 +254,38 @@ function can(user, key) {
 function nowStamp() {
   const d = new Date();
   return `${fmtDate(d.toISOString().slice(0, 10))} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function nowStampFromTs(ts) {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  return `${fmtDate(d.toISOString().slice(0, 10))} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/* ---------------------------------------------------------------
+   Aprovação de lançamentos (Lançamentos / Contas a Pagar / Sócios)
+--------------------------------------------------------------- */
+
+// Registro sem "status" (dados de antes desta funcionalidade existir) é tratado como aprovado,
+// para não encher a fila de pendências com todo o histórico já existente.
+function statusAprovacao(item) {
+  return item?.status || "aprovado";
+}
+
+// Carimba os campos de criação/aprovação de um novo registro (lançamento, conta a pagar ou
+// movimento de sócio) de acordo com quem está criando. Pedro/Fabio (quem tem a permissão
+// lancamentos_aprovar) já entra aprovado; os demais entram pendentes de aprovação.
+function carimbarCriacao(currentUser) {
+  const now = Date.now();
+  const podeAprovar = can(currentUser, "lancamentos_aprovar");
+  const nome = currentUser?.nome || "—";
+  return podeAprovar
+    ? { status: "aprovado", criadoPor: nome, criadoEm: now, aprovadoPor: nome, aprovadoEm: now }
+    : { status: "pendente", criadoPor: nome, criadoEm: now, aprovadoPor: null, aprovadoEm: null };
+}
+
+function carimbarEdicao(currentUser) {
+  return { editadoPor: currentUser?.nome || "—", editadoEm: Date.now() };
 }
 
 const uid = (p) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -471,6 +506,18 @@ function migrarFornecedoresCadastro(d) {
   (d.contasPagar || []).forEach((c) => { if (c.fornecedor) nomes.add(c.fornecedor); });
   return [...nomes].filter(Boolean).sort((a, b) => a.localeCompare(b, "pt-BR")).map((nome) => ({
     id: uid("forn"), nome, documento: "", telefone: "", email: "", observacao: "", ativo: true,
+  }));
+}
+
+// Preenche, com valores padrão sensatos, quaisquer permissões novas que ainda não existiam
+// quando os usuários foram salvos pela última vez (ex.: a permissão de aprovar lançamentos).
+// Admins recebem as novas permissões como "true" (mesmo padrão de quando são criados);
+// os demais recebem "false" (padrão seguro).
+function migrarPermissoesUsuarios(usuariosSalvos) {
+  if (!usuariosSalvos || !usuariosSalvos.length) return DEFAULT_USUARIOS;
+  return usuariosSalvos.map((u) => ({
+    ...u,
+    perms: { ...(u.papel === "admin" ? permsAllTrue() : permsAllFalse()), ...u.perms },
   }));
 }
 
@@ -850,7 +897,7 @@ export default function App() {
     setOrcamentoItens(d.orcamentoItens || []);
     setDividas(d.dividas || []);
     setInvestimentos(d.investimentos || []);
-    setUsuarios(d.usuarios && d.usuarios.length ? d.usuarios : DEFAULT_USUARIOS);
+    setUsuarios(migrarPermissoesUsuarios(d.usuarios && d.usuarios.length ? d.usuarios : DEFAULT_USUARIOS));
     setAuditLog(d.auditLog || []);
   };
 
@@ -1142,7 +1189,7 @@ export default function App() {
     lancamentos: null, saldos: "contasbancarias_visualizar", obras: "relatorios_acessar",
     fornecedores: "relatorios_acessar", contaspagar: null, custosinternos: "relatorios_acessar",
     dividasinvestimentos: "relatorios_acessar",
-    socios: "socios_acessar", usuarios: "usuarios_gerenciar",
+    socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
   };
   if (NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
@@ -1225,6 +1272,17 @@ export default function App() {
               socios={socios} setSocios={setSocios} socioStats={socioStats}
               movimentos={movimentosSocios} setMovimentos={setMovimentosSocios}
               accounts={accounts.filter((a) => a.status === "Ativa")}
+              currentUser={currentUser} logAudit={logAudit}
+            />
+          )}
+          {page === "aprovacoes" && (
+            <AprovacaoLancamentosPage
+              entries={entries} setEntries={setEntries}
+              contasPagar={contasPagar} setContasPagar={setContasPagar}
+              movimentosSocios={movimentosSocios} setMovimentosSocios={setMovimentosSocios}
+              accounts={accounts} obras={obras} apropriacoes={apropriacoes} socios={socios}
+              fornecedorOptions={fornecedorOptions}
+              currentUser={currentUser} logAudit={logAudit}
             />
           )}
           {page === "usuarios" && (
@@ -1250,6 +1308,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "custosinternos", label: "Custos Internos", icon: BarChart3, perm: "relatorios_acessar" },
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
+    { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
   ].filter((it) => !it.perm || can(currentUser, it.perm));
   return (
@@ -1533,6 +1592,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
       data: form.data, valor: Number(form.valor), fornecedor: form.fornecedor.trim(),
       apropriacao: form.apropriacao, descricao: form.descricao.trim(),
       createdAt: editingId ? entries.find((e2) => e2.id === editingId)?.createdAt || Date.now() : Date.now(),
+      ...(editingId ? carimbarEdicao(currentUser) : carimbarCriacao(currentUser)),
     };
 
     if (!editingId && form.classificacao === "divida") {
@@ -1608,7 +1668,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
 
   const duplicate = (entry) => {
     if (!can(currentUser, "lancamentos_criar")) return;
-    setEntries((prev) => [{ ...entry, id: uid("lan"), data: todayISO(), createdAt: Date.now() }, ...prev]);
+    setEntries((prev) => [{ ...entry, id: uid("lan"), data: todayISO(), createdAt: Date.now(), ...carimbarCriacao(currentUser) }, ...prev]);
   };
 
   const remove = (id) => {
@@ -1622,6 +1682,12 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
         valorAnterior: BRL(entry.valor), valorNovo: "—", centroCusto: entry.obraId,
       });
     }
+  };
+
+  const aprovar = (entry) => {
+    if (!can(currentUser, "lancamentos_aprovar")) return;
+    setEntries((prev) => prev.map((e) => (e.id === entry.id ? { ...e, status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: Date.now() } : e)));
+    logAudit?.({ tipoOperacao: "Aprovação de lançamento", registroAlterado: entry.descricao || entry.fornecedor || "Lançamento", valorAnterior: "Pendente", valorNovo: "Aprovado", centroCusto: entry.obraId });
   };
 
   const addApropriacao = () => {
@@ -1948,7 +2014,11 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
               {filtered.map((e) => (
                 <tr key={e.id} className={e.tipo === "entrada" ? "row-pos" : "row-neg"}>
                   <td>{fmtDate(e.data)}</td>
-                  <td><Badge tone={e.tipo === "entrada" ? "green" : "red"}>{e.tipo === "entrada" ? "Entrada" : "Saída"}</Badge></td>
+                  <td>
+                    <Badge tone={e.tipo === "entrada" ? "green" : "red"}>{e.tipo === "entrada" ? "Entrada" : "Saída"}</Badge>
+                    <span className={`gf-dot gf-dot-${statusAprovacao(e) === "aprovado" ? "green" : "orange"}`}
+                      style={{ marginLeft: 6 }} title={statusAprovacao(e) === "aprovado" ? "Aprovado" : "Pendente de aprovação"} />
+                  </td>
                   <td>{accountName(e.contaId)}</td>
                   <td>{obraName(e.obraId)}</td>
                   <td>{e.fornecedor || "—"}</td>
@@ -1969,6 +2039,9 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
                         </>
                       ) : (
                         <>
+                          {statusAprovacao(e) === "pendente" && can(currentUser, "lancamentos_aprovar") && (
+                            <button className="gf-icon-btn" title="Aprovar" onClick={() => aprovar(e)}><Check size={14} /></button>
+                          )}
                           {podeEditar && <button className="gf-icon-btn" title="Editar" onClick={() => startEdit(e)}><Pencil size={14} /></button>}
                           {podeCriar && <button className="gf-icon-btn" title="Duplicar" onClick={() => duplicate(e)}><Copy size={14} /></button>}
                           {podeExcluir && <button className="gf-icon-btn" title="Excluir" onClick={() => setConfirmDeleteId(e.id)}><Trash2 size={14} /></button>}
@@ -3080,7 +3153,9 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
 
   const saveNovaConta = (novasContas) => {
     if (!podeCriar) return;
-    setContasPagar((prev) => [...novasContas, ...prev]);
+    const carimbo = carimbarCriacao(currentUser);
+    const contasCarimbadas = novasContas.map((c) => ({ ...c, ...carimbo }));
+    setContasPagar((prev) => [...contasCarimbadas, ...prev]);
     setShowNew(false);
     logAudit?.({
       tipoOperacao: "Cadastro de conta a pagar", registroAlterado: novasContas[0]?.descricao || novasContas[0]?.fornecedor || "Conta a pagar",
@@ -3091,11 +3166,12 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
   const saveEdicao = (updated, scope) => {
     if (!podeEditar) return;
     // Se o valor previsto mudou, recalcula o rateio proporcionalmente mantendo os mesmos percentuais.
+    const carimbo = carimbarEdicao(currentUser);
     const aplicarValor = (c) => {
       const novoRateio = c.rateio
         ? computeRateioValores(c.rateio.map((r) => ({ centroCusto: r.centroCusto, percentual: r.percentual })), updated.valorPrevisto)
         : c.rateio;
-      return { ...c, valorPrevisto: updated.valorPrevisto, apropriacao: updated.apropriacao, descricao: updated.descricao, rateio: novoRateio };
+      return { ...c, valorPrevisto: updated.valorPrevisto, apropriacao: updated.apropriacao, descricao: updated.descricao, rateio: novoRateio, ...carimbo };
     };
     const valorAnterior = editingConta.valorPrevisto;
     if (scope === "todas" && editingConta.groupId) {
@@ -3114,6 +3190,12 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
       });
     }
     setEditingConta(null);
+  };
+
+  const aprovarConta = (conta) => {
+    if (!can(currentUser, "lancamentos_aprovar")) return;
+    setContasPagar((prev) => prev.map((c) => (c.id === conta.id ? { ...c, status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: Date.now() } : c)));
+    logAudit?.({ tipoOperacao: "Aprovação de conta a pagar", registroAlterado: conta.descricao || conta.fornecedor || "Conta a pagar", valorAnterior: "Pendente", valorNovo: "Aprovado" });
   };
 
   const cancelarConta = (id) => {
@@ -3374,7 +3456,11 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
               {filtered.map((c) => (
                 <tr key={c.id} className={c.statusCalc === "Vencida" ? "row-neg" : c.statusCalc === "Paga" ? "row-pos" : ""}>
                   <td>{fmtDate(c.dataVencimento)}</td>
-                  <td><Badge tone={STATUS_TONE[c.statusCalc]}>{c.statusCalc}</Badge></td>
+                  <td>
+                    <Badge tone={STATUS_TONE[c.statusCalc]}>{c.statusCalc}</Badge>
+                    <span className={`gf-dot gf-dot-${statusAprovacao(c) === "aprovado" ? "green" : "orange"}`}
+                      style={{ marginLeft: 6 }} title={statusAprovacao(c) === "aprovado" ? "Aprovado" : "Pendente de aprovação"} />
+                  </td>
                   <td>{c.fornecedor || "—"}</td>
                   <td>
                     {c.rateio && c.rateio.length > 1 ? (
@@ -3403,6 +3489,9 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
                         </>
                       ) : (
                         <>
+                          {statusAprovacao(c) === "pendente" && can(currentUser, "lancamentos_aprovar") && (
+                            <button className="gf-icon-btn" title="Aprovar" onClick={() => aprovarConta(c)}><Check size={14} /></button>
+                          )}
                           {c.total > 1 && (
                             <button className="gf-icon-btn" title="Ver grupo" onClick={() => setGrupoId(c.groupId)}><Layers size={14} /></button>
                           )}
@@ -4104,6 +4193,240 @@ function CustosInternosPage({ entries, apropriacoes, accounts }) {
 }
 
 /* ---------------------------------------------------------------
+   Página: Aprovação de Lançamentos
+--------------------------------------------------------------- */
+
+const ORIGEM_LABEL = { lancamentos: "Lançamentos", contaspagar: "Contas a Pagar", socios: "Sócios" };
+const ORIGEM_TONE = { lancamentos: "blue", contaspagar: "orange", socios: "green" };
+
+function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasPagar, movimentosSocios, setMovimentosSocios, accounts, obras, apropriacoes, socios, fornecedorOptions, currentUser, logAudit }) {
+  const [filtroOrigem, setFiltroOrigem] = useState("");
+  const [filtroDe, setFiltroDe] = useState("");
+  const [filtroAte, setFiltroAte] = useState("");
+  const [editingItem, setEditingItem] = useState(null);
+
+  const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
+  const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const socioName = (id) => socios.find((s) => s.id === id)?.nome || "—";
+
+  const pendentes = useMemo(() => {
+    const doLancamentos = entries.filter((e) => statusAprovacao(e) === "pendente").map((e) => ({
+      origem: "lancamentos", id: e.id, data: e.data,
+      centroCusto: obraName(e.obraId), contaBancaria: accountName(e.contaId),
+      fornecedor: e.fornecedor || "—", descricao: e.descricao || "—",
+      valor: e.valor, tipo: e.tipo, criadoPor: e.criadoPor || "—", criadoEm: e.criadoEm, raw: e,
+    }));
+    const doContasPagar = contasPagar.filter((c) => statusAprovacao(c) === "pendente").map((c) => ({
+      origem: "contaspagar", id: c.id, data: c.dataVencimento,
+      centroCusto: c.rateio && c.rateio.length > 1 ? `Rateado (${c.rateio.length})` : obraName(c.rateio?.[0]?.centroCusto ?? c.centroCusto),
+      contaBancaria: "—", fornecedor: c.fornecedor || "—", descricao: c.descricao || "—",
+      valor: c.valorPrevisto, tipo: "saida", criadoPor: c.criadoPor || "—", criadoEm: c.criadoEm, raw: c,
+    }));
+    const doSocios = movimentosSocios.filter((m) => statusAprovacao(m) === "pendente").map((m) => ({
+      origem: "socios", id: m.id, data: m.data, centroCusto: "—", contaBancaria: accountName(m.contaId),
+      fornecedor: socioName(m.socioId),
+      descricao: m.descricao || (m.tipo === "aporte" ? "Aporte" : m.tipo === "pro-labore" ? "Pró-labore" : "Retirada"),
+      valor: m.valor, tipo: m.tipo === "aporte" ? "entrada" : "saida", criadoPor: m.criadoPor || "—", criadoEm: m.criadoEm, raw: m,
+    }));
+    return [...doLancamentos, ...doContasPagar, ...doSocios].sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+  }, [entries, contasPagar, movimentosSocios, obras, accounts, socios]);
+
+  const filtrados = pendentes
+    .filter((p) => (filtroOrigem ? p.origem === filtroOrigem : true))
+    .filter((p) => (filtroDe ? p.data >= filtroDe : true))
+    .filter((p) => (filtroAte ? p.data <= filtroAte : true));
+
+  const totalPendente = filtrados.reduce((s, p) => s + p.valor, 0);
+
+  const aprovar = (item) => {
+    if (!can(currentUser, "lancamentos_aprovar")) return;
+    const now = Date.now();
+    const patch = { status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: now };
+    if (item.origem === "lancamentos") setEntries((prev) => prev.map((e) => (e.id === item.id ? { ...e, ...patch } : e)));
+    if (item.origem === "contaspagar") setContasPagar((prev) => prev.map((c) => (c.id === item.id ? { ...c, ...patch } : c)));
+    if (item.origem === "socios") setMovimentosSocios((prev) => prev.map((m) => (m.id === item.id ? { ...m, ...patch } : m)));
+    logAudit?.({
+      tipoOperacao: `Aprovação de lançamento (${ORIGEM_LABEL[item.origem]})`, registroAlterado: item.descricao,
+      valorAnterior: "Pendente", valorNovo: `Aprovado por ${currentUser.nome}`,
+    });
+  };
+
+  const salvarEdicao = (item, patch, aprovarTambem) => {
+    const carimbo = carimbarEdicao(currentUser);
+    const statusPatch = aprovarTambem ? { status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: Date.now() } : {};
+    if (item.origem === "lancamentos") setEntries((prev) => prev.map((e) => (e.id === item.id ? { ...e, ...patch, ...carimbo, ...statusPatch } : e)));
+    if (item.origem === "contaspagar") setContasPagar((prev) => prev.map((c) => (c.id === item.id ? { ...c, ...patch, ...carimbo, ...statusPatch } : c)));
+    if (item.origem === "socios") setMovimentosSocios((prev) => prev.map((m) => (m.id === item.id ? { ...m, ...patch, ...carimbo, ...statusPatch } : m)));
+    logAudit?.({
+      tipoOperacao: aprovarTambem ? `Edição e aprovação (${ORIGEM_LABEL[item.origem]})` : `Edição de lançamento pendente (${ORIGEM_LABEL[item.origem]})`,
+      registroAlterado: patch.descricao || item.descricao,
+      valorAnterior: BRL(item.valor), valorNovo: BRL(patch.valor ?? patch.valorPrevisto ?? item.valor),
+    });
+    setEditingItem(null);
+  };
+
+  return (
+    <div className="gf-stack">
+      <div className="gf-toolbar"><h2>Aprovação de lançamentos</h2></div>
+
+      <div className="gf-tiles" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <div className="gf-tile tone-yellow">
+          <span className="gf-tile-label">Lançamentos pendentes</span>
+          <span className="gf-tile-value">{filtrados.length}</span>
+        </div>
+        <div className="gf-tile tone-yellow">
+          <span className="gf-tile-label">Valor total pendente</span>
+          <span className="gf-tile-value">{BRL(totalPendente)}</span>
+        </div>
+        <div className="gf-tile">
+          <span className="gf-tile-label">Aprovadores</span>
+          <span className="gf-tile-value" style={{ fontSize: 14 }}>{socios.map((s) => s.nome).join(" · ") || "—"}</span>
+        </div>
+      </div>
+
+      <section className="gf-card">
+        <div className="gf-card-head"><h2>Filtros</h2></div>
+        <div className="gf-filters-grid" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+          <select value={filtroOrigem} onChange={(e) => setFiltroOrigem(e.target.value)}>
+            <option value="">Origem (todas)</option>
+            <option value="lancamentos">Lançamentos</option>
+            <option value="contaspagar">Contas a Pagar</option>
+            <option value="socios">Sócios</option>
+          </select>
+          <input type="date" title="De" value={filtroDe} onChange={(e) => setFiltroDe(e.target.value)} />
+          <input type="date" title="Até" value={filtroAte} onChange={(e) => setFiltroAte(e.target.value)} />
+        </div>
+      </section>
+
+      <section className="gf-card">
+        <div className="gf-card-head"><h2>Pendentes de aprovação</h2></div>
+        {filtrados.length === 0 ? (
+          <EmptyState icon={ClipboardCheck} title="Nada pendente" body="Todos os lançamentos, contas a pagar e movimentos de sócios criados por outros usuários já foram aprovados." />
+        ) : (
+          <div className="gf-table-wrap">
+            <table className="gf-table gf-table-ledger">
+              <thead>
+                <tr>
+                  <th>Origem</th><th>Data</th><th>Centro de custo</th><th>Conta bancária</th><th>Fornecedor/beneficiário</th>
+                  <th>Descrição</th><th className="num">Valor</th><th>Criado por</th><th>Criado em</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.map((p) => (
+                  <tr key={`${p.origem}-${p.id}`} className={p.tipo === "entrada" ? "row-pos" : "row-neg"}>
+                    <td><Badge tone={ORIGEM_TONE[p.origem]}>{ORIGEM_LABEL[p.origem]}</Badge></td>
+                    <td>{fmtDate(p.data)}</td>
+                    <td>{p.centroCusto}</td>
+                    <td>{p.contaBancaria}</td>
+                    <td>{p.fornecedor}</td>
+                    <td className="gf-td-desc" title={p.descricao}>{p.descricao}</td>
+                    <td className={`num mono ${p.tipo === "entrada" ? "pos" : "neg"}`}>{BRL(p.valor)}</td>
+                    <td>{p.criadoPor}</td>
+                    <td className="mono">{p.criadoEm ? nowStampFromTs(p.criadoEm) : "—"}</td>
+                    <td>
+                      <div className="gf-row-actions">
+                        <button className="gf-icon-btn" title="Aprovar" onClick={() => aprovar(p)}><Check size={14} /></button>
+                        <button className="gf-icon-btn" title="Editar" onClick={() => setEditingItem(p)}><Pencil size={14} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="gf-field-hint" style={{ marginTop: 10 }}>
+          Um lançamento é considerado aprovado assim que <b>um</b> dos sócios o aprova — não é necessário que os dois aprovem.
+          A aprovação é só controle interno: o valor já impacta o saldo bancário desde a criação do lançamento, aprovado ou não.
+        </p>
+      </section>
+
+      {editingItem && (
+        <AprovacaoEditModal
+          item={editingItem} obras={obras} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+          onClose={() => setEditingItem(null)} onSave={salvarEdicao}
+        />
+      )}
+    </div>
+  );
+}
+
+function AprovacaoEditModal({ item, obras, apropriacoes, fornecedorOptions, onClose, onSave }) {
+  const raw = item.raw;
+  const isLan = item.origem === "lancamentos";
+  const isCP = item.origem === "contaspagar";
+
+  const [valor, setValor] = useState(String(isCP ? raw.valorPrevisto : raw.valor));
+  const [data, setData] = useState(isCP ? raw.dataVencimento : raw.data);
+  const [descricao, setDescricao] = useState(raw.descricao || "");
+  const [fornecedor, setFornecedor] = useState(raw.fornecedor || "");
+  const [apropriacao, setApropriacao] = useState(raw.apropriacao || (apropriacoes[0] || ""));
+  const [obraId, setObraId] = useState(isLan ? raw.obraId : SEM_OBRA);
+
+  const centroCustoOptions = [{ value: SEM_OBRA, label: "Administrativo / Custos internos" }, ...obras.map((o) => ({ value: o.id, label: o.nome }))];
+  const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((f) => ({ value: f, label: f }))];
+
+  const montarPatch = () => {
+    const patch = { descricao };
+    if (isCP) {
+      patch.valorPrevisto = Number(valor) || 0; patch.dataVencimento = data;
+      patch.fornecedor = fornecedor; patch.apropriacao = apropriacao;
+    } else {
+      patch.valor = Number(valor) || 0; patch.data = data; patch.fornecedor = fornecedor;
+      if (isLan) { patch.apropriacao = apropriacao; patch.obraId = obraId; }
+    }
+    return patch;
+  };
+
+  const submit = (e, aprovarTambem) => {
+    e.preventDefault();
+    if (!valor || Number(valor) <= 0 || !data) return;
+    onSave(item, montarPatch(), aprovarTambem);
+  };
+
+  return (
+    <Modal title={`Editar — ${ORIGEM_LABEL[item.origem]}`} onClose={onClose} width={640}>
+      <form onSubmit={(e) => submit(e, false)} className="gf-form-grid gf-modal-form">
+        <div className="gf-span-2 gf-hint">
+          Criado por <b>{item.criadoPor}</b> em {item.criadoEm ? nowStampFromTs(item.criadoEm) : "—"}. Revise os dados antes de aprovar.
+        </div>
+        <Field label={isCP ? "Valor previsto (R$)" : "Valor (R$)"}>
+          <input type="number" min="0.01" step="0.01" required value={valor} onChange={(e) => setValor(e.target.value)} />
+        </Field>
+        <Field label={isCP ? "Data de vencimento" : "Data"}>
+          <input type="date" required value={data} onChange={(e) => setData(e.target.value)} />
+        </Field>
+        {(isLan || isCP) && (
+          <Field label="Fornecedor">
+            <SearchableSelect value={fornecedor} onChange={setFornecedor} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+          </Field>
+        )}
+        {(isLan || isCP) && (
+          <Field label="Apropriação">
+            <select value={apropriacao} onChange={(e) => setApropriacao(e.target.value)}>
+              {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </Field>
+        )}
+        {isLan && (
+          <Field label="Centro de custo" className="gf-span-2">
+            <SearchableSelect value={obraId} onChange={setObraId} options={centroCustoOptions} placeholder="Selecione o centro de custo…" />
+          </Field>
+        )}
+        <Field label="Descrição" className="gf-span-2">
+          <input value={descricao} onChange={(e) => setDescricao(e.target.value)} />
+        </Field>
+
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-ghost">Salvar (manter pendente)</button>
+          <button type="button" className="gf-btn gf-btn-primary" onClick={(e) => submit(e, true)}>Salvar e aprovar</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------
    Página: Usuários e Permissões
 --------------------------------------------------------------- */
 
@@ -4611,7 +4934,7 @@ function InvestimentoDetailModal({ investimento, obraName, accounts, onClose }) 
 
 const PRO_LABORE_PADRAO = 10000;
 
-function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, accounts }) {
+function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, accounts, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [editingMov, setEditingMov] = useState(null);
   const [editingParticipacao, setEditingParticipacao] = useState(false);
@@ -4622,12 +4945,21 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
   const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
 
   const saveMov = (data) => {
-    if (data.id) setMovimentos((prev) => prev.map((m) => (m.id === data.id ? data : m)));
-    else setMovimentos((prev) => [{ ...data, id: uid("soc"), createdAt: Date.now() }, ...prev]);
+    if (data.id) {
+      setMovimentos((prev) => prev.map((m) => (m.id === data.id ? { ...m, ...data, ...carimbarEdicao(currentUser) } : m)));
+    } else {
+      setMovimentos((prev) => [{ ...data, id: uid("soc"), createdAt: Date.now(), ...carimbarCriacao(currentUser) }, ...prev]);
+    }
     setShowNew(false); setEditingMov(null);
   };
 
   const remove = (id) => { setMovimentos((prev) => prev.filter((m) => m.id !== id)); setConfirmDeleteId(null); };
+
+  const aprovar = (m) => {
+    if (!can(currentUser, "lancamentos_aprovar")) return;
+    setMovimentos((prev) => prev.map((x) => (x.id === m.id ? { ...x, status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: Date.now() } : x)));
+    logAudit?.({ tipoOperacao: "Aprovação de movimento de sócio", registroAlterado: m.descricao || socioName(m.socioId), valorAnterior: "Pendente", valorNovo: "Aprovado" });
+  };
 
   const filtered = movimentos
     .filter((m) => (filters.socioId ? m.socioId === filters.socioId : true))
@@ -4806,6 +5138,8 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
                     <Badge tone={m.tipo === "aporte" ? "green" : m.tipo === "pro-labore" ? "gray" : "red"}>
                       {m.tipo === "aporte" ? "Aporte" : m.tipo === "pro-labore" ? "Pró-labore" : "Retirada"}
                     </Badge>
+                    <span className={`gf-dot gf-dot-${statusAprovacao(m) === "aprovado" ? "green" : "orange"}`}
+                      style={{ marginLeft: 6 }} title={statusAprovacao(m) === "aprovado" ? "Aprovado" : "Pendente de aprovação"} />
                   </td>
                   <td>{socioName(m.socioId)}</td>
                   <td>{accountName(m.contaId)}</td>
@@ -4822,6 +5156,9 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
                         </>
                       ) : (
                         <>
+                          {statusAprovacao(m) === "pendente" && can(currentUser, "lancamentos_aprovar") && (
+                            <button className="gf-icon-btn" title="Aprovar" onClick={() => aprovar(m)}><Check size={14} /></button>
+                          )}
                           <button className="gf-icon-btn" title="Editar" onClick={() => setEditingMov(m)}><Pencil size={14} /></button>
                           <button className="gf-icon-btn" title="Excluir" onClick={() => setConfirmDeleteId(m.id)}><Trash2 size={14} /></button>
                         </>
