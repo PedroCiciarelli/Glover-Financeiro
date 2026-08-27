@@ -83,9 +83,17 @@
   function personalKey(key) { return "gf-pessoal:" + key; }
 
   async function supabaseGet(key) {
-    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value";
+    // "_" com timestamp + cache:no-store: garante que o navegador NUNCA sirva uma
+    // resposta antiga guardada em cache — sempre busca a versão mais recente do servidor.
+    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value&_=" + Date.now();
     const res = await fetch(url, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+      cache: "no-store",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+      },
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
@@ -100,6 +108,7 @@
     const url = SUPABASE_URL + "/rest/v1/kv_store?on_conflict=id";
     const res = await fetch(url, {
       method: "POST",
+      cache: "no-store",
       headers: {
         apikey: SUPABASE_ANON_KEY,
         Authorization: "Bearer " + SUPABASE_ANON_KEY,
