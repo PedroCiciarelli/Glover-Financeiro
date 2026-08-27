@@ -1011,18 +1011,19 @@ export default function App() {
 
   // Carregar dados salvos — os dados do negócio são COMPARTILHADOS (toda a equipe vê o mesmo),
   // a sessão de login é PESSOAL (cada dispositivo guarda o seu próprio usuário logado).
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await window.storage.get(STORAGE_KEY, true);
-        if (res && res.value) {
-          applyingRemoteRef.current = true;
-          applyRemoteData(JSON.parse(res.value));
-          lastRemoteJson.current = res.value;
-        } else {
-          applySeedData();
-        }
-      } catch (e) {
+  const [loadError, setLoadError] = useState(null);
+
+  const carregarDados = async () => {
+    setLoadError(null);
+    try {
+      const res = await window.storage.get(STORAGE_KEY, true);
+      if (res && res.value) {
+        applyingRemoteRef.current = true;
+        applyRemoteData(JSON.parse(res.value));
+        lastRemoteJson.current = res.value;
+      } else {
+        // Banco de dados genuinamente vazio (primeiríssima vez usando o sistema) — aqui sim
+        // é seguro carregar os dados de exemplo, pois não existe nada real para perder.
         applySeedData();
       }
       try {
@@ -1030,8 +1031,17 @@ export default function App() {
         if (sess && sess.value) setCurrentUserId(JSON.parse(sess.value).currentUserId || null);
       } catch (e) { /* sem sessão salva ainda */ }
       setReady(true);
-    })();
-  }, []);
+    } catch (e) {
+      // IMPORTANTíSSIMO: uma falha ao buscar os dados (internet instável, banco de dados
+      // indisponível por um instante, etc.) NUNCA pode ser tratada como "banco vazio" — isso
+      // já causou perda real de dados. Em caso de erro, mostramos uma tela de erro com opção
+      // de tentar novamente, e jamais carregamos (e muito menos salvamos) dados de exemplo
+      // por cima de dados reais só porque a conexão falhou momentaneamente.
+      setLoadError((e && e.message) || "Não foi possível conectar ao banco de dados.");
+    }
+  };
+
+  useEffect(() => { carregarDados(); }, []);
 
   // Salvar dados do negócio (compartilhado entre todos os usuários da equipe).
   // Importante: se a mudança de estado veio de uma atualização recebida de outro dispositivo
@@ -1268,6 +1278,31 @@ export default function App() {
     if (!prev) return null;
     return ((cur - prev) / Math.abs(prev)) * 100;
   };
+
+  if (loadError) {
+    return (
+      <div className="gf-app">
+        <style>{CSS}</style>
+        <div className="gf-login">
+          <div className="gf-login-card">
+            <div className="gf-login-logo-tile">
+              <img src={GLOVER_LOGO_DATA_URI} alt="Glover Engenharia" className="gf-login-logo-img" />
+            </div>
+            <h2 style={{ fontFamily: "var(--gf-font-display)", fontSize: 18, margin: "14px 0 4px", color: "var(--gf-danger)" }}>Não foi possível carregar os dados</h2>
+            <p className="gf-field-hint" style={{ marginBottom: 6 }}>
+              Houve um problema de conexão com o banco de dados: <b>{loadError}</b>
+            </p>
+            <p className="gf-field-hint" style={{ marginBottom: 16 }}>
+              Por segurança, o sistema não prosseguiu para evitar sobrescrever dados reais. Verifique sua internet e tente novamente.
+            </p>
+            <button className="gf-btn gf-btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={carregarDados}>
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!ready) {
     return <div className="gf-app gf-loading">Carregando…</div>;
