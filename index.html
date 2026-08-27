@@ -2630,7 +2630,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
       )}
 
       {(showNew || editingObra) && (
-        <ObraModal obra={editingObra} orcamentoItens={orcamentoItens} apropriacoes={apropriacoes} onClose={() => { setShowNew(false); setEditingObra(null); }} onSave={saveObra} />
+        <ObraModal obra={editingObra} orcamentoItens={orcamentoItens} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes} onClose={() => { setShowNew(false); setEditingObra(null); }} onSave={saveObra} />
       )}
       {detailObra && (
         <ObraDetail
@@ -2645,7 +2645,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
   );
 }
 
-function ObraModal({ obra, orcamentoItens, apropriacoes, onClose, onSave }) {
+function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClose, onSave }) {
   const [obraIdLocal] = useState(() => obra?.id || uid("obra"));
   const [f, setF] = useState(obra || {
     nome: "", codigo: "", cliente: "", localizacao: "", dataInicio: todayISO(), dataFim: "", orcamento: "", status: "Em planejamento",
@@ -2656,11 +2656,21 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, onClose, onSave }) {
     existentes.forEach((o) => { map[o.apropriacao] = (map[o.apropriacao] || 0) + (Number(o.valorTotal) || 0); });
     return Object.entries(map).map(([nome, verba]) => ({ id: uid("row"), nome, verba: String(verba) }));
   });
+  const [addingNewFor, setAddingNewFor] = useState(null);
+  const [novoNome, setNovoNome] = useState("");
 
   const upd = (p) => setF((s) => ({ ...s, ...p }));
   const updRow = (id, patch) => setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const addRow = () => setRows((prev) => [...prev, { id: uid("row"), nome: apropriacoes[0] || "", verba: "" }]);
   const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
+
+  const confirmarNovaApropriacao = (rowId) => {
+    const nome = novoNome.trim();
+    if (!nome) return;
+    if (!apropriacoes.includes(nome)) setApropriacoes((prev) => [...prev, nome]);
+    updRow(rowId, { nome });
+    setAddingNewFor(null); setNovoNome("");
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -2693,11 +2703,26 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, onClose, onSave }) {
           )}
           {rows.map((r) => (
             <div className="gf-rateio-row" key={r.id}>
-              <select value={r.nome} onChange={(e) => updRow(r.id, { nome: e.target.value })}>
-                {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-              <input type="number" min="0" step="0.01" placeholder="Verba (R$)" value={r.verba} onChange={(e) => updRow(r.id, { verba: e.target.value })} />
-              <button type="button" className="gf-icon-btn danger" onClick={() => removeRow(r.id)}><Trash2 size={13} /></button>
+              {addingNewFor === r.id ? (
+                <>
+                  <input autoFocus placeholder="Nova apropriação" value={novoNome}
+                    onChange={(e) => setNovoNome(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), confirmarNovaApropriacao(r.id))} />
+                  <input type="number" min="0" step="0.01" placeholder="Verba (R$)" value={r.verba} onChange={(e) => updRow(r.id, { verba: e.target.value })} />
+                  <button type="button" className="gf-icon-btn" title="Confirmar" onClick={() => confirmarNovaApropriacao(r.id)}><Check size={13} /></button>
+                  <button type="button" className="gf-icon-btn" title="Cancelar" onClick={() => { setAddingNewFor(null); setNovoNome(""); }}><X size={13} /></button>
+                </>
+              ) : (
+                <>
+                  <select value={r.nome} onChange={(e) => updRow(r.id, { nome: e.target.value })}>
+                    <option value="" disabled>Selecione…</option>
+                    {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                  <input type="number" min="0" step="0.01" placeholder="Verba (R$)" value={r.verba} onChange={(e) => updRow(r.id, { verba: e.target.value })} />
+                  <button type="button" className="gf-icon-btn" title="Nova apropriação" onClick={() => { setAddingNewFor(r.id); setNovoNome(""); }}><Plus size={13} /></button>
+                  <button type="button" className="gf-icon-btn danger" title="Remover" onClick={() => removeRow(r.id)}><Trash2 size={13} /></button>
+                </>
+              )}
             </div>
           ))}
           <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 6 }} onClick={addRow}><Plus size={14} /> Adicionar apropriação</button>
