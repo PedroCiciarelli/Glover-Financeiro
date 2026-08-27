@@ -297,6 +297,41 @@ function competenciaLabel(dataCompraISO, seq) {
 }
 
 /* ---------------------------------------------------------------
+   Cruzamento Centro de Custo × Fornecedor → Apropriações disponíveis
+   Usado em Lançamentos, Contas a Pagar e Cartão de Crédito (regra centralizada).
+--------------------------------------------------------------- */
+
+// Apropriações cadastradas para uma obra (via seção "Apropriações da obra" ou importação de
+// orçamento). Retorna null quando a obra ainda não tem nenhuma cadastrada — nesse caso,
+// tratamos como "sem restrição" (todas as apropriações do sistema continuam válidas), para
+// não travar obras já existentes que ainda não foram configuradas com essa regra nova.
+function apropriacoesDaObra(centroCustoId, orcamentoItens) {
+  if (!centroCustoId || centroCustoId === SEM_OBRA) return null;
+  const nomes = [...new Set(orcamentoItens.filter((o) => o.obraId === centroCustoId).map((o) => o.apropriacao))];
+  return nomes.length ? nomes : null;
+}
+
+// Apropriações que um fornecedor atende. Retorna null quando o fornecedor ainda não tem
+// nenhuma cadastrada (fornecedor antigo, de antes desta regra existir) — tratado como
+// "sem restrição" pelo mesmo motivo acima.
+function apropriacoesDoFornecedor(fornecedorNome, fornecedoresCadastro) {
+  const f = fornecedoresCadastro.find((x) => x.nome === fornecedorNome);
+  if (!f || !f.apropriacoesPermitidas || !f.apropriacoesPermitidas.length) return null;
+  return f.apropriacoesPermitidas;
+}
+
+// Cruza as duas listas (interseção). Quando uma delas é null (sem restrição), usa só a outra.
+// Quando as duas são null, não há nenhuma restrição — todas as apropriações do sistema valem.
+function computeApropriacoesDisponiveis(centroCustoId, fornecedorNome, apropriacoesGlobais, orcamentoItens, fornecedoresCadastro) {
+  const daObra = apropriacoesDaObra(centroCustoId, orcamentoItens);
+  const doFornecedor = apropriacoesDoFornecedor(fornecedorNome, fornecedoresCadastro);
+  if (daObra === null && doFornecedor === null) return apropriacoesGlobais;
+  if (daObra === null) return doFornecedor;
+  if (doFornecedor === null) return daObra;
+  return daObra.filter((a) => doFornecedor.includes(a));
+}
+
+/* ---------------------------------------------------------------
    Aprovação de lançamentos (Lançamentos / Contas a Pagar / Sócios)
 --------------------------------------------------------------- */
 
@@ -930,6 +965,64 @@ function SearchableSelect({ value, onChange, options, placeholder = "Buscar…",
   );
 }
 
+// Campo de Apropriação centralizado: fica bloqueado até Centro de Custo + Fornecedor serem
+// escolhidos; depois mostra só as apropriações compatíveis com os dois; permite adicionar uma
+// apropriação excepcional (via "+") válida somente para este lançamento específico.
+function ApropriacaoField({ value, onChange, centroCustoId, centroCustoPreenchido, fornecedorNome, apropriacoesGlobais, orcamentoItens, fornecedoresCadastro, excecoes, onAddExcecao, error }) {
+  const [addingExcecao, setAddingExcecao] = useState(false);
+  const [novaExcecao, setNovaExcecao] = useState("");
+
+  const prontoParaLiberar = (centroCustoPreenchido !== undefined ? centroCustoPreenchido : !!centroCustoId) && !!fornecedorNome;
+  const disponiveis = prontoParaLiberar
+    ? computeApropriacoesDisponiveis(centroCustoId, fornecedorNome, apropriacoesGlobais, orcamentoItens, fornecedoresCadastro)
+    : [];
+  const opcoesFinais = [...new Set([...disponiveis, ...excecoes])];
+
+  const confirmarExcecao = () => {
+    const v = novaExcecao.trim();
+    if (!v) return;
+    onAddExcecao(v);
+    onChange(v);
+    setNovaExcecao(""); setAddingExcecao(false);
+  };
+
+  if (!prontoParaLiberar) {
+    return (
+      <div className="gf-locked-field" title="Selecione o Centro de custo e o Fornecedor primeiro">
+        <span>Selecione Centro de custo e Fornecedor primeiro</span>
+        <Lock size={14} />
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {!addingExcecao ? (
+        <div className="gf-inline-select">
+          <select className={error ? "gf-input-error" : ""} value={value} onChange={(e) => onChange(e.target.value)}>
+            <option value="" disabled>{opcoesFinais.length ? "Selecione…" : "Nenhuma apropriação disponível"}</option>
+            {opcoesFinais.map((a) => <option key={a} value={a}>{a}{excecoes.includes(a) ? " (excepcional)" : ""}</option>)}
+          </select>
+          <button type="button" className="gf-icon-btn" title="Adicionar apropriação excepcional para este lançamento" onClick={() => setAddingExcecao(true)}>
+            <Plus size={15} />
+          </button>
+        </div>
+      ) : (
+        <div className="gf-inline-select">
+          <input autoFocus placeholder="Nova apropriação (só para este lançamento)" value={novaExcecao}
+            onChange={(e) => setNovaExcecao(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), confirmarExcecao())} />
+          <button type="button" className="gf-icon-btn" onClick={confirmarExcecao}><Check size={15} /></button>
+          <button type="button" className="gf-icon-btn" onClick={() => setAddingExcecao(false)}><X size={15} /></button>
+        </div>
+      )}
+      {opcoesFinais.length === 0 && !addingExcecao && (
+        <p className="gf-warn" style={{ marginTop: 6 }}>Não existe apropriação disponível para este fornecedor neste centro de custo. Use o botão "+" para uma apropriação excepcional.</p>
+      )}
+    </div>
+  );
+}
+
 /* ---------------------------------------------------------------
    App principal
 --------------------------------------------------------------- */
@@ -1350,6 +1443,7 @@ export default function App() {
             <LancamentosPage
               accounts={accounts} obras={obras} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               entries={entries} setEntries={setEntries} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions}
+              orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
               dividas={dividas} setDividas={setDividas} investimentos={investimentos} setInvestimentos={setInvestimentos}
               currentUser={currentUser} logAudit={logAudit}
             />
@@ -1374,6 +1468,7 @@ export default function App() {
             <FornecedoresPage
               supplierNames={supplierNames} supplierStats={supplierStats} entries={entries} obras={obras}
               fornecedoresCadastro={fornecedoresCadastro} setFornecedoresCadastro={setFornecedoresCadastro}
+              apropriacoes={apropriacoes}
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
@@ -1383,6 +1478,7 @@ export default function App() {
               entries={entries} setEntries={setEntries}
               accounts={accounts.filter((a) => a.status === "Ativa")}
               obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions}
+              fornecedoresCadastro={fornecedoresCadastro}
               saldoAtualTotal={dashboard.saldoTotal}
               orcamentoItens={orcamentoItens}
               currentUser={currentUser} logAudit={logAudit}
@@ -1396,6 +1492,7 @@ export default function App() {
               entries={entries} setEntries={setEntries}
               accounts={accounts.filter((a) => a.status === "Ativa")}
               obras={obras} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+              orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
@@ -1646,7 +1743,7 @@ const LANCAMENTO_FIELD_LABELS = {
   valor: "Valor", fornecedor: "Fornecedor", apropriacao: "Apropriação",
 };
 
-function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entries, setEntries, supplierNames, fornecedorOptions, dividas, setDividas, investimentos, setInvestimentos, currentUser, logAudit }) {
+function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entries, setEntries, supplierNames, fornecedorOptions, orcamentoItens, fornecedoresCadastro, dividas, setDividas, investimentos, setInvestimentos, currentUser, logAudit }) {
   const blankForm = {
     id: null, tipo: "saida", contaId: accounts.find((a) => a.status === "Ativa")?.id || "",
     obraId: SEM_OBRA, data: todayISO(), valor: "", fornecedor: "", apropriacao: apropriacoes[0] || "", descricao: "",
@@ -1661,10 +1758,9 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
   const [form, setForm] = useState(blankForm);
   const [editingId, setEditingId] = useState(null);
   const [editingClassificacao, setEditingClassificacao] = useState(null);
-  const [addingApropriacao, setAddingApropriacao] = useState(false);
-  const [novaApropriacao, setNovaApropriacao] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
   const valorRef = useRef(null);
   const podeCriar = can(currentUser, "lancamentos_criar");
   const podeEditar = can(currentUser, "lancamentos_editar");
@@ -1788,7 +1884,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     } else {
       setEntries((prev) => [payload, ...prev]);
     }
-    setEditingId(null); setEditingClassificacao(null); setFieldErrors({});
+    setEditingId(null); setEditingClassificacao(null); setFieldErrors({}); setApropriacaoExcecoes([]);
     setForm({ ...blankForm, contaId: form.contaId, obraId: form.obraId, tipo: form.tipo });
     setTimeout(() => valorRef.current?.focus(), 0);
   };
@@ -1798,6 +1894,10 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     setEditingId(entry.id);
     setEditingClassificacao(entry.classificacao || (entry.dividaId ? "divida" : entry.investimentoId ? "investimento" : null));
     setFieldErrors({});
+    // Se a apropriação já salva não estiver mais na lista padrão (regra nova, lançamento antigo),
+    // trata como exceção automaticamente — não força o usuário a trocar o que já estava certo.
+    const disponiveisAtuais = computeApropriacoesDisponiveis(entry.obraId, entry.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+    setApropriacaoExcecoes(disponiveisAtuais.includes(entry.apropriacao) ? [] : [entry.apropriacao]);
     setForm({
       ...blankForm,
       id: entry.id, tipo: entry.tipo, contaId: entry.contaId, obraId: entry.obraId,
@@ -1806,7 +1906,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     window.scrollTo?.({ top: 0, behavior: "smooth" });
   };
 
-  const cancelEdit = () => { setEditingId(null); setEditingClassificacao(null); setForm(blankForm); setFieldErrors({}); };
+  const cancelEdit = () => { setEditingId(null); setEditingClassificacao(null); setForm(blankForm); setFieldErrors({}); setApropriacaoExcecoes([]); };
 
   const duplicate = (entry) => {
     if (!can(currentUser, "lancamentos_criar")) return;
@@ -1830,14 +1930,6 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
     if (!can(currentUser, "lancamentos_aprovar")) return;
     setEntries((prev) => prev.map((e) => (e.id === entry.id ? { ...e, status: "aprovado", aprovadoPor: currentUser.nome, aprovadoEm: Date.now() } : e)));
     logAudit?.({ tipoOperacao: "Aprovação de lançamento", registroAlterado: entry.descricao || entry.fornecedor || "Lançamento", valorAnterior: "Pendente", valorNovo: "Aprovado", centroCusto: entry.obraId });
-  };
-
-  const addApropriacao = () => {
-    const v = novaApropriacao.trim();
-    if (!v) return;
-    if (!apropriacoes.includes(v)) setApropriacoes((prev) => [...prev, v]);
-    updateForm({ apropriacao: v });
-    setNovaApropriacao(""); setAddingApropriacao(false);
   };
 
   const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
@@ -1908,7 +2000,11 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
             <Field label="Centro de custo" hint="Obra vinculada ou custo interno (salários, escritório, etc.)">
               <SearchableSelect
                 value={form.obraId}
-                onChange={(v) => updateForm({ obraId: v })}
+                onChange={(v) => {
+                  const disponiveis = computeApropriacoesDisponiveis(v, form.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+                  const aindaValida = form.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(form.apropriacao);
+                  updateForm({ obraId: v, apropriacao: aindaValida ? form.apropriacao : "" });
+                }}
                 options={[{ value: SEM_OBRA, label: "Administrativo / Custos internos" }, ...obras.map((o) => ({ value: o.id, label: o.nome }))]}
                 placeholder="Selecione o centro de custo…"
                 error={!!fieldErrors.obraId}
@@ -1925,31 +2021,29 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
             <Field label={form.tipo === "entrada" ? "Cliente / origem" : "Fornecedor"} hint={form.tipo !== "entrada" ? "Só fornecedores cadastrados na página Fornecedores" : undefined}>
               <SearchableSelect
                 value={form.fornecedor}
-                onChange={(v) => updateForm({ fornecedor: v })}
+                onChange={(v) => {
+                  const disponiveis = computeApropriacoesDisponiveis(form.obraId, v, apropriacoes, orcamentoItens, fornecedoresCadastro);
+                  const aindaValida = form.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(form.apropriacao);
+                  updateForm({ fornecedor: v, apropriacao: aindaValida ? form.apropriacao : "" });
+                }}
                 options={fornecedorSelectOptions}
                 placeholder="Buscar fornecedor…"
                 error={!!fieldErrors.fornecedor}
               />
             </Field>
             <Field label="Apropriação">
-              {!addingApropriacao ? (
-                <div className="gf-inline-select">
-                  <select className={fieldErrors.apropriacao ? "gf-input-error" : ""} value={form.apropriacao} onChange={(e) => updateForm({ apropriacao: e.target.value })}>
-                    {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
-                  </select>
-                  <button type="button" className="gf-icon-btn" title="Nova apropriação" onClick={() => setAddingApropriacao(true)}>
-                    <Plus size={15} />
-                  </button>
-                </div>
-              ) : (
-                <div className="gf-inline-select">
-                  <input autoFocus placeholder="Nova apropriação" value={novaApropriacao}
-                    onChange={(e) => setNovaApropriacao(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addApropriacao())} />
-                  <button type="button" className="gf-icon-btn" onClick={addApropriacao}><Check size={15} /></button>
-                  <button type="button" className="gf-icon-btn" onClick={() => setAddingApropriacao(false)}><X size={15} /></button>
-                </div>
-              )}
+              <ApropriacaoField
+                value={form.apropriacao}
+                onChange={(v) => updateForm({ apropriacao: v })}
+                centroCustoId={form.obraId}
+                fornecedorNome={form.fornecedor}
+                apropriacoesGlobais={apropriacoes}
+                orcamentoItens={orcamentoItens}
+                fornecedoresCadastro={fornecedoresCadastro}
+                excecoes={apropriacaoExcecoes}
+                onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
+                error={!!fieldErrors.apropriacao}
+              />
             </Field>
             <Field label="Descrição" className="gf-span-2">
               <input placeholder="Ex: Compra de cimento e agregados" value={form.descricao}
@@ -2432,10 +2526,21 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
   const [detailObraId, setDetailObraId] = useState(null);
   const podeGerenciar = can(currentUser, "centroscusto_gerenciar");
 
-  const saveObra = (data) => {
+  const saveObra = (data, apropriacoesRows) => {
     if (!podeGerenciar) return;
-    if (data.id) setObras((prev) => prev.map((o) => (o.id === data.id ? data : o)));
-    else setObras((prev) => [...prev, { ...data, id: uid("obra") }]);
+    const obraId = data.id;
+    if (obras.some((o) => o.id === obraId)) setObras((prev) => prev.map((o) => (o.id === obraId ? data : o)));
+    else setObras((prev) => [...prev, data]);
+
+    if (apropriacoesRows) {
+      const novosItens = apropriacoesRows.filter((r) => r.nome && r.nome.trim()).map((r) => ({
+        id: uid("orc"), obraId, apropriacao: r.nome.trim(), descricao: "", unidade: "", quantidade: "", valorUnitario: "",
+        valorTotal: Number(r.verba) || 0, importadoEm: Date.now(),
+      }));
+      setOrcamentoItens((prev) => [...prev.filter((o) => o.obraId !== obraId), ...novosItens]);
+      const novasApropriacoes = [...new Set(novosItens.map((i) => i.apropriacao))].filter((a) => !apropriacoes.includes(a));
+      if (novasApropriacoes.length) setApropriacoes((prev) => [...prev, ...novasApropriacoes]);
+    }
     setShowNew(false); setEditingObra(null);
   };
 
@@ -2525,7 +2630,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
       )}
 
       {(showNew || editingObra) && (
-        <ObraModal obra={editingObra} onClose={() => { setShowNew(false); setEditingObra(null); }} onSave={saveObra} />
+        <ObraModal obra={editingObra} orcamentoItens={orcamentoItens} apropriacoes={apropriacoes} onClose={() => { setShowNew(false); setEditingObra(null); }} onSave={saveObra} />
       )}
       {detailObra && (
         <ObraDetail
@@ -2540,18 +2645,31 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
   );
 }
 
-function ObraModal({ obra, onClose, onSave }) {
+function ObraModal({ obra, orcamentoItens, apropriacoes, onClose, onSave }) {
+  const [obraIdLocal] = useState(() => obra?.id || uid("obra"));
   const [f, setF] = useState(obra || {
     nome: "", codigo: "", cliente: "", localizacao: "", dataInicio: todayISO(), dataFim: "", orcamento: "", status: "Em planejamento",
   });
+  const [rows, setRows] = useState(() => {
+    const existentes = orcamentoItens.filter((o) => o.obraId === obra?.id);
+    const map = {};
+    existentes.forEach((o) => { map[o.apropriacao] = (map[o.apropriacao] || 0) + (Number(o.valorTotal) || 0); });
+    return Object.entries(map).map(([nome, verba]) => ({ id: uid("row"), nome, verba: String(verba) }));
+  });
+
   const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const updRow = (id, patch) => setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addRow = () => setRows((prev) => [...prev, { id: uid("row"), nome: apropriacoes[0] || "", verba: "" }]);
+  const removeRow = (id) => setRows((prev) => prev.filter((r) => r.id !== id));
+
   const submit = (e) => {
     e.preventDefault();
     if (!f.nome) return;
-    onSave({ ...f, orcamento: Number(f.orcamento) || 0 });
+    onSave({ ...f, id: obraIdLocal, orcamento: Number(f.orcamento) || 0 }, rows);
   };
+
   return (
-    <Modal title={obra ? "Editar obra" : "Nova obra"} onClose={onClose} width={600}>
+    <Modal title={obra ? "Editar obra" : "Nova obra"} onClose={onClose} width={640}>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
         <Field label="Nome da obra" className="gf-span-2"><input required value={f.nome} onChange={(e) => upd({ nome: e.target.value })} /></Field>
         <Field label="Código da obra"><input value={f.codigo} onChange={(e) => upd({ codigo: e.target.value })} placeholder="Ex: OB-004" /></Field>
@@ -2565,6 +2683,26 @@ function ObraModal({ obra, onClose, onSave }) {
             {OBRA_STATUS.map((s) => <option key={s}>{s}</option>)}
           </select>
         </Field>
+
+        <div className="gf-span-2" style={{ borderTop: "1px solid var(--gf-border)", paddingTop: 14, marginTop: 4 }}>
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Apropriações da obra (define quais apropriações podem ser usadas nos lançamentos desta obra, e a verba de cada uma)</span>
+          {rows.length === 0 && (
+            <p className="gf-field-hint" style={{ marginBottom: 8 }}>
+              Nenhuma apropriação cadastrada ainda — enquanto isso, todas as apropriações do sistema continuam disponíveis para esta obra.
+            </p>
+          )}
+          {rows.map((r) => (
+            <div className="gf-rateio-row" key={r.id}>
+              <select value={r.nome} onChange={(e) => updRow(r.id, { nome: e.target.value })}>
+                {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+              <input type="number" min="0" step="0.01" placeholder="Verba (R$)" value={r.verba} onChange={(e) => updRow(r.id, { verba: e.target.value })} />
+              <button type="button" className="gf-icon-btn danger" onClick={() => removeRow(r.id)}><Trash2 size={13} /></button>
+            </div>
+          ))}
+          <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 6 }} onClick={addRow}><Plus size={14} /> Adicionar apropriação</button>
+        </div>
+
         <div className="gf-form-actions gf-span-2">
           <button type="submit" className="gf-btn gf-btn-primary">Salvar obra</button>
         </div>
@@ -3022,7 +3160,7 @@ function ApropriacaoOrcamentoModal({ linha, obra, contasPagar, allEntries, onClo
    Página: Fornecedores
 --------------------------------------------------------------- */
 
-function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornecedoresCadastro, setFornecedoresCadastro, currentUser, logAudit }) {
+function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornecedoresCadastro, setFornecedoresCadastro, apropriacoes, currentUser, logAudit }) {
   const [selected, setSelected] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [editingFornecedor, setEditingFornecedor] = useState(null);
@@ -3132,7 +3270,7 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
 
       {(showNew || editingFornecedor) && (
         <FornecedorCadastroModal
-          fornecedor={editingFornecedor}
+          fornecedor={editingFornecedor} apropriacoes={apropriacoes}
           onClose={() => { setShowNew(false); setEditingFornecedor(null); }}
           onSave={salvarFornecedor}
         />
@@ -3148,12 +3286,21 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
   );
 }
 
-function FornecedorCadastroModal({ fornecedor, onClose, onSave }) {
-  const [f, setF] = useState(fornecedor || { nome: "", documento: "", telefone: "", email: "", observacao: "", ativo: true });
+function FornecedorCadastroModal({ fornecedor, apropriacoes, onClose, onSave }) {
+  const [f, setF] = useState(fornecedor || { nome: "", documento: "", telefone: "", email: "", observacao: "", ativo: true, apropriacoesPermitidas: [] });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const apropriacoesSelecionadas = f.apropriacoesPermitidas || [];
+  const toggleApropriacao = (nome) => {
+    setF((s) => {
+      const atuais = s.apropriacoesPermitidas || [];
+      const novas = atuais.includes(nome) ? atuais.filter((a) => a !== nome) : [...atuais, nome];
+      return { ...s, apropriacoesPermitidas: novas };
+    });
+  };
   const submit = (e) => {
     e.preventDefault();
     if (!f.nome.trim()) return;
+    if (apropriacoesSelecionadas.length === 0) return;
     onSave({ ...f, nome: f.nome.trim() });
   };
   return (
@@ -3169,8 +3316,26 @@ function FornecedorCadastroModal({ fornecedor, onClose, onSave }) {
           </select>
         </Field>
         <Field label="Observação" className="gf-span-2" hint="Opcional"><input value={f.observacao} onChange={(e) => upd({ observacao: e.target.value })} /></Field>
+
+        <div className="gf-span-2" style={{ borderTop: "1px solid var(--gf-border)", paddingTop: 14, marginTop: 4 }}>
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>
+            Apropriações que este fornecedor atende <span style={{ color: "var(--gf-danger)" }}>*</span>
+          </span>
+          <div className="gf-perm-grid">
+            {apropriacoes.map((a) => (
+              <label className="gf-checkbox gf-perm-item" key={a}>
+                <input type="checkbox" checked={apropriacoesSelecionadas.includes(a)} onChange={() => toggleApropriacao(a)} />
+                <span>{a}</span>
+              </label>
+            ))}
+          </div>
+          {apropriacoesSelecionadas.length === 0 && (
+            <p className="gf-warn" style={{ marginTop: 8 }}>Selecione pelo menos uma apropriação para poder salvar.</p>
+          )}
+        </div>
+
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary">Salvar fornecedor</button>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={apropriacoesSelecionadas.length === 0}>Salvar fornecedor</button>
         </div>
       </form>
     </Modal>
@@ -3267,7 +3432,7 @@ function FornecedorDetail({ nome, entries, obras, onClose }) {
    Página: Contas a Pagar
 --------------------------------------------------------------- */
 
-function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, obras, apropriacoes, supplierNames, fornecedorOptions, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
+function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, obras, apropriacoes, supplierNames, fornecedorOptions, fornecedoresCadastro, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [baixaFor, setBaixaFor] = useState(null);
   const [grupoId, setGrupoId] = useState(null);
@@ -3667,7 +3832,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
       {showNew && (
         <NovaContaPagarModal
           obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions} podeRatear={podeRatear}
-          orcamentoItens={orcamentoItens} contasPagar={contasPagar} allEntries={entries}
+          orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} contasPagar={contasPagar} allEntries={entries}
           onClose={() => setShowNew(false)} onSave={saveNovaConta}
         />
       )}
@@ -3691,7 +3856,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
   );
 }
 
-function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOptions = [], podeRatear = true, orcamentoItens = [], contasPagar = [], allEntries = [], onClose, onSave }) {
+function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOptions = [], fornecedoresCadastro = [], podeRatear = true, orcamentoItens = [], contasPagar = [], allEntries = [], onClose, onSave }) {
   const [tipo, setTipo] = useState("unica");
   const [f, setF] = useState({
     centroCusto: SEM_OBRA, fornecedor: "", apropriacao: apropriacoes[0] || "", descricao: "",
@@ -3703,6 +3868,7 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
   const upd = (p) => setF((s) => ({ ...s, ...p }));
 
   const [rateioAtivo, setRateioAtivo] = useState(false);
+  const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
   const [rateioRows, setRateioRows] = useState([
     { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
     { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
@@ -3825,15 +3991,29 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
         <Field label="Fornecedor" hint="Só fornecedores cadastrados na página Fornecedores">
           <SearchableSelect
             value={f.fornecedor}
-            onChange={(v) => upd({ fornecedor: v })}
+            onChange={(v) => {
+              const centroParaFiltro = rateioAtivo ? null : f.centroCusto;
+              const disponiveis = computeApropriacoesDisponiveis(centroParaFiltro, v, apropriacoes, orcamentoItens, fornecedoresCadastro);
+              const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
+              upd({ fornecedor: v, apropriacao: aindaValida ? f.apropriacao : "" });
+            }}
             options={fornecedorOptions.map((s) => ({ value: s, label: s }))}
             placeholder="Buscar fornecedor…"
           />
         </Field>
         <Field label="Apropriação">
-          <select value={f.apropriacao} onChange={(e) => upd({ apropriacao: e.target.value })}>
-            {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
+          <ApropriacaoField
+            value={f.apropriacao}
+            onChange={(v) => upd({ apropriacao: v })}
+            centroCustoId={rateioAtivo ? null : f.centroCusto}
+            centroCustoPreenchido={rateioAtivo ? true : !!f.centroCusto}
+            fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes}
+            orcamentoItens={orcamentoItens}
+            fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={apropriacaoExcecoes}
+            onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
+          />
         </Field>
         <Field label="Número / documento" hint="Opcional"><input value={f.numeroDocumento} onChange={(e) => upd({ numeroDocumento: e.target.value })} /></Field>
         <Field label="Descrição"><input value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
@@ -3902,7 +4082,12 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
 
           {!rateioAtivo ? (
             <Field label="Centro de custo">
-              <select value={f.centroCusto} onChange={(e) => upd({ centroCusto: e.target.value })}>
+              <select value={f.centroCusto} onChange={(e) => {
+                const v = e.target.value;
+                const disponiveis = computeApropriacoesDisponiveis(v, f.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+                const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
+                upd({ centroCusto: v, apropriacao: aindaValida ? f.apropriacao : "" });
+              }}>
                 <option value={SEM_OBRA}>Administrativo / Custos internos</option>
                 {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
               </select>
@@ -4191,7 +4376,7 @@ function RateioViewModal({ conta, centroCustoName, onClose }) {
    Página: Cartões de Crédito
 --------------------------------------------------------------- */
 
-function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCartao, setLancamentosCartao, faturasCartao, setFaturasCartao, entries, setEntries, accounts, obras, apropriacoes, fornecedorOptions, currentUser, logAudit }) {
+function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCartao, setLancamentosCartao, faturasCartao, setFaturasCartao, entries, setEntries, accounts, obras, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
   const [tab, setTab] = useState("compras");
   const [showNovaCompra, setShowNovaCompra] = useState(false);
   const [showNovoCartao, setShowNovoCartao] = useState(false);
@@ -4458,7 +4643,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
       )}
 
       {showNovaCompra && (
-        <NovaCompraCartaoModal cartoesCredito={cartoesCredito} obras={obras} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} onClose={() => setShowNovaCompra(false)} onSave={salvarCompra} />
+        <NovaCompraCartaoModal cartoesCredito={cartoesCredito} obras={obras} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} onClose={() => setShowNovaCompra(false)} onSave={salvarCompra} />
       )}
       {(showNovoCartao || editingCartao) && (
         <CartaoModal cartao={editingCartao} onClose={() => { setShowNovoCartao(false); setEditingCartao(null); }} onSave={salvarCartao} />
@@ -4504,11 +4689,12 @@ function CartaoModal({ cartao, onClose, onSave }) {
   );
 }
 
-function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedorOptions, onClose, onSave }) {
+function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedorOptions, orcamentoItens = [], fornecedoresCadastro = [], onClose, onSave }) {
   const [parcelado, setParcelado] = useState(false);
+  const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
   const [f, setF] = useState({
     cartaoId: cartoesCredito.find((c) => c.status === "Ativo")?.id || "", descricao: "", fornecedor: "",
-    apropriacao: apropriacoes[0] || "", centroCusto: SEM_OBRA, dataCompra: todayISO(), valor: "", numeroParcelas: 2,
+    apropriacao: "", centroCusto: SEM_OBRA, dataCompra: todayISO(), valor: "", numeroParcelas: 2,
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
 
@@ -4547,15 +4733,39 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
         <Field label="Data da compra"><input type="date" required value={f.dataCompra} onChange={(e) => upd({ dataCompra: e.target.value })} /></Field>
         <Field label="Descrição" className="gf-span-2"><input required value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
         <Field label="Fornecedor">
-          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v })} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+          <SearchableSelect
+            value={f.fornecedor}
+            onChange={(v) => {
+              const disponiveis = computeApropriacoesDisponiveis(f.centroCusto, v, apropriacoes, orcamentoItens, fornecedoresCadastro);
+              const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
+              upd({ fornecedor: v, apropriacao: aindaValida ? f.apropriacao : "" });
+            }}
+            options={fornecedorSelectOptions} placeholder="Buscar fornecedor…"
+          />
         </Field>
         <Field label="Apropriação">
-          <select value={f.apropriacao} onChange={(e) => upd({ apropriacao: e.target.value })}>
-            {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
+          <ApropriacaoField
+            value={f.apropriacao}
+            onChange={(v) => upd({ apropriacao: v })}
+            centroCustoId={f.centroCusto}
+            fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes}
+            orcamentoItens={orcamentoItens}
+            fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={apropriacaoExcecoes}
+            onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
+          />
         </Field>
         <Field label="Centro de custo" className="gf-span-2">
-          <SearchableSelect value={f.centroCusto} onChange={(v) => upd({ centroCusto: v })} options={centroCustoOptions} placeholder="Selecione o centro de custo…" />
+          <SearchableSelect
+            value={f.centroCusto}
+            onChange={(v) => {
+              const disponiveis = computeApropriacoesDisponiveis(v, f.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+              const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
+              upd({ centroCusto: v, apropriacao: aindaValida ? f.apropriacao : "" });
+            }}
+            options={centroCustoOptions} placeholder="Selecione o centro de custo…"
+          />
         </Field>
 
         <div className="gf-span-2">
