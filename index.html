@@ -83,17 +83,13 @@
   function personalKey(key) { return "gf-pessoal:" + key; }
 
   async function supabaseGet(key) {
-    // "_" com timestamp + cache:no-store: garante que o navegador NUNCA sirva uma
-    // resposta antiga guardada em cache — sempre busca a versão mais recente do servidor.
-    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value&_=" + Date.now();
+    // Usamos apenas a opção "cache: no-store" do fetch para evitar cache — NUNCA um
+    // parâmetro extra na URL, porque o Supabase (PostgREST) interpreta qualquer
+    // parâmetro desconhecido como uma tentativa de filtro de busca (erro PGRST100).
+    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value";
     const res = await fetch(url, {
       cache: "no-store",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        Pragma: "no-cache",
-      },
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
