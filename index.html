@@ -1054,7 +1054,6 @@ export default function App() {
   const firstLoad = useRef(true);
   const firstLoadSession = useRef(true);
   const lastRemoteJson = useRef(null);
-  const applyingRemoteRef = useRef(false);
 
   const applyRemoteData = (d) => {
     setAccounts(d.accounts || []);
@@ -1107,7 +1106,6 @@ export default function App() {
     try {
       const res = await window.storage.get(STORAGE_KEY, true);
       if (res && res.value) {
-        applyingRemoteRef.current = true;
         applyRemoteData(JSON.parse(res.value));
         lastRemoteJson.current = res.value;
       } else {
@@ -1133,16 +1131,17 @@ export default function App() {
   useEffect(() => { carregarDados(); }, []);
 
   // Salvar dados do negócio (compartilhado entre todos os usuários da equipe).
-  // Importante: se a mudança de estado veio de uma atualização recebida de outro dispositivo
-  // (applyingRemoteRef), NÃO reenviamos nada — isso evita que uma aba "atrasada" sobrescreva
-  // por engano uma alteração mais recente feita em outro lugar.
+  // Importante: comparamos o conteúdo que vamos gravar com o último conteúdo remoto conhecido.
+  // Se forem idênticos, não há nada novo para salvar (ex.: acabamos de receber essa mesma
+  // informação pela verificação automática) — evita gravações redundantes SEM correr o risco
+  // de "pular" por engano uma mudança local genuína que aconteceu quase ao mesmo tempo.
   useEffect(() => {
     if (!ready) return;
     if (firstLoad.current) { firstLoad.current = false; return; }
-    if (applyingRemoteRef.current) { applyingRemoteRef.current = false; return; }
     const t = setTimeout(async () => {
       try {
         const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, usuarios, auditLog });
+        if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
         setSavedTick(Date.now());
@@ -1163,7 +1162,6 @@ export default function App() {
         const res = await window.storage.get(STORAGE_KEY, true);
         if (res && res.value && res.value !== lastRemoteJson.current) {
           lastRemoteJson.current = res.value;
-          applyingRemoteRef.current = true;
           applyRemoteData(JSON.parse(res.value));
           setSavedTick(Date.now());
         }
