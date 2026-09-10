@@ -1450,7 +1450,7 @@ export default function App() {
             <SaldosPage
               accounts={accounts} setAccounts={setAccounts} accountStats={accountStats}
               entries={entries} transfers={transfers} setTransfers={setTransfers}
-              movimentosSocios={movimentosSocios}
+              movimentosSocios={movimentosSocios} obras={obras}
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
@@ -1459,6 +1459,7 @@ export default function App() {
               obras={obras} setObras={setObras} obraStats={obraStats} obraSemObra={obraSemObra}
               entries={entries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
+              accounts={accounts}
               currentUser={currentUser}
             />
           )}
@@ -2297,10 +2298,11 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
    Página: Saldos nas Contas Bancárias
 --------------------------------------------------------------- */
 
-function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, setTransfers, movimentosSocios, currentUser, logAudit }) {
+function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, setTransfers, movimentosSocios, obras, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [editingAccount, setEditingAccount] = useState(null);
+  const [detailAccountId, setDetailAccountId] = useState(null);
   const podeCadastrar = can(currentUser, "contasbancarias_cadastrar");
   const podeSaldoInicial = can(currentUser, "contasbancarias_saldoinicial");
   const podeTransferir = can(currentUser, "contasbancarias_transferir");
@@ -2374,7 +2376,10 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
           {accounts.map((a) => {
             const s = accountStats[a.id] || { entradas: 0, saidas: 0, saldoAtual: a.saldoInicial };
             return (
-              <div className={`gf-card gf-account-card ${a.status !== "Ativa" ? "is-inactive" : ""}`} key={a.id}>
+              <div
+                className={`gf-card gf-account-card gf-account-card-clickable ${a.status !== "Ativa" ? "is-inactive" : ""}`}
+                key={a.id} onClick={() => setDetailAccountId(a.id)}
+              >
                 <div className="gf-card-head">
                   <div>
                     <div className="gf-eyebrow">{a.banco}</div>
@@ -2382,7 +2387,7 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
                   </div>
                   <div className="gf-row-actions">
                     <Badge tone={a.status === "Ativa" ? "green" : "gray"}>{a.status}</Badge>
-                    {podeCadastrar && <button className="gf-icon-btn" title="Editar conta" onClick={() => setEditingAccount(a)}><Pencil size={14} /></button>}
+                    {podeCadastrar && <button className="gf-icon-btn" title="Editar conta" onClick={(e) => { e.stopPropagation(); setEditingAccount(a); }}><Pencil size={14} /></button>}
                   </div>
                 </div>
                 <div className="gf-account-meta">Ag. {a.agencia} · Conta {a.numero}</div>
@@ -2429,7 +2434,56 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
       {showTransfer && (
         <TransferModal accounts={accounts.filter((a) => a.status === "Ativa")} onClose={() => setShowTransfer(false)} onSave={doTransfer} />
       )}
+      {detailAccountId && (
+        <ContaLancamentosModal
+          conta={accounts.find((a) => a.id === detailAccountId)}
+          entries={entries.filter((e) => e.contaId === detailAccountId)}
+          obras={obras}
+          onClose={() => setDetailAccountId(null)}
+        />
+      )}
     </div>
+  );
+}
+
+function ContaLancamentosModal({ conta, entries, obras, onClose }) {
+  const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
+  const ordenados = [...entries].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
+  const totalEntradas = entries.filter((e) => e.tipo === "entrada").reduce((s, e) => s + e.valor, 0);
+  const totalSaidas = entries.filter((e) => e.tipo === "saida").reduce((s, e) => s + e.valor, 0);
+
+  return (
+    <Modal title={`${conta?.nome || "Conta"} — Lançamentos`} onClose={onClose} width={800}>
+      <div className="gf-summary-inline" style={{ marginBottom: 14 }}>
+        <span>Entradas <b className="pos">{BRL(totalEntradas)}</b></span>
+        <span>Saídas <b className="neg">{BRL(totalSaidas)}</b></span>
+        <span>Resultado <b className={totalEntradas - totalSaidas >= 0 ? "pos" : "neg"}>{BRL(totalEntradas - totalSaidas)}</b></span>
+      </div>
+      <div className="gf-table-wrap">
+        <table className="gf-table gf-table-ledger">
+          <thead>
+            <tr><th>Data</th><th>Tipo</th><th>Centro de custo</th><th>Fornecedor</th><th className="num">Valor</th><th>Descrição</th></tr>
+          </thead>
+          <tbody>
+            {ordenados.length === 0 && (
+              <tr><td colSpan={6}><EmptyState icon={Receipt} title="Nenhum lançamento" body="Nenhuma entrada ou saída registrada para esta conta ainda." /></td></tr>
+            )}
+            {ordenados.map((e) => (
+              <tr key={e.id} className={e.tipo === "entrada" ? "row-pos" : "row-neg"}>
+                <td>{fmtDate(e.data)}</td>
+                <td><Badge tone={e.tipo === "entrada" ? "green" : "red"}>{e.tipo === "entrada" ? "Entrada" : "Saída"}</Badge></td>
+                <td>{obraName(e.obraId)}</td>
+                <td>{e.fornecedor || "—"}</td>
+                <td className={`num mono ${e.tipo === "entrada" ? "pos" : "neg"}`}>
+                  {e.tipo === "entrada" ? "+" : "−"} {BRL(e.valor)}
+                </td>
+                <td className="gf-td-desc" title={e.descricao}>{e.descricao || "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Modal>
   );
 }
 
@@ -2518,7 +2572,7 @@ function TransferModal({ accounts, onClose, onSave }) {
 
 const PIE_COLORS = ["#2F8F5B", "#0E3B2E", "#7FB69A", "#B23A34", "#C98A2B", "#5D7566", "#3E6B57", "#9AA39B", "#1D5A45", "#84A98C", "#4A5259"];
 
-function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, currentUser }) {
+function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, currentUser }) {
   const [showNew, setShowNew] = useState(false);
   const [editingObra, setEditingObra] = useState(null);
   const [detailObraId, setDetailObraId] = useState(null);
@@ -2542,7 +2596,11 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
     setShowNew(false); setEditingObra(null);
   };
 
-  const comparativo = obras.map((o) => ({ nome: o.nome.length > 14 ? o.nome.slice(0, 13) + "…" : o.nome, resultado: obraStats[o.id]?.resultado || 0 }));
+  const obrasOrdenadas = useMemo(
+    () => [...obras].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { numeric: true, sensitivity: "base" })),
+    [obras]
+  );
+  const comparativo = obrasOrdenadas.map((o) => ({ nome: o.nome.length > 14 ? o.nome.slice(0, 13) + "…" : o.nome, resultado: obraStats[o.id]?.resultado || 0 }));
   const detailObra = obras.find((o) => o.id === detailObraId);
 
   return (
@@ -2556,7 +2614,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
         <div className="gf-card"><EmptyState icon={Building2} title="Nenhuma obra cadastrada" body="Cadastre uma obra para acompanhar receitas, despesas e resultado." /></div>
       ) : (
         <div className="gf-grid-cards">
-          {obras.map((o) => {
+          {obrasOrdenadas.map((o) => {
             const s = obraStats[o.id] || { receitas: 0, despesas: 0, resultado: 0, margem: null, count: 0 };
             const orc = computeOrcamentoObra(o.id, orcamentoItens, contasPagar, entries);
             return (
@@ -2636,7 +2694,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
           apropriacoes={apropriacoes} setApropriacoes={setApropriacoes} onClose={() => setDetailObraId(null)} podeEditar={podeGerenciar}
           onEdit={() => { setEditingObra(detailObra); setDetailObraId(null); }}
           contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
-          allEntries={entries}
+          allEntries={entries} accounts={accounts}
         />
       )}
     </div>
@@ -2734,7 +2792,7 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClos
   );
 }
 
-function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries }) {
+function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, accounts }) {
   const [tab, setTab] = useState("financeiro");
   const [apropFilter, setApropFilter] = useState("");
   const filtered = apropFilter ? entries.filter((e) => e.apropriacao === apropFilter) : entries;
@@ -2774,6 +2832,7 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
         <div className="gf-segmented" style={{ marginTop: 4, marginBottom: 14 }}>
           <button className={tab === "financeiro" ? "is-active" : ""} onClick={() => setTab("financeiro")}>Visão financeira</button>
           <button className={tab === "orcamento" ? "is-active" : ""} onClick={() => setTab("orcamento")}>Controle orçamentário</button>
+          <button className={tab === "lancamentos" ? "is-active" : ""} onClick={() => setTab("lancamentos")}>Lançamentos</button>
         </div>
 
         {tab === "financeiro" && (
@@ -2843,8 +2902,43 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
             allEntries={allEntries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
           />
         )}
+        {tab === "lancamentos" && (
+          <ObraLancamentosTab entries={entries} accounts={accounts} />
+        )}
       </div>
     </Modal>
+  );
+}
+
+function ObraLancamentosTab({ entries, accounts }) {
+  const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const ordenados = [...entries].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
+
+  return (
+    <div className="gf-table-wrap">
+      <table className="gf-table gf-table-ledger">
+        <thead>
+          <tr><th>Data</th><th>Tipo</th><th>Conta</th><th>Fornecedor</th><th className="num">Valor</th><th>Descrição</th></tr>
+        </thead>
+        <tbody>
+          {ordenados.length === 0 && (
+            <tr><td colSpan={6}><EmptyState icon={Receipt} title="Nenhum lançamento" body="Nenhuma entrada ou saída registrada para esta obra ainda." /></td></tr>
+          )}
+          {ordenados.map((e) => (
+            <tr key={e.id} className={e.tipo === "entrada" ? "row-pos" : "row-neg"}>
+              <td>{fmtDate(e.data)}</td>
+              <td><Badge tone={e.tipo === "entrada" ? "green" : "red"}>{e.tipo === "entrada" ? "Entrada" : "Saída"}</Badge></td>
+              <td>{accountName(e.contaId)}</td>
+              <td>{e.fornecedor || "—"}</td>
+              <td className={`num mono ${e.tipo === "entrada" ? "pos" : "neg"}`}>
+                {e.tipo === "entrada" ? "+" : "−"} {BRL(e.valor)}
+              </td>
+              <td className="gf-td-desc" title={e.descricao}>{e.descricao || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -6489,6 +6583,8 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
 /* Grid cards (accounts/obras) */
 .gf-grid-cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(270px,1fr)); gap:14px; }
 .gf-account-card.is-inactive{ opacity:.55; }
+.gf-account-card-clickable{ cursor:pointer; }
+.gf-account-card-clickable:hover{ box-shadow:0 4px 14px rgba(14,59,46,.10); border-color:var(--gf-accent); }
 .gf-account-meta{ font-size:12px; color:var(--gf-muted); margin-bottom:10px; }
 .gf-account-rows{ display:flex; flex-direction:column; gap:6px; padding:10px 0; border-top:1px solid var(--gf-border); border-bottom:1px solid var(--gf-border); }
 .gf-account-rows div{ display:flex; justify-content:space-between; font-size:12.5px; }
