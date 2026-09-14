@@ -164,6 +164,7 @@ import {
   Copy, X, ArrowLeftRight, Download, ChevronRight, ArrowUpRight, ArrowDownRight,
   TrendingUp, TrendingDown, Filter, ChevronLeft, Check, Scale, BarChart3,
   CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut, ClipboardCheck, CreditCard,
+  FolderKanban, Paperclip, Send,
 } from "lucide-react";
 
 const GLOVER_LOGO_DATA_URI = "data:image/png;base64,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";
@@ -225,6 +226,9 @@ const PERMISSION_GROUPS = [
     { key: "cartao_cadastrar", label: "Cadastrar/editar cartões de crédito" },
     { key: "cartao_lancar", label: "Lançar compras, gerenciar faturas e registrar pagamentos" },
   ] },
+  { group: "Obras Gerenciamento", keys: [
+    { key: "gerenciamento_lancar", label: "Lançar contas a pagar, depósitos e gerar remessas (obras por gerenciamento)" },
+  ] },
   { group: "Administração", keys: [
     { key: "relatorios_acessar", label: "Acessar relatórios e dashboards" },
     { key: "config_alterar", label: "Alterar configurações do sistema" },
@@ -243,7 +247,7 @@ const ASSISTENTE_PERMS = {
   contaspagar_criar: true, contaspagar_editar: true, contaspagar_ratear: true, contaspagar_baixar: true,
   contasbancarias_visualizar: true, contasbancarias_transferir: true,
   fornecedores_cadastrar: true, apropriacoes_gerenciar: true,
-  relatorios_acessar: true, socios_acessar: true, cartao_lancar: true,
+  relatorios_acessar: true, socios_acessar: true, cartao_lancar: true, gerenciamento_lancar: true,
 };
 
 const DEFAULT_USUARIOS = [
@@ -276,6 +280,25 @@ function nowStampFromTs(ts) {
 --------------------------------------------------------------- */
 
 const STATUS_FATURA_TONE = { "Aberta": "blue", "Fechada": "orange", "Parcialmente paga": "orange", "Paga": "green" };
+
+/* ---------------------------------------------------------------
+   Obras Gerenciamento
+--------------------------------------------------------------- */
+
+const STATUS_GER_CONTA_TONE = { "Pendente de envio": "orange", "Enviado em remessa": "blue", "Pagamento confirmado": "green" };
+const STATUS_GER_REEMBOLSO_TONE = { "Pendente de cobrança": "orange", "Solicitado em remessa": "blue", "Reembolso recebido": "green" };
+
+// Status de reembolso de um lançamento (gasto realizado pela construtora). Se ainda não houver
+// registro de status (lançamento nunca apareceu numa remessa), o padrão é "Pendente de cobrança".
+function statusReembolso(entryId, gerReembolsos) {
+  const r = gerReembolsos.find((x) => x.entryId === entryId);
+  return r ? r.status : "Pendente de cobrança";
+}
+
+function remessaIdDoReembolso(entryId, gerReembolsos) {
+  const r = gerReembolsos.find((x) => x.entryId === entryId);
+  return r ? r.remessaId : null;
+}
 
 // Status de uma compra/parcela de cartão, derivado da fatura à qual está vinculada.
 function statusLancamentoCartao(lc, faturas) {
@@ -1046,6 +1069,10 @@ export default function App() {
   const [cartoesCredito, setCartoesCredito] = useState([]);
   const [lancamentosCartao, setLancamentosCartao] = useState([]);
   const [faturasCartao, setFaturasCartao] = useState([]);
+  const [gerContasPagar, setGerContasPagar] = useState([]);
+  const [gerDepositos, setGerDepositos] = useState([]);
+  const [gerReembolsos, setGerReembolsos] = useState([]);
+  const [gerRemessas, setGerRemessas] = useState([]);
   const [usuarios, setUsuarios] = useState(DEFAULT_USUARIOS);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [auditLog, setAuditLog] = useState([]);
@@ -1072,6 +1099,10 @@ export default function App() {
     setCartoesCredito(d.cartoesCredito || []);
     setLancamentosCartao(d.lancamentosCartao || []);
     setFaturasCartao(d.faturasCartao || []);
+    setGerContasPagar(d.gerContasPagar || []);
+    setGerDepositos(d.gerDepositos || []);
+    setGerReembolsos(d.gerReembolsos || []);
+    setGerRemessas(d.gerRemessas || []);
     setUsuarios(migrarPermissoesUsuarios(d.usuarios && d.usuarios.length ? d.usuarios : DEFAULT_USUARIOS));
     setAuditLog(d.auditLog || []);
   };
@@ -1094,6 +1125,7 @@ export default function App() {
     setCartoesCredito(seed.cartoesCredito || []);
     setLancamentosCartao(seed.lancamentosCartao || []);
     setFaturasCartao(seed.faturasCartao || []);
+    setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
     setUsuarios(DEFAULT_USUARIOS);
   };
 
@@ -1140,7 +1172,7 @@ export default function App() {
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
@@ -1151,7 +1183,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -1208,13 +1240,14 @@ export default function App() {
     setMovimentosSocios([]); setSocios(DEFAULT_SOCIOS); setContasPagar([]); setOrcamentoItens([]);
     setDividas([]); setInvestimentos([]);
     setCartoesCredito([]); setLancamentosCartao([]); setFaturasCartao([]);
+    setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
   };
 
   const exportarBackup = () => {
     const dados = {
       accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
       socios, movimentosSocios, contasPagar, orcamentoItens, dividas, investimentos,
-      cartoesCredito, lancamentosCartao, faturasCartao, usuarios, auditLog,
+      cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog,
       exportadoEm: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
@@ -1409,7 +1442,7 @@ export default function App() {
   const NAV_PERMS = {
     lancamentos: null, saldos: "contasbancarias_visualizar", obras: "relatorios_acessar",
     fornecedores: "relatorios_acessar", contaspagar: null, cartoescredito: "cartao_lancar", custosinternos: "relatorios_acessar",
-    dividasinvestimentos: "relatorios_acessar",
+    dividasinvestimentos: "relatorios_acessar", obrasgerenciamento: "gerenciamento_lancar",
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
   };
   if (NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
@@ -1495,6 +1528,19 @@ export default function App() {
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
+          {page === "obrasgerenciamento" && (
+            <ObrasGerenciamentoPage
+              obras={obras} entries={entries}
+              gerContasPagar={gerContasPagar} setGerContasPagar={setGerContasPagar}
+              gerDepositos={gerDepositos} setGerDepositos={setGerDepositos}
+              gerReembolsos={gerReembolsos} setGerReembolsos={setGerReembolsos}
+              gerRemessas={gerRemessas} setGerRemessas={setGerRemessas}
+              apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+              orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+              accounts={accounts}
+              currentUser={currentUser} logAudit={logAudit}
+            />
+          )}
           {page === "custosinternos" && (
             <CustosInternosPage entries={entries} apropriacoes={apropriacoes} accounts={accounts} />
           )}
@@ -1543,6 +1589,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "fornecedores", label: "Fornecedores", icon: Users, perm: "relatorios_acessar" },
     { id: "contaspagar", label: "Contas a Pagar", icon: CalendarClock },
     { id: "cartoescredito", label: "Cartões de Crédito", icon: CreditCard, perm: "cartao_lancar" },
+    { id: "obrasgerenciamento", label: "Obras Gerenciamento", icon: FolderKanban, perm: "gerenciamento_lancar" },
     { id: "custosinternos", label: "Custos Internos", icon: BarChart3, perm: "relatorios_acessar" },
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
@@ -2624,7 +2671,10 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
                     <div className="gf-eyebrow">{o.codigo}</div>
                     <h3>{o.nome}</h3>
                   </div>
-                  <Badge tone={o.status === "Concluída" ? "gray" : o.status === "Cancelada" ? "red" : "green"}>{o.status}</Badge>
+                  <div className="gf-row-actions">
+                    {o.modalidade === "Gerenciamento" && <Badge tone="blue">Gerenciamento</Badge>}
+                    <Badge tone={o.status === "Concluída" ? "gray" : o.status === "Cancelada" ? "red" : "green"}>{o.status}</Badge>
+                  </div>
                 </div>
                 <div className="gf-account-rows">
                   <div><span>Receitas</span><b className="mono pos">{BRL(s.receitas)}</b></div>
@@ -2704,7 +2754,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
 function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClose, onSave }) {
   const [obraIdLocal] = useState(() => obra?.id || uid("obra"));
   const [f, setF] = useState(obra || {
-    nome: "", codigo: "", cliente: "", localizacao: "", dataInicio: todayISO(), dataFim: "", orcamento: "", status: "Em planejamento",
+    nome: "", codigo: "", cliente: "", localizacao: "", dataInicio: todayISO(), dataFim: "", orcamento: "", status: "Em planejamento", modalidade: "Normal",
   });
   const [rows, setRows] = useState(() => {
     const existentes = orcamentoItens.filter((o) => o.obraId === obra?.id);
@@ -2747,6 +2797,12 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClos
         <Field label="Status">
           <select value={f.status} onChange={(e) => upd({ status: e.target.value })}>
             {OBRA_STATUS.map((s) => <option key={s}>{s}</option>)}
+          </select>
+        </Field>
+        <Field label="Modalidade da obra" hint="Gerenciamento: pagamentos feitos diretamente pelo cliente">
+          <select value={f.modalidade || "Normal"} onChange={(e) => upd({ modalidade: e.target.value })}>
+            <option value="Normal">Obra Normal</option>
+            <option value="Gerenciamento">Obra por Gerenciamento</option>
           </select>
         </Field>
 
@@ -5053,6 +5109,910 @@ function PagamentoFaturaModal({ total, accounts, onClose, onConfirm }) {
 }
 
 /* ---------------------------------------------------------------
+   Página: Obras Gerenciamento
+--------------------------------------------------------------- */
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve({ nome: file.name, tipo: file.type, tamanho: file.size, dataUrl: reader.result });
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Campo de anexos (upload local, guardado como base64 dentro do próprio registro).
+// Aviso: como todo o sistema guarda os dados num único bloco compartilhado, muitos anexos
+// grandes deixam esse bloco mais pesado — por isso o alerta de tamanho abaixo.
+function AnexosField({ anexos, onChange }) {
+  const inputRef = useRef(null);
+  const [carregando, setCarregando] = useState(false);
+  const totalBytes = (anexos || []).reduce((s, a) => s + (a.tamanho || 0), 0);
+
+  const handleFiles = async (files) => {
+    if (!files || !files.length) return;
+    setCarregando(true);
+    try {
+      const novos = await Promise.all(Array.from(files).map(readFileAsDataURL));
+      onChange([...(anexos || []), ...novos]);
+    } finally {
+      setCarregando(false);
+    }
+  };
+  const remove = (idx) => onChange(anexos.filter((_, i) => i !== idx));
+
+  return (
+    <div>
+      <input ref={inputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+        style={{ display: "none" }} onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }} />
+      <button type="button" className="gf-btn gf-btn-ghost" onClick={() => inputRef.current?.click()} disabled={carregando}>
+        <Paperclip size={14} /> {carregando ? "Carregando…" : "Anexar arquivo (PDF, JPG, PNG)"}
+      </button>
+      {(anexos || []).length > 0 && (
+        <div className="gf-anexos-list">
+          {anexos.map((a, i) => (
+            <div className="gf-anexo-item" key={i}>
+              <Paperclip size={12} /> <span>{a.nome}</span> <span className="gf-muted">({((a.tamanho || 0) / 1024).toFixed(0)} KB)</span>
+              <button type="button" className="gf-icon-btn" title="Remover" onClick={() => remove(i)}><X size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      {totalBytes > 3 * 1024 * 1024 && (
+        <p className="gf-warn" style={{ marginTop: 6 }}>
+          ⚠️ Estes anexos somam {(totalBytes / 1024 / 1024).toFixed(1)} MB. O sistema guarda tudo num único registro compartilhado — muitos anexos grandes deixam o carregamento mais lento para todo mundo. Prefira arquivos leves (fotos/PDFs compactados) sempre que possível.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function GerContaPagarModal({ conta, obraId, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, onClose, onSave }) {
+  const editando = !!conta;
+  const [parcelado, setParcelado] = useState(false);
+  const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
+  const [f, setF] = useState(conta || { descricao: "", valor: "", dataVencimento: todayISO(), apropriacao: "", fornecedor: "", anexos: [] });
+  const [parcelasRows, setParcelasRows] = useState([
+    { id: uid("prc"), valor: "", vencimento: addDaysISO(todayISO(), 30) },
+    { id: uid("prc"), valor: "", vencimento: addDaysISO(todayISO(), 60) },
+  ]);
+  const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const updParcela = (id, patch) => setParcelasRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addParcela = () => setParcelasRows((prev) => [...prev, { id: uid("prc"), valor: "", vencimento: "" }]);
+  const removeParcela = (id) => setParcelasRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
+
+  const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((s) => ({ value: s, label: s }))];
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.descricao.trim() || !f.apropriacao || !f.fornecedor) return;
+    if (!f.anexos || f.anexos.length === 0) return;
+    const base = { obraId, descricao: f.descricao.trim(), apropriacao: f.apropriacao, fornecedor: f.fornecedor, anexos: f.anexos };
+    if (editando) {
+      if (!f.valor || Number(f.valor) <= 0 || !f.dataVencimento) return;
+      onSave([{ ...conta, ...base, valor: Number(f.valor), dataVencimento: f.dataVencimento }]);
+      return;
+    }
+    if (!parcelado) {
+      if (!f.valor || Number(f.valor) <= 0 || !f.dataVencimento) return;
+      onSave([{ ...base, id: uid("gcp"), groupId: uid("grpcp"), seq: 1, total: 1, valor: Number(f.valor), dataVencimento: f.dataVencimento, status: "Pendente de envio", remessaId: null }]);
+    } else {
+      const validas = parcelasRows.filter((r) => r.valor && Number(r.valor) > 0 && r.vencimento);
+      if (validas.length < 2) return;
+      const grpId = uid("grpcp");
+      onSave(validas.map((r, i) => ({
+        ...base, id: uid("gcp"), groupId: grpId, seq: i + 1, total: validas.length,
+        valor: Number(r.valor), dataVencimento: r.vencimento, status: "Pendente de envio", remessaId: null,
+      })));
+    }
+  };
+
+  return (
+    <Modal title={editando ? "Editar conta a pagar (cliente)" : "Nova conta a pagar (cliente)"} onClose={onClose} width={680}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <Field label="Descrição" className="gf-span-2"><input required value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
+        <Field label="Fornecedor">
+          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v })} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+        </Field>
+        <Field label="Apropriação">
+          <ApropriacaoField
+            value={f.apropriacao} onChange={(v) => upd({ apropriacao: v })}
+            centroCustoId={obraId} fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={apropriacaoExcecoes} onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
+          />
+        </Field>
+
+        {!editando && (
+          <div className="gf-span-2">
+            <label className="gf-checkbox">
+              <input type="checkbox" checked={parcelado} onChange={(e) => setParcelado(e.target.checked)} />
+              <span>Pagamento parcelado</span>
+            </label>
+          </div>
+        )}
+
+        {!parcelado || editando ? (
+          <>
+            <Field label="Valor (R$)"><input type="number" min="0.01" step="0.01" required value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
+            <Field label="Data de vencimento"><input type="date" required value={f.dataVencimento} onChange={(e) => upd({ dataVencimento: e.target.value })} /></Field>
+          </>
+        ) : (
+          <div className="gf-span-2">
+            <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Parcelas</span>
+            {parcelasRows.map((r, i) => (
+              <div className="gf-rateio-row" key={r.id}>
+                <span className="mono" style={{ alignSelf: "center", fontSize: 12.5, color: "var(--gf-muted)" }}>{i + 1}/{parcelasRows.length}</span>
+                <input type="number" min="0.01" step="0.01" placeholder="Valor (R$)" value={r.valor} onChange={(e) => updParcela(r.id, { valor: e.target.value })} />
+                <input type="date" value={r.vencimento} onChange={(e) => updParcela(r.id, { vencimento: e.target.value })} />
+                <button type="button" className="gf-icon-btn danger" onClick={() => removeParcela(r.id)}><Trash2 size={13} /></button>
+              </div>
+            ))}
+            <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 6 }} onClick={addParcela}><Plus size={14} /> Adicionar parcela</button>
+            <p className="gf-field-hint" style={{ marginTop: 6 }}>Total: {BRL(parcelasRows.reduce((s, r) => s + (Number(r.valor) || 0), 0))}</p>
+          </div>
+        )}
+
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>
+            Anexos (boleto, nota fiscal, pedido...) <span style={{ color: "var(--gf-danger)" }}>*</span>
+          </span>
+          <AnexosField anexos={f.anexos} onChange={(v) => upd({ anexos: v })} />
+          {(!f.anexos || f.anexos.length === 0) && <p className="gf-warn" style={{ marginTop: 8 }}>É obrigatório anexar pelo menos um arquivo para salvar.</p>}
+        </div>
+
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={!f.anexos || f.anexos.length === 0}>Salvar</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function GerDepositoModal({ deposito, obraId, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, onClose, onSave }) {
+  const editando = !!deposito;
+  const [parcelado, setParcelado] = useState(false);
+  const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
+  const [f, setF] = useState(deposito || {
+    descricao: "", valor: "", dataVencimento: todayISO(), apropriacao: "", fornecedor: "", observacoes: "",
+    dadosBancarios: { banco: "", agencia: "", conta: "", tipoConta: "Corrente", titular: "", documento: "", pix: "" },
+  });
+  const [parcelasRows, setParcelasRows] = useState([
+    { id: uid("prc"), valor: "", vencimento: addDaysISO(todayISO(), 30) },
+    { id: uid("prc"), valor: "", vencimento: addDaysISO(todayISO(), 60) },
+  ]);
+  const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const updBanc = (p) => setF((s) => ({ ...s, dadosBancarios: { ...s.dadosBancarios, ...p } }));
+  const updParcela = (id, patch) => setParcelasRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addParcela = () => setParcelasRows((prev) => [...prev, { id: uid("prc"), valor: "", vencimento: "" }]);
+  const removeParcela = (id) => setParcelasRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
+
+  const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((s) => ({ value: s, label: s }))];
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.descricao.trim() || !f.apropriacao || !f.fornecedor) return;
+    const base = { obraId, descricao: f.descricao.trim(), apropriacao: f.apropriacao, fornecedor: f.fornecedor, observacoes: f.observacoes, dadosBancarios: f.dadosBancarios };
+    if (editando) {
+      if (!f.valor || Number(f.valor) <= 0 || !f.dataVencimento) return;
+      onSave([{ ...deposito, ...base, valor: Number(f.valor), dataVencimento: f.dataVencimento }]);
+      return;
+    }
+    if (!parcelado) {
+      if (!f.valor || Number(f.valor) <= 0 || !f.dataVencimento) return;
+      onSave([{ ...base, id: uid("gdp"), groupId: uid("grpdp"), seq: 1, total: 1, valor: Number(f.valor), dataVencimento: f.dataVencimento, status: "Pendente de envio", remessaId: null }]);
+    } else {
+      const validas = parcelasRows.filter((r) => r.valor && Number(r.valor) > 0 && r.vencimento);
+      if (validas.length < 2) return;
+      const grpId = uid("grpdp");
+      onSave(validas.map((r, i) => ({
+        ...base, id: uid("gdp"), groupId: grpId, seq: i + 1, total: validas.length,
+        valor: Number(r.valor), dataVencimento: r.vencimento, status: "Pendente de envio", remessaId: null,
+      })));
+    }
+  };
+
+  return (
+    <Modal title={editando ? "Editar depósito" : "Novo depósito/transferência"} onClose={onClose} width={680}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <Field label="Descrição" className="gf-span-2"><input required value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
+        <Field label="Fornecedor/beneficiário">
+          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v })} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+        </Field>
+        <Field label="Apropriação">
+          <ApropriacaoField
+            value={f.apropriacao} onChange={(v) => upd({ apropriacao: v })}
+            centroCustoId={obraId} fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={apropriacaoExcecoes} onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
+          />
+        </Field>
+
+        {!editando && (
+          <div className="gf-span-2">
+            <label className="gf-checkbox">
+              <input type="checkbox" checked={parcelado} onChange={(e) => setParcelado(e.target.checked)} />
+              <span>Pagamento parcelado</span>
+            </label>
+          </div>
+        )}
+
+        {!parcelado || editando ? (
+          <>
+            <Field label="Valor (R$)"><input type="number" min="0.01" step="0.01" required value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
+            <Field label="Data de vencimento"><input type="date" required value={f.dataVencimento} onChange={(e) => upd({ dataVencimento: e.target.value })} /></Field>
+          </>
+        ) : (
+          <div className="gf-span-2">
+            <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Parcelas</span>
+            {parcelasRows.map((r, i) => (
+              <div className="gf-rateio-row" key={r.id}>
+                <span className="mono" style={{ alignSelf: "center", fontSize: 12.5, color: "var(--gf-muted)" }}>{i + 1}/{parcelasRows.length}</span>
+                <input type="number" min="0.01" step="0.01" placeholder="Valor (R$)" value={r.valor} onChange={(e) => updParcela(r.id, { valor: e.target.value })} />
+                <input type="date" value={r.vencimento} onChange={(e) => updParcela(r.id, { vencimento: e.target.value })} />
+                <button type="button" className="gf-icon-btn danger" onClick={() => removeParcela(r.id)}><Trash2 size={13} /></button>
+              </div>
+            ))}
+            <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 6 }} onClick={addParcela}><Plus size={14} /> Adicionar parcela</button>
+            <p className="gf-field-hint" style={{ marginTop: 6 }}>Total: {BRL(parcelasRows.reduce((s, r) => s + (Number(r.valor) || 0), 0))}</p>
+          </div>
+        )}
+
+        <div className="gf-span-2" style={{ borderTop: "1px solid var(--gf-border)", paddingTop: 14, marginTop: 4 }}>
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Dados bancários para o cliente realizar o pagamento</span>
+        </div>
+        <Field label="Banco"><input value={f.dadosBancarios.banco} onChange={(e) => updBanc({ banco: e.target.value })} /></Field>
+        <Field label="Tipo de conta">
+          <select value={f.dadosBancarios.tipoConta} onChange={(e) => updBanc({ tipoConta: e.target.value })}>
+            <option>Corrente</option><option>Poupança</option>
+          </select>
+        </Field>
+        <Field label="Agência"><input value={f.dadosBancarios.agencia} onChange={(e) => updBanc({ agencia: e.target.value })} /></Field>
+        <Field label="Conta"><input value={f.dadosBancarios.conta} onChange={(e) => updBanc({ conta: e.target.value })} /></Field>
+        <Field label="Titular"><input value={f.dadosBancarios.titular} onChange={(e) => updBanc({ titular: e.target.value })} /></Field>
+        <Field label="CPF/CNPJ"><input value={f.dadosBancarios.documento} onChange={(e) => updBanc({ documento: e.target.value })} /></Field>
+        <Field label="Chave PIX" className="gf-span-2" hint="Opcional"><input value={f.dadosBancarios.pix} onChange={(e) => updBanc({ pix: e.target.value })} /></Field>
+        <Field label="Observações" className="gf-span-2" hint="Opcional"><input value={f.observacoes} onChange={(e) => upd({ observacoes: e.target.value })} /></Field>
+
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">Salvar</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function gerarEmailRemessa({ obraNome, cliente, periodoLabel, numero, contas, depositos, reembolsos, totalBoletos, totalDepositos, totalReembolsos, dadosBancariosConstrutora }) {
+  let corpo = `Prezados,\n\nSegue a remessa de pagamentos referente à obra ${obraNome}${cliente ? " — " + cliente : ""}.\n\n`;
+  corpo += `Remessa #${String(numero).padStart(3, "0")} — ${periodoLabel}\n\n`;
+
+  if (contas.length) {
+    corpo += `BOLETOS A PAGAR\n`;
+    contas.forEach((c) => {
+      corpo += `- ${c.fornecedor} | ${c.descricao} | Venc: ${fmtDate(c.dataVencimento)} | ${BRL(c.valor)}${c.total > 1 ? ` (parcela ${c.seq}/${c.total})` : ""}\n`;
+    });
+    corpo += `Subtotal boletos: ${BRL(totalBoletos)}\n\n`;
+  }
+  if (depositos.length) {
+    corpo += `DEPÓSITOS/TRANSFERÊNCIAS\n`;
+    depositos.forEach((d) => {
+      const b = d.dadosBancarios || {};
+      corpo += `- ${d.fornecedor} | ${d.descricao} | Venc: ${fmtDate(d.dataVencimento)} | ${BRL(d.valor)}\n`;
+      corpo += `  Banco: ${b.banco || "—"} | Ag: ${b.agencia || "—"} | Conta: ${b.conta || "—"} (${b.tipoConta || "—"}) | Titular: ${b.titular || "—"}${b.documento ? " | Doc: " + b.documento : ""}${b.pix ? " | PIX: " + b.pix : ""}\n`;
+    });
+    corpo += `Subtotal depósitos: ${BRL(totalDepositos)}\n\n`;
+  }
+  if (reembolsos.length) {
+    corpo += `REEMBOLSOS À CONSTRUTORA\n`;
+    reembolsos.forEach((r) => {
+      corpo += `- ${fmtDate(r.data)} | ${r.descricao || "—"} | ${r.fornecedor || "—"} | ${BRL(r.valor)}\n`;
+    });
+    corpo += `Subtotal reembolsos: ${BRL(totalReembolsos)}\n`;
+    if (dadosBancariosConstrutora) corpo += `Dados bancários da construtora para reembolso: ${dadosBancariosConstrutora}\n`;
+    corpo += `\n`;
+  }
+  corpo += `TOTAL DA REMESSA: ${BRL(totalBoletos + totalDepositos + totalReembolsos)}\n\n`;
+  corpo += `Qualquer dúvida, estamos à disposição.\n\nAtenciosamente.`;
+  return corpo;
+}
+
+function GerContasPagarTab({ obraId, gerContasPagar, setGerContasPagar, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, podeLancar, logAudit }) {
+  const [showNew, setShowNew] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [verAnexosDe, setVerAnexosDe] = useState(null);
+  const itens = gerContasPagar.filter((c) => c.obraId === obraId).sort((a, b) => (a.dataVencimento < b.dataVencimento ? -1 : 1));
+
+  const salvar = (lista) => {
+    if (editing) setGerContasPagar((prev) => prev.map((c) => (c.id === lista[0].id ? lista[0] : c)));
+    else setGerContasPagar((prev) => [...lista, ...prev]);
+    logAudit?.({ tipoOperacao: "Conta a pagar (cliente) — Gerenciamento", registroAlterado: lista[0].descricao, valorAnterior: "—", valorNovo: BRL(lista.reduce((s, c) => s + c.valor, 0)) });
+    setShowNew(false); setEditing(null);
+  };
+  const excluir = (id) => setGerContasPagar((prev) => prev.filter((c) => c.id !== id));
+
+  return (
+    <div>
+      <div className="gf-toolbar"><div />{podeLancar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNew(true)}><Plus size={15} /> Nova conta a pagar</button>}</div>
+      {itens.length === 0 ? (
+        <EmptyState icon={CalendarClock} title="Nenhuma conta a pagar" body="Cadastre os boletos e documentos que o cliente deverá pagar diretamente." />
+      ) : (
+        <div className="gf-table-wrap">
+          <table className="gf-table">
+            <thead><tr><th>Descrição</th><th>Fornecedor</th><th>Apropriação</th><th>Vencimento</th><th className="num">Valor</th><th>Anexos</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {itens.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.descricao}{c.total > 1 && <span className="gf-mini-tag"> · {c.seq}/{c.total}</span>}</td>
+                  <td>{c.fornecedor}</td>
+                  <td>{c.apropriacao}</td>
+                  <td>{fmtDate(c.dataVencimento)}</td>
+                  <td className="num mono">{BRL(c.valor)}</td>
+                  <td><button type="button" className="gf-btn gf-btn-ghost" style={{ padding: "4px 8px" }} onClick={() => setVerAnexosDe(c)}><Paperclip size={12} /> {c.anexos?.length || 0}</button></td>
+                  <td><Badge tone={STATUS_GER_CONTA_TONE[c.status]}>{c.status}</Badge></td>
+                  <td>
+                    {c.status === "Pendente de envio" && podeLancar && (
+                      <div className="gf-row-actions">
+                        <button className="gf-icon-btn" title="Editar" onClick={() => setEditing(c)}><Pencil size={14} /></button>
+                        <button className="gf-icon-btn" title="Excluir" onClick={() => excluir(c.id)}><Trash2 size={14} /></button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {(showNew || editing) && (
+        <GerContaPagarModal conta={editing} obraId={obraId} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+          orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+          onClose={() => { setShowNew(false); setEditing(null); }} onSave={salvar} />
+      )}
+      {verAnexosDe && <AnexosViewModal item={verAnexosDe} onClose={() => setVerAnexosDe(null)} />}
+    </div>
+  );
+}
+
+function AnexosViewModal({ item, onClose }) {
+  return (
+    <Modal title={`Anexos — ${item.descricao}`} onClose={onClose} width={480}>
+      {(!item.anexos || item.anexos.length === 0) ? (
+        <EmptyState icon={Paperclip} title="Sem anexos" body="Nenhum arquivo anexado." />
+      ) : (
+        <div className="gf-anexos-list">
+          {item.anexos.map((a, i) => (
+            <a key={i} href={a.dataUrl} download={a.nome} className="gf-anexo-item" style={{ textDecoration: "none", color: "inherit" }}>
+              <Paperclip size={13} /> <span>{a.nome}</span> <span className="gf-muted">({((a.tamanho || 0) / 1024).toFixed(0)} KB)</span>
+              <Download size={13} />
+            </a>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+function GerDepositosTab({ obraId, gerDepositos, setGerDepositos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, podeLancar, logAudit }) {
+  const [showNew, setShowNew] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const itens = gerDepositos.filter((d) => d.obraId === obraId).sort((a, b) => (a.dataVencimento < b.dataVencimento ? -1 : 1));
+
+  const salvar = (lista) => {
+    if (editing) setGerDepositos((prev) => prev.map((d) => (d.id === lista[0].id ? lista[0] : d)));
+    else setGerDepositos((prev) => [...lista, ...prev]);
+    logAudit?.({ tipoOperacao: "Depósito — Gerenciamento", registroAlterado: lista[0].descricao, valorAnterior: "—", valorNovo: BRL(lista.reduce((s, d) => s + d.valor, 0)) });
+    setShowNew(false); setEditing(null);
+  };
+  const excluir = (id) => setGerDepositos((prev) => prev.filter((d) => d.id !== id));
+
+  return (
+    <div>
+      <div className="gf-toolbar"><div />{podeLancar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNew(true)}><Plus size={15} /> Novo depósito</button>}</div>
+      {itens.length === 0 ? (
+        <EmptyState icon={Send} title="Nenhum depósito programado" body="Cadastre pagamentos que o cliente deverá realizar via PIX, depósito ou transferência." />
+      ) : (
+        <div className="gf-table-wrap">
+          <table className="gf-table">
+            <thead><tr><th>Descrição</th><th>Beneficiário</th><th>Apropriação</th><th>Vencimento</th><th className="num">Valor</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {itens.map((d) => (
+                <tr key={d.id}>
+                  <td>{d.descricao}{d.total > 1 && <span className="gf-mini-tag"> · {d.seq}/{d.total}</span>}</td>
+                  <td>{d.fornecedor}</td>
+                  <td>{d.apropriacao}</td>
+                  <td>{fmtDate(d.dataVencimento)}</td>
+                  <td className="num mono">{BRL(d.valor)}</td>
+                  <td><Badge tone={STATUS_GER_CONTA_TONE[d.status]}>{d.status}</Badge></td>
+                  <td>
+                    {d.status === "Pendente de envio" && podeLancar && (
+                      <div className="gf-row-actions">
+                        <button className="gf-icon-btn" title="Editar" onClick={() => setEditing(d)}><Pencil size={14} /></button>
+                        <button className="gf-icon-btn" title="Excluir" onClick={() => excluir(d.id)}><Trash2 size={14} /></button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {(showNew || editing) && (
+        <GerDepositoModal deposito={editing} obraId={obraId} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+          orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+          onClose={() => { setShowNew(false); setEditing(null); }} onSave={salvar} />
+      )}
+    </div>
+  );
+}
+
+function GerReembolsosTab({ obraId, entries, accounts, gerReembolsos }) {
+  const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const itens = entries
+    .filter((e) => e.obraId === obraId && e.tipo === "saida")
+    .map((e) => ({ ...e, statusRb: statusReembolso(e.id, gerReembolsos) }))
+    .sort((a, b) => (a.data < b.data ? 1 : -1));
+
+  return (
+    <div>
+      <p className="gf-field-hint" style={{ marginBottom: 12 }}>
+        Esta lista é gerada automaticamente a partir dos gastos já pagos pela construtora (página Lançamentos) vinculados a esta obra. Não é possível lançar manualmente aqui.
+      </p>
+      {itens.length === 0 ? (
+        <EmptyState icon={Undo2} title="Nenhum gasto para reembolso" body="Quando a construtora pagar algo diretamente vinculado a esta obra em Lançamentos, ele aparecerá aqui automaticamente." />
+      ) : (
+        <div className="gf-table-wrap">
+          <table className="gf-table gf-table-ledger">
+            <thead><tr><th>Data</th><th>Descrição</th><th>Fornecedor</th><th>Apropriação</th><th>Conta bancária</th><th className="num">Valor</th><th>Status</th></tr></thead>
+            <tbody>
+              {itens.map((e) => (
+                <tr key={e.id} className="row-neg">
+                  <td>{fmtDate(e.data)}</td>
+                  <td className="gf-td-desc" title={e.descricao}>{e.descricao || "—"}</td>
+                  <td>{e.fornecedor || "—"}</td>
+                  <td>{e.apropriacao}</td>
+                  <td>{accountName(e.contaId)}</td>
+                  <td className="num mono neg">{BRL(e.valor)}</td>
+                  <td><Badge tone={STATUS_GER_REEMBOLSO_TONE[e.statusRb]}>{e.statusRb}</Badge></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GerResumoTab({ obraId, gerContasPagar, gerDepositos, entries, gerReembolsos, apropriacoes }) {
+  const [filtroApropriacao, setFiltroApropriacao] = useState("");
+  const [filtroDe, setFiltroDe] = useState("");
+  const [filtroAte, setFiltroAte] = useState("");
+
+  const contas = gerContasPagar.filter((c) => c.obraId === obraId)
+    .filter((c) => (filtroApropriacao ? c.apropriacao === filtroApropriacao : true))
+    .filter((c) => (filtroDe ? c.dataVencimento >= filtroDe : true))
+    .filter((c) => (filtroAte ? c.dataVencimento <= filtroAte : true));
+  const depositos = gerDepositos.filter((d) => d.obraId === obraId)
+    .filter((d) => (filtroApropriacao ? d.apropriacao === filtroApropriacao : true))
+    .filter((d) => (filtroDe ? d.dataVencimento >= filtroDe : true))
+    .filter((d) => (filtroAte ? d.dataVencimento <= filtroAte : true));
+  const reembolsaveis = entries.filter((e) => e.obraId === obraId && e.tipo === "saida")
+    .filter((e) => (filtroApropriacao ? e.apropriacao === filtroApropriacao : true))
+    .filter((e) => (filtroDe ? e.data >= filtroDe : true))
+    .filter((e) => (filtroAte ? e.data <= filtroAte : true));
+
+  const porApropriacao = useMemo(() => {
+    const map = {};
+    const add = (nome, campo, valor) => { if (!map[nome]) map[nome] = { apropriacao: nome, boletos: 0, depositos: 0, reembolsos: 0 }; map[nome][campo] += valor; };
+    contas.forEach((c) => add(c.apropriacao, "boletos", c.valor));
+    depositos.forEach((d) => add(d.apropriacao, "depositos", d.valor));
+    reembolsaveis.forEach((e) => add(e.apropriacao, "reembolsos", e.valor));
+    return Object.values(map).map((r) => ({ ...r, total: r.boletos + r.depositos + r.reembolsos })).sort((a, b) => b.total - a.total);
+  }, [contas, depositos, reembolsaveis]);
+
+  const totalBoletos = contas.reduce((s, c) => s + c.valor, 0);
+  const totalDepositos = depositos.reduce((s, d) => s + d.valor, 0);
+  const totalReembolsos = reembolsaveis.reduce((s, e) => s + e.valor, 0);
+  const enviados = [...contas, ...depositos].filter((x) => x.status !== "Pendente de envio").reduce((s, x) => s + x.valor, 0);
+  const naoEnviados = [...contas, ...depositos].filter((x) => x.status === "Pendente de envio").reduce((s, x) => s + x.valor, 0);
+  const reembolsosSolicitados = reembolsaveis.filter((e) => statusReembolso(e.id, gerReembolsos) !== "Pendente de cobrança").reduce((s, e) => s + e.valor, 0);
+  const reembolsosNaoSolicitados = reembolsaveis.filter((e) => statusReembolso(e.id, gerReembolsos) === "Pendente de cobrança").reduce((s, e) => s + e.valor, 0);
+
+  return (
+    <div>
+      <div className="gf-filters-grid" style={{ gridTemplateColumns: "repeat(3,1fr)", marginBottom: 14 }}>
+        <select value={filtroApropriacao} onChange={(e) => setFiltroApropriacao(e.target.value)}>
+          <option value="">Apropriação (todas)</option>
+          {apropriacoes.map((a) => <option key={a} value={a}>{a}</option>)}
+        </select>
+        <input type="date" title="De" value={filtroDe} onChange={(e) => setFiltroDe(e.target.value)} />
+        <input type="date" title="Até" value={filtroAte} onChange={(e) => setFiltroAte(e.target.value)} />
+      </div>
+
+      <div className="gf-tiles" style={{ gridTemplateColumns: "repeat(3,1fr)", marginBottom: 16 }}>
+        <div className="gf-tile"><span className="gf-tile-label">Valores programados</span><span className="gf-tile-value">{BRL(totalBoletos + totalDepositos)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Já enviados em remessa</span><span className="gf-tile-value pos">{BRL(enviados)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Ainda não enviados</span><span className="gf-tile-value">{BRL(naoEnviados)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Reembolsos solicitados</span><span className="gf-tile-value pos">{BRL(reembolsosSolicitados)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Reembolsos ainda não solicitados</span><span className="gf-tile-value">{BRL(reembolsosNaoSolicitados)}</span></div>
+        <div className="gf-tile gf-tile-primary"><span className="gf-tile-label">Total geral da obra</span><span className="gf-tile-value">{BRL(totalBoletos + totalDepositos + totalReembolsos)}</span></div>
+      </div>
+
+      <div className="gf-table-wrap">
+        <table className="gf-table">
+          <thead><tr><th>Apropriação</th><th className="num">Boletos</th><th className="num">Depósitos</th><th className="num">Reembolsos</th><th className="num">Total</th></tr></thead>
+          <tbody>
+            {porApropriacao.length === 0 && <tr><td colSpan={5}><EmptyState icon={FolderKanban} title="Nada por aqui ainda" body="Cadastre contas a pagar, depósitos, ou lance gastos vinculados a esta obra." /></td></tr>}
+            {porApropriacao.map((r) => (
+              <tr key={r.apropriacao}>
+                <td><b>{r.apropriacao}</b></td>
+                <td className="num mono">{BRL(r.boletos)}</td>
+                <td className="num mono">{BRL(r.depositos)}</td>
+                <td className="num mono">{BRL(r.reembolsos)}</td>
+                <td className="num mono"><b>{BRL(r.total)}</b></td>
+              </tr>
+            ))}
+          </tbody>
+          {porApropriacao.length > 0 && (
+            <tfoot>
+              <tr>
+                <td><b>Total geral</b></td>
+                <td className="num mono"><b>{BRL(totalBoletos)}</b></td>
+                <td className="num mono"><b>{BRL(totalDepositos)}</b></td>
+                <td className="num mono"><b>{BRL(totalReembolsos)}</b></td>
+                <td className="num mono"><b>{BRL(totalBoletos + totalDepositos + totalReembolsos)}</b></td>
+              </tr>
+            </tfoot>
+          )}
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function GerRemessasTab({ obra, gerContasPagar, setGerContasPagar, gerDepositos, setGerDepositos, entries, gerReembolsos, setGerReembolsos, gerRemessas, setGerRemessas, currentUser, logAudit, podeLancar }) {
+  const [showNova, setShowNova] = useState(false);
+  const [detailRemessa, setDetailRemessa] = useState(null);
+  const podeCancelar = can(currentUser, "lancamentos_aprovar");
+  const remessasObra = gerRemessas.filter((r) => r.obraId === obra.id).sort((a, b) => b.numero - a.numero);
+
+  const gerarRemessa = ({ contasIds, depositosIds, reembolsoEntryIds, periodoLabel, dadosBancariosConstrutora }) => {
+    const numero = (Math.max(0, ...gerRemessas.filter((r) => r.obraId === obra.id).map((r) => r.numero)) || 0) + 1;
+    const now = Date.now();
+
+    const contasSelecionadas = gerContasPagar.filter((c) => contasIds.includes(c.id));
+    const depositosSelecionados = gerDepositos.filter((d) => depositosIds.includes(d.id));
+    const reembolsosSelecionados = entries.filter((e) => reembolsoEntryIds.includes(e.id));
+
+    const totalBoletos = contasSelecionadas.reduce((s, c) => s + c.valor, 0);
+    const totalDepositos = depositosSelecionados.reduce((s, d) => s + d.valor, 0);
+    const totalReembolsos = reembolsosSelecionados.reduce((s, e) => s + e.valor, 0);
+
+    const emailGerado = gerarEmailRemessa({
+      obraNome: obra.nome, cliente: obra.cliente, periodoLabel, numero,
+      contas: contasSelecionadas, depositos: depositosSelecionados,
+      reembolsos: reembolsosSelecionados, totalBoletos, totalDepositos, totalReembolsos, dadosBancariosConstrutora,
+    });
+
+    const remessa = {
+      id: uid("rem"), numero, obraId: obra.id, cliente: obra.cliente, dataGeracao: now, periodoLabel,
+      usuarioResponsavel: currentUser?.nome || "—",
+      contasPagarIds: contasIds, depositosIds: depositosIds, reembolsoEntryIds: reembolsoEntryIds,
+      totalBoletos, totalDepositos, totalReembolsos, totalGeral: totalBoletos + totalDepositos + totalReembolsos,
+      emailGerado, status: "Gerada", canceladoPor: null, canceladoEm: null,
+    };
+
+    setGerRemessas((prev) => [...prev, remessa]);
+    setGerContasPagar((prev) => prev.map((c) => (contasIds.includes(c.id) ? { ...c, status: "Enviado em remessa", remessaId: remessa.id } : c)));
+    setGerDepositos((prev) => prev.map((d) => (depositosIds.includes(d.id) ? { ...d, status: "Enviado em remessa", remessaId: remessa.id } : d)));
+    setGerReembolsos((prev) => {
+      const outros = prev.filter((r) => !reembolsoEntryIds.includes(r.entryId));
+      const novos = reembolsoEntryIds.map((entryId) => ({ entryId, status: "Solicitado em remessa", remessaId: remessa.id }));
+      return [...outros, ...novos];
+    });
+    logAudit?.({ tipoOperacao: "Geração de remessa (Gerenciamento)", registroAlterado: `${obra.nome} — Remessa #${numero}`, valorAnterior: "—", valorNovo: BRL(remessa.totalGeral) });
+    setShowNova(false);
+  };
+
+  const cancelarRemessa = (remessa) => {
+    if (!podeCancelar) return;
+    if (!window.confirm(`Cancelar a Remessa #${remessa.numero}? Os itens voltam a ficar disponíveis para uma nova remessa.`)) return;
+    setGerContasPagar((prev) => prev.map((c) => (remessa.contasPagarIds.includes(c.id) ? { ...c, status: "Pendente de envio", remessaId: null } : c)));
+    setGerDepositos((prev) => prev.map((d) => (remessa.depositosIds.includes(d.id) ? { ...d, status: "Pendente de envio", remessaId: null } : d)));
+    setGerReembolsos((prev) => prev.map((r) => (remessa.reembolsoEntryIds.includes(r.entryId) ? { ...r, status: "Pendente de cobrança", remessaId: null } : r)));
+    setGerRemessas((prev) => prev.map((r) => (r.id === remessa.id ? { ...r, status: "Cancelada", canceladoPor: currentUser?.nome, canceladoEm: Date.now() } : r)));
+    logAudit?.({ tipoOperacao: "Cancelamento de remessa (Gerenciamento)", registroAlterado: `${obra.nome} — Remessa #${remessa.numero}`, valorAnterior: "Gerada", valorNovo: "Cancelada" });
+    setDetailRemessa(null);
+  };
+
+  return (
+    <div>
+      <div className="gf-toolbar"><div />{podeLancar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNova(true)}><Send size={15} /> Nova remessa</button>}</div>
+      {remessasObra.length === 0 ? (
+        <EmptyState icon={Send} title="Nenhuma remessa gerada" body="Selecione contas a pagar, depósitos e reembolsos pendentes para montar a primeira remessa." />
+      ) : (
+        <div className="gf-table-wrap">
+          <table className="gf-table">
+            <thead><tr><th>Remessa</th><th>Período</th><th>Data</th><th>Responsável</th><th className="num">Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {remessasObra.map((r) => (
+                <tr key={r.id} className="gf-row-clickable" onClick={() => setDetailRemessa(r)}>
+                  <td><b>#{String(r.numero).padStart(3, "0")}</b></td>
+                  <td>{r.periodoLabel}</td>
+                  <td>{nowStampFromTs(r.dataGeracao)}</td>
+                  <td>{r.usuarioResponsavel}</td>
+                  <td className="num mono">{BRL(r.totalGeral)}</td>
+                  <td><Badge tone={r.status === "Cancelada" ? "red" : "green"}>{r.status}</Badge></td>
+                  <td><ChevronRight size={15} className="gf-muted" /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {showNova && (
+        <NovaRemessaModal
+          obra={obra} gerContasPagar={gerContasPagar.filter((c) => c.obraId === obra.id)}
+          gerDepositos={gerDepositos.filter((d) => d.obraId === obra.id)}
+          entries={entries.filter((e) => e.obraId === obra.id && e.tipo === "saida")}
+          gerReembolsos={gerReembolsos}
+          onClose={() => setShowNova(false)} onGerar={gerarRemessa}
+        />
+      )}
+      {detailRemessa && (
+        <RemessaDetailModal remessa={detailRemessa} podeCancelar={podeCancelar} onClose={() => setDetailRemessa(null)} onCancelar={cancelarRemessa} />
+      )}
+    </div>
+  );
+}
+
+function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReembolsos, onClose, onGerar }) {
+  const contasDisponiveis = gerContasPagar.filter((c) => c.status === "Pendente de envio");
+  const depositosDisponiveis = gerDepositos.filter((d) => d.status === "Pendente de envio");
+  const reembolsosDisponiveis = entries.filter((e) => statusReembolso(e.id, gerReembolsos) === "Pendente de cobrança");
+
+  const [periodoLabel, setPeriodoLabel] = useState("");
+  const [dadosBancariosConstrutora, setDadosBancariosConstrutora] = useState("");
+  const [contasSel, setContasSel] = useState([]);
+  const [depositosSel, setDepositosSel] = useState([]);
+  const [reembolsosSel, setReembolsosSel] = useState([]);
+
+  const toggle = (setFn, id) => setFn((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  const totalBoletos = gerContasPagar.filter((c) => contasSel.includes(c.id)).reduce((s, c) => s + c.valor, 0);
+  const totalDepositos = gerDepositos.filter((d) => depositosSel.includes(d.id)).reduce((s, d) => s + d.valor, 0);
+  const totalReembolsos = entries.filter((e) => reembolsosSel.includes(e.id)).reduce((s, e) => s + e.valor, 0);
+  const totalGeral = totalBoletos + totalDepositos + totalReembolsos;
+  const nadaSelecionado = contasSel.length + depositosSel.length + reembolsosSel.length === 0;
+
+  const confirmar = () => {
+    if (!periodoLabel.trim() || nadaSelecionado) return;
+    onGerar({ contasIds: contasSel, depositosIds: depositosSel, reembolsoEntryIds: reembolsosSel, periodoLabel: periodoLabel.trim(), dadosBancariosConstrutora });
+  };
+
+  return (
+    <Modal title={`Nova remessa — ${obra.nome}`} onClose={onClose} width={820}>
+      <Field label="Período da remessa" className="gf-span-2"><input required placeholder="Ex: Semana de 05 a 11/10" value={periodoLabel} onChange={(e) => setPeriodoLabel(e.target.value)} /></Field>
+
+      {contasDisponiveis.length > 0 && (
+        <>
+          <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Contas a pagar disponíveis</h4>
+          <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
+            <table className="gf-table">
+              <thead><tr><th></th><th>Descrição</th><th>Fornecedor</th><th>Vencimento</th><th className="num">Valor</th></tr></thead>
+              <tbody>
+                {contasDisponiveis.map((c) => (
+                  <tr key={c.id}>
+                    <td><input type="checkbox" checked={contasSel.includes(c.id)} onChange={() => toggle(setContasSel, c.id)} /></td>
+                    <td>{c.descricao}{c.total > 1 && ` (${c.seq}/${c.total})`}</td>
+                    <td>{c.fornecedor}</td>
+                    <td>{fmtDate(c.dataVencimento)}</td>
+                    <td className="num mono">{BRL(c.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {depositosDisponiveis.length > 0 && (
+        <>
+          <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Depósitos disponíveis</h4>
+          <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
+            <table className="gf-table">
+              <thead><tr><th></th><th>Descrição</th><th>Beneficiário</th><th>Vencimento</th><th className="num">Valor</th></tr></thead>
+              <tbody>
+                {depositosDisponiveis.map((d) => (
+                  <tr key={d.id}>
+                    <td><input type="checkbox" checked={depositosSel.includes(d.id)} onChange={() => toggle(setDepositosSel, d.id)} /></td>
+                    <td>{d.descricao}{d.total > 1 && ` (${d.seq}/${d.total})`}</td>
+                    <td>{d.fornecedor}</td>
+                    <td>{fmtDate(d.dataVencimento)}</td>
+                    <td className="num mono">{BRL(d.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {reembolsosDisponiveis.length > 0 && (
+        <>
+          <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Reembolsos disponíveis</h4>
+          <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
+            <table className="gf-table">
+              <thead><tr><th></th><th>Data</th><th>Descrição</th><th>Fornecedor</th><th className="num">Valor</th></tr></thead>
+              <tbody>
+                {reembolsosDisponiveis.map((e) => (
+                  <tr key={e.id}>
+                    <td><input type="checkbox" checked={reembolsosSel.includes(e.id)} onChange={() => toggle(setReembolsosSel, e.id)} /></td>
+                    <td>{fmtDate(e.data)}</td>
+                    <td>{e.descricao || "—"}</td>
+                    <td>{e.fornecedor || "—"}</td>
+                    <td className="num mono">{BRL(e.valor)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Field label="Dados bancários da construtora (para o reembolso)" className="gf-span-2" hint="Aparecem no e-mail para o cliente saber onde depositar">
+            <input value={dadosBancariosConstrutora} onChange={(e) => setDadosBancariosConstrutora(e.target.value)} placeholder="Banco, agência, conta, titular…" />
+          </Field>
+        </>
+      )}
+
+      {contasDisponiveis.length === 0 && depositosDisponiveis.length === 0 && reembolsosDisponiveis.length === 0 && (
+        <EmptyState icon={Send} title="Nada pendente" body="Não há contas, depósitos ou reembolsos pendentes de envio para esta obra." />
+      )}
+
+      <div className="gf-form-actions" style={{ marginTop: 16 }}>
+        <button type="button" className="gf-btn gf-btn-primary" disabled={nadaSelecionado || !periodoLabel.trim()} onClick={confirmar}>
+          Gerar remessa — Total {BRL(totalGeral)}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function RemessaDetailModal({ remessa, podeCancelar, onClose, onCancelar }) {
+  const [copiado, setCopiado] = useState(false);
+  const copiarEmail = () => {
+    navigator.clipboard?.writeText(remessa.emailGerado).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); });
+  };
+  return (
+    <Modal title={`Remessa #${String(remessa.numero).padStart(3, "0")} — ${remessa.periodoLabel}`} onClose={onClose} width={720}>
+      <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+        <div><span>Status</span><b><Badge tone={remessa.status === "Cancelada" ? "red" : "green"}>{remessa.status}</Badge></b></div>
+        <div><span>Gerada em</span><b>{nowStampFromTs(remessa.dataGeracao)}</b></div>
+        <div><span>Responsável</span><b>{remessa.usuarioResponsavel}</b></div>
+        <div><span>Total</span><b className="mono">{BRL(remessa.totalGeral)}</b></div>
+      </div>
+
+      {remessa.status === "Cancelada" && (
+        <p className="gf-warn" style={{ marginTop: 10 }}>Cancelada por {remessa.canceladoPor} em {nowStampFromTs(remessa.canceladoEm)}.</p>
+      )}
+
+      <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Conteúdo do e-mail gerado</h4>
+      <textarea readOnly value={remessa.emailGerado} rows={14} className="gf-textarea-mono" />
+
+      <div className="gf-form-actions" style={{ marginTop: 12 }}>
+        <button type="button" className="gf-btn gf-btn-primary" onClick={copiarEmail}>{copiado ? "Copiado!" : "Copiar texto do e-mail"}</button>
+        <a className="gf-btn gf-btn-ghost" href={`mailto:?subject=${encodeURIComponent(`Remessa #${String(remessa.numero).padStart(3, "0")}`)}&body=${encodeURIComponent(remessa.emailGerado)}`}>
+          Abrir no e-mail
+        </a>
+        {remessa.status !== "Cancelada" && podeCancelar && (
+          <button type="button" className="gf-btn gf-btn-ghost" onClick={() => onCancelar(remessa)}><Undo2 size={14} /> Cancelar remessa</button>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
+function ObraGerenciamentoDetail({ obra, entries, accounts, gerContasPagar, setGerContasPagar, gerDepositos, setGerDepositos, gerReembolsos, setGerReembolsos, gerRemessas, setGerRemessas, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, podeLancar, currentUser, logAudit, onBack }) {
+  const [tab, setTab] = useState("contaspagar");
+  const entriesObra = entries.filter((e) => e.obraId === obra.id);
+
+  return (
+    <div className="gf-stack">
+      <button className="gf-btn gf-btn-ghost" onClick={onBack} style={{ alignSelf: "flex-start" }}>← Voltar para Obras Gerenciamento</button>
+      <div className="gf-toolbar"><h2>{obra.nome}</h2><Badge tone="blue">{obra.cliente || "—"}</Badge></div>
+
+      <div className="gf-segmented">
+        <button className={tab === "contaspagar" ? "is-active" : ""} onClick={() => setTab("contaspagar")}>Contas a Pagar</button>
+        <button className={tab === "reembolsos" ? "is-active" : ""} onClick={() => setTab("reembolsos")}>Reembolsos</button>
+        <button className={tab === "depositos" ? "is-active" : ""} onClick={() => setTab("depositos")}>Programação de Depósitos</button>
+        <button className={tab === "resumo" ? "is-active" : ""} onClick={() => setTab("resumo")}>Painel Resumo</button>
+        <button className={tab === "remessas" ? "is-active" : ""} onClick={() => setTab("remessas")}>Remessas</button>
+      </div>
+
+      <section className="gf-card">
+        {tab === "contaspagar" && (
+          <GerContasPagarTab obraId={obra.id} gerContasPagar={gerContasPagar} setGerContasPagar={setGerContasPagar}
+            apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            podeLancar={podeLancar} logAudit={logAudit} />
+        )}
+        {tab === "reembolsos" && (
+          <GerReembolsosTab obraId={obra.id} entries={entriesObra} accounts={accounts} gerReembolsos={gerReembolsos} />
+        )}
+        {tab === "depositos" && (
+          <GerDepositosTab obraId={obra.id} gerDepositos={gerDepositos} setGerDepositos={setGerDepositos}
+            apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            podeLancar={podeLancar} logAudit={logAudit} />
+        )}
+        {tab === "resumo" && (
+          <GerResumoTab obraId={obra.id} gerContasPagar={gerContasPagar} gerDepositos={gerDepositos} entries={entriesObra} gerReembolsos={gerReembolsos} apropriacoes={apropriacoes} />
+        )}
+        {tab === "remessas" && (
+          <GerRemessasTab obra={obra} gerContasPagar={gerContasPagar} setGerContasPagar={setGerContasPagar}
+            gerDepositos={gerDepositos} setGerDepositos={setGerDepositos} entries={entriesObra}
+            gerReembolsos={gerReembolsos} setGerReembolsos={setGerReembolsos}
+            gerRemessas={gerRemessas} setGerRemessas={setGerRemessas}
+            currentUser={currentUser} logAudit={logAudit} podeLancar={podeLancar} />
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ObrasGerenciamentoPage({ obras, entries, gerContasPagar, setGerContasPagar, gerDepositos, setGerDepositos, gerReembolsos, setGerReembolsos, gerRemessas, setGerRemessas, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, accounts, currentUser, logAudit }) {
+  const [selectedObraId, setSelectedObraId] = useState(null);
+  const podeLancar = can(currentUser, "gerenciamento_lancar");
+  const obrasGer = obras.filter((o) => o.modalidade === "Gerenciamento").sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { numeric: true }));
+  const selectedObra = obras.find((o) => o.id === selectedObraId);
+
+  if (selectedObra) {
+    return (
+      <ObraGerenciamentoDetail
+        obra={selectedObra} entries={entries} accounts={accounts}
+        gerContasPagar={gerContasPagar} setGerContasPagar={setGerContasPagar}
+        gerDepositos={gerDepositos} setGerDepositos={setGerDepositos}
+        gerReembolsos={gerReembolsos} setGerReembolsos={setGerReembolsos}
+        gerRemessas={gerRemessas} setGerRemessas={setGerRemessas}
+        apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+        podeLancar={podeLancar} currentUser={currentUser} logAudit={logAudit}
+        onBack={() => setSelectedObraId(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="gf-stack">
+      <div className="gf-toolbar"><h2>Obras Gerenciamento</h2></div>
+      <p className="gf-field-hint">
+        Obras administradas pela Glover, mas pagas diretamente pelo cliente. Para marcar uma obra nessa modalidade, edite-a no Painel de Obras e selecione "Obra por Gerenciamento".
+      </p>
+      {obrasGer.length === 0 ? (
+        <div className="gf-card"><EmptyState icon={FolderKanban} title="Nenhuma obra em Gerenciamento" body='Marque uma obra como "Obra por Gerenciamento" no Painel de Obras para que ela apareça aqui.' /></div>
+      ) : (
+        <div className="gf-grid-cards">
+          {obrasGer.map((o) => {
+            const ultimaRemessa = gerRemessas.filter((r) => r.obraId === o.id).sort((a, b) => b.numero - a.numero)[0];
+            const pendentesContas = gerContasPagar.filter((c) => c.obraId === o.id && c.status === "Pendente de envio").reduce((s, c) => s + c.valor, 0);
+            const pendentesDepositos = gerDepositos.filter((d) => d.obraId === o.id && d.status === "Pendente de envio").reduce((s, d) => s + d.valor, 0);
+            return (
+              <button className="gf-card gf-obra-card" key={o.id} onClick={() => setSelectedObraId(o.id)}>
+                <div className="gf-card-head">
+                  <div><div className="gf-eyebrow">{o.cliente || "—"}</div><h3>{o.nome}</h3></div>
+                  <Badge tone={o.status === "Concluída" ? "gray" : "green"}>{o.status}</Badge>
+                </div>
+                <div className="gf-account-rows">
+                  <div><span>Pendente (boletos+depósitos)</span><b className="mono">{BRL(pendentesContas + pendentesDepositos)}</b></div>
+                  <div><span>Última remessa</span><b className="mono">{ultimaRemessa ? `#${String(ultimaRemessa.numero).padStart(3, "0")}` : "—"}</b></div>
+                </div>
+                <span className="gf-card-cta">Abrir painel <ChevronRight size={14} /></span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
    Página: Custos Internos
 --------------------------------------------------------------- */
 
@@ -6467,6 +7427,17 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
 
 .gf-rateio-toggle{ margin-bottom:10px; }
 .gf-checkbox{ display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--gf-ink); cursor:pointer; }
+
+.gf-anexos-list{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.gf-anexo-item{ display:flex; align-items:center; gap:6px; font-size:12.5px; background:var(--gf-gray-100); border-radius:8px; padding:6px 10px; }
+.gf-anexo-item span:first-of-type{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gf-anexo-item .gf-icon-btn{ margin-left:auto; }
+
+.gf-textarea-mono{
+  width:100%; font-family:var(--gf-font-mono, "SF Mono", "Consolas", monospace); font-size:12.5px; line-height:1.5;
+  padding:12px; border:1px solid var(--gf-border); border-radius:10px; background:var(--gf-gray-100); color:var(--gf-ink);
+  resize:vertical; white-space:pre-wrap;
+}
 .gf-checkbox input{ width:auto; accent-color:var(--gf-accent); }
 .gf-rateio-box{ background:var(--gf-gray-100); border:1px solid var(--gf-border); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:8px; }
 .gf-rateio-row{ display:grid; grid-template-columns:1.6fr 1fr auto auto; gap:8px; align-items:center; }
