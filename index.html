@@ -4606,14 +4606,21 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
 
     const novosLancamentos = [];
     itensFatura.forEach((lc) => {
-      const rateio = computeRateioValores(percentuaisContas, lc.valor);
-      rateio.forEach((r) => {
-        novosLancamentos.push({
-          id: uid("lan"), tipo: "saida", contaId: r.centroCusto, obraId: lc.centroCusto,
-          data: dataPagamento, valor: r.valor, fornecedor: lc.fornecedor, apropriacao: lc.apropriacao,
-          descricao: lc.total > 1 ? `${lc.descricao} (parcela ${lc.seq}/${lc.total}) — fatura ${cartaoName(fatura.cartaoId)}` : `${lc.descricao} — fatura ${cartaoName(fatura.cartaoId)}`,
-          createdAt: Date.now(), cartaoLancamentoId: lc.id, faturaCartaoId: fatura.id,
-          ...carimbarCriacao(currentUser),
+      // Se a compra foi rateada entre centros de custo, cada fatia dela também precisa ser
+      // rateada entre as contas bancárias do pagamento — daí o cruzamento das duas divisões.
+      const centrosDaCompra = (lc.rateio && lc.rateio.length > 1)
+        ? lc.rateio.map((r) => ({ centroCusto: r.centroCusto, valor: r.valor }))
+        : [{ centroCusto: lc.centroCusto, valor: lc.valor }];
+      centrosDaCompra.forEach((parteCentro) => {
+        const rateioContas = computeRateioValores(percentuaisContas, parteCentro.valor);
+        rateioContas.forEach((parteConta) => {
+          novosLancamentos.push({
+            id: uid("lan"), tipo: "saida", contaId: parteConta.centroCusto, obraId: parteCentro.centroCusto,
+            data: dataPagamento, valor: parteConta.valor, fornecedor: lc.fornecedor, apropriacao: lc.apropriacao,
+            descricao: lc.total > 1 ? `${lc.descricao} (parcela ${lc.seq}/${lc.total}) — fatura ${cartaoName(fatura.cartaoId)}` : `${lc.descricao} — fatura ${cartaoName(fatura.cartaoId)}`,
+            createdAt: Date.now(), cartaoLancamentoId: lc.id, faturaCartaoId: fatura.id,
+            ...carimbarCriacao(currentUser),
+          });
         });
       });
     });
@@ -4711,7 +4718,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
                           <td className="gf-td-desc" title={lc.descricao}>{lc.descricao}{lc.total > 1 && ` (${lc.seq}/${lc.total})`}</td>
                           <td>{lc.fornecedor || "—"}</td>
                           <td className="num mono neg">{BRL(lc.valor)}</td>
-                          <td>{obraName(lc.centroCusto)}</td>
+                          <td>{lc.rateio && lc.rateio.length > 1 ? `Rateado (${lc.rateio.length})` : obraName(lc.centroCusto)}</td>
                           <td>{lc.apropriacao}</td>
                           <td>{fatura ? `${cartaoName(fatura.cartaoId)} — ${fatura.periodoLabel}` : "—"}</td>
                           <td><Badge tone={STATUS_LANCAMENTO_CARTAO_TONE[status]}>{status}</Badge></td>
@@ -4864,6 +4871,7 @@ function CartaoModal({ cartao, onClose, onSave }) {
 
 function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedorOptions, orcamentoItens = [], fornecedoresCadastro = [], onClose, onSave }) {
   const [parcelado, setParcelado] = useState(false);
+  const [rateioAtivo, setRateioAtivo] = useState(false);
   const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
   const [f, setF] = useState({
     cartaoId: cartoesCredito.find((c) => c.status === "Ativo")?.id || "", descricao: "", fornecedor: "",
@@ -4871,16 +4879,42 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
 
+  const [rateioRows, setRateioRows] = useState([
+    { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
+    { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
+  ]);
+  const updRateioRow = (id, patch) => setRateioRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addRateioRow = () => setRateioRows((prev) => [...prev, { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" }]);
+  const removeRateioRow = (id) => setRateioRows((prev) => (prev.length > 2 ? prev.filter((r) => r.id !== id) : prev));
+
   const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((s) => ({ value: s, label: s }))];
   const centroCustoOptions = [{ value: SEM_OBRA, label: "Administrativo / Custos internos" }, ...obras.map((o) => ({ value: o.id, label: o.nome }))];
+
+  const valorReferencia = Number(f.valor) || 0;
+  const somaRateio = rateioRows.reduce((s, r) => s + (Number(r.valor) || 0), 0);
+  const diferencaRateio = Math.round((valorReferencia - somaRateio) * 100) / 100;
+  const rateioFecha = Math.abs(diferencaRateio) < 0.01;
+  const rateioCompleto = rateioRows.length >= 2 && rateioRows.every((r) => r.centroCusto && Number(r.valor) > 0);
+  const rateioValido = !rateioAtivo || (rateioFecha && rateioCompleto && valorReferencia > 0);
+
+  const rateioParaValor = (valorDaParcela) => {
+    if (!rateioAtivo) return [{ centroCusto: f.centroCusto, percentual: 100, valor: valorDaParcela }];
+    const percentuais = rateioRows.map((r) => ({ centroCusto: r.centroCusto, percentual: (Number(r.valor) / valorReferencia) * 100 }));
+    return computeRateioValores(percentuais, valorDaParcela);
+  };
 
   const submit = (e) => {
     e.preventDefault();
     if (!f.cartaoId || !f.descricao.trim() || !f.valor || Number(f.valor) <= 0 || !f.dataCompra) return;
+    if (!rateioValido) return;
     const grpId = uid("grp");
-    const base = { cartaoId: f.cartaoId, descricao: f.descricao.trim(), fornecedor: f.fornecedor, apropriacao: f.apropriacao, centroCusto: f.centroCusto, dataCompra: f.dataCompra, faturaId: null, createdAt: Date.now() };
+    const base = { cartaoId: f.cartaoId, descricao: f.descricao.trim(), fornecedor: f.fornecedor, apropriacao: f.apropriacao, dataCompra: f.dataCompra, faturaId: null, createdAt: Date.now() };
+    const montaComRateio = (valorDaParcela) => {
+      const rateio = rateioParaValor(valorDaParcela);
+      return { rateio, centroCusto: rateio.length === 1 ? rateio[0].centroCusto : null };
+    };
     if (!parcelado) {
-      onSave([{ ...base, id: uid("clc"), groupId: grpId, seq: 1, total: 1, valor: Number(f.valor), valorTotalCompra: Number(f.valor) }]);
+      onSave([{ ...base, ...montaComRateio(Number(f.valor)), id: uid("clc"), groupId: grpId, seq: 1, total: 1, valor: Number(f.valor), valorTotalCompra: Number(f.valor) }]);
     } else {
       const total = Math.max(2, Number(f.numeroParcelas) || 2);
       const valorTotal = Number(f.valor);
@@ -4888,7 +4922,7 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
       const list = [];
       for (let i = 1; i <= total; i++) {
         const valor = i === total ? Math.round((valorTotal - parcela * (total - 1)) * 100) / 100 : parcela;
-        list.push({ ...base, id: uid("clc"), groupId: grpId, seq: i, total, valor, valorTotalCompra: valorTotal });
+        list.push({ ...base, ...montaComRateio(valor), id: uid("clc"), groupId: grpId, seq: i, total, valor, valorTotalCompra: valorTotal });
       }
       onSave(list);
     }
@@ -4909,7 +4943,8 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
           <SearchableSelect
             value={f.fornecedor}
             onChange={(v) => {
-              const disponiveis = computeApropriacoesDisponiveis(f.centroCusto, v, apropriacoes, orcamentoItens, fornecedoresCadastro);
+              const centroParaFiltro = rateioAtivo ? null : f.centroCusto;
+              const disponiveis = computeApropriacoesDisponiveis(centroParaFiltro, v, apropriacoes, orcamentoItens, fornecedoresCadastro);
               const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
               upd({ fornecedor: v, apropriacao: aindaValida ? f.apropriacao : "" });
             }}
@@ -4920,24 +4955,14 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
           <ApropriacaoField
             value={f.apropriacao}
             onChange={(v) => upd({ apropriacao: v })}
-            centroCustoId={f.centroCusto}
+            centroCustoId={rateioAtivo ? null : f.centroCusto}
+            centroCustoPreenchido={rateioAtivo ? true : !!f.centroCusto}
             fornecedorNome={f.fornecedor}
             apropriacoesGlobais={apropriacoes}
             orcamentoItens={orcamentoItens}
             fornecedoresCadastro={fornecedoresCadastro}
             excecoes={apropriacaoExcecoes}
             onAddExcecao={(nome) => setApropriacaoExcecoes((prev) => [...new Set([...prev, nome])])}
-          />
-        </Field>
-        <Field label="Centro de custo" className="gf-span-2">
-          <SearchableSelect
-            value={f.centroCusto}
-            onChange={(v) => {
-              const disponiveis = computeApropriacoesDisponiveis(v, f.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
-              const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
-              upd({ centroCusto: v, apropriacao: aindaValida ? f.apropriacao : "" });
-            }}
-            options={centroCustoOptions} placeholder="Selecione o centro de custo…"
           />
         </Field>
 
@@ -4960,8 +4985,63 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
           <div className="gf-hint gf-span-2">{f.numeroParcelas}x de aproximadamente {BRL(Number(f.valor) / Number(f.numeroParcelas))} — a 1ª parcela fica disponível para a fatura atual, as demais ficam como futuras.</div>
         )}
 
+        <div className="gf-span-2" style={{ borderTop: "1px solid var(--gf-border)", paddingTop: 14, marginTop: 4 }}>
+          <div className="gf-rateio-toggle">
+            <label className="gf-checkbox">
+              <input type="checkbox" checked={rateioAtivo} onChange={(e) => setRateioAtivo(e.target.checked)} />
+              <span>Ratear esta compra entre múltiplos centros de custo</span>
+            </label>
+          </div>
+
+          {!rateioAtivo ? (
+            <div style={{ marginTop: 10 }}>
+              <Field label="Centro de custo">
+                <SearchableSelect
+                  value={f.centroCusto}
+                  onChange={(v) => {
+                    const disponiveis = computeApropriacoesDisponiveis(v, f.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+                    const aindaValida = f.apropriacao && [...disponiveis, ...apropriacaoExcecoes].includes(f.apropriacao);
+                    upd({ centroCusto: v, apropriacao: aindaValida ? f.apropriacao : "" });
+                  }}
+                  options={centroCustoOptions} placeholder="Selecione o centro de custo…"
+                />
+              </Field>
+            </div>
+          ) : (
+            <div className="gf-rateio-box" style={{ marginTop: 10 }}>
+              {valorReferencia <= 0 && <p className="gf-hint">Informe o valor da compra acima para poder ratear.</p>}
+              {rateioRows.map((r) => {
+                const pct = valorReferencia > 0 ? ((Number(r.valor) || 0) / valorReferencia) * 100 : 0;
+                return (
+                  <div className="gf-rateio-row" key={r.id}>
+                    <select value={r.centroCusto} onChange={(e) => updRateioRow(r.id, { centroCusto: e.target.value })}>
+                      <option value={SEM_OBRA}>Administrativo / Custos internos</option>
+                      {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+                    </select>
+                    <input type="number" min="0" step="0.01" placeholder="Valor (R$)" value={r.valor} onChange={(e) => updRateioRow(r.id, { valor: e.target.value })} />
+                    <span className="gf-rateio-pct mono">{pct.toFixed(1)}%</span>
+                    {rateioRows.length > 2 && (
+                      <button type="button" className="gf-icon-btn danger" onClick={() => removeRateioRow(r.id)}><Trash2 size={13} /></button>
+                    )}
+                  </div>
+                );
+              })}
+              <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 4 }} onClick={addRateioRow}>
+                <Plus size={14} /> Adicionar centro de custo
+              </button>
+              <div className={`gf-rateio-total ${rateioFecha ? "is-ok" : "is-warn"}`}>
+                <span>Total rateado: {BRL(somaRateio)} de {BRL(valorReferencia)}</span>
+                {rateioFecha
+                  ? <b className="pos">Rateio fecha 100% ✓</b>
+                  : <b className="neg">{diferencaRateio > 0 ? `Falta ratear ${BRL(diferencaRateio)}` : `Excedeu em ${BRL(-diferencaRateio)}`}</b>}
+              </div>
+              {parcelado && <p className="gf-field-hint" style={{ marginTop: 6 }}>O mesmo rateio (em %) será aplicado a cada parcela.</p>}
+            </div>
+          )}
+        </div>
+
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary">Registrar compra</button>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={!rateioValido}>Registrar compra</button>
           <span className="gf-hint">Não afeta o saldo bancário nem o centro de custo agora — só quando a fatura for paga.</span>
         </div>
       </form>
@@ -5029,7 +5109,7 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, lancamentos
                 {fatura.status !== "Paga" && <td><input type="checkbox" checked={lc.faturaId === fatura.id} onChange={() => toggle(lc)} /></td>}
                 <td>{fmtDate(lc.dataCompra)}</td>
                 <td>{lc.descricao}{lc.total > 1 && ` (parcela ${lc.seq}/${lc.total})`}</td>
-                <td>{obraName(lc.centroCusto)}</td>
+                <td>{lc.rateio && lc.rateio.length > 1 ? `Rateado (${lc.rateio.length})` : obraName(lc.centroCusto)}</td>
                 <td className="num mono">{BRL(lc.valor)}</td>
               </tr>
             ))}
