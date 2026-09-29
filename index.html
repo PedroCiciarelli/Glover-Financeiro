@@ -1,159 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Glover Engenharia — Financeiro</title>
-
-<!-- Permite "Adicionar à tela de início" no celular, como se fosse um app -->
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" href="icon-192.png" />
-<link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<meta name="theme-color" content="#0E3B2E" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Glover Financeiro" />
-<meta name="mobile-web-app-capable" content="yes" />
-
-<!-- Mapa de importações: diz ao navegador onde buscar "react", "recharts" etc.
-     (usa o esm.sh, que serve pacotes do npm prontos para rodar direto no navegador) -->
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.3.1",
-    "react-dom": "https://esm.sh/react-dom@18.3.1",
-    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom",
-    "lucide-react": "https://esm.sh/lucide-react@0.383.0?external=react",
-    "xlsx": "https://esm.sh/xlsx@0.18.5"
-  }
-}
-</script>
-
-<!-- Babel: converte o código React/JSX para JavaScript puro, direto no navegador -->
-<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
-
-<style>
-  html, body { margin: 0; padding: 0; background: #F3F5F1; }
-  #root { min-height: 100vh; }
-  #gf-loading-fallback {
-    display: flex; align-items: center; justify-content: center; min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #667066; font-size: 14px;
-  }
-  #gf-config-banner {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-    background: #B23A34; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 13px; padding: 10px 16px; text-align: center; display: none;
-  }
-</style>
-</head>
-<body>
-
-<!-- Este aviso só aparece se o Supabase ainda não foi configurado -->
-<div id="gf-config-banner">
-  ⚠️ Este sistema ainda não está conectado a um banco de dados compartilhado — os dados vão ficar salvos
-  só neste navegador. Edite este arquivo e preencha SUPABASE_URL e SUPABASE_ANON_KEY.
-</div>
-
-<div id="root"><div id="gf-loading-fallback">Carregando o sistema…</div></div>
-
-<!-- ======================================================================
-     CONFIGURAÇÃO DO BANCO DE DADOS COMPARTILHADO (Supabase)
-     Já preenchido com os dados do projeto "Glover-Financeiro".
-====================================================================== -->
-<script>
-  window.SUPABASE_URL = "https://ctaenjjuwdfgrxrhimum.supabase.co";
-  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0YWVuamp1d2RmZ3J4cmhpbXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDMxNDUsImV4cCI6MjEwMzA3OTE0NX0.KCGID8irF42yHmNDdrSEVkvfFjSaDXC03jfNYmLh3_0";
-</script>
-<!-- ====================================================================== -->
-
-<!-- "Atalho" de armazenamento: fora do Claude não existe window.storage, então esta
-     versão implementa a mesma API usando o Supabase (dados compartilhados, na nuvem)
-     para o que é de equipe, e a memória do navegador (localStorage) para o que é
-     pessoal de cada dispositivo (ex: sessão de login). -->
-<script>
-(function () {
-  const SUPABASE_URL = window.SUPABASE_URL || "";
-  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
-  const configured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
-  if (!configured) {
-    document.getElementById("gf-config-banner").style.display = "block";
-  }
-
-  function personalKey(key) { return "gf-pessoal:" + key; }
-
-  async function supabaseGet(key) {
-    // Usamos apenas a opção "cache: no-store" do fetch para evitar cache — NUNCA um
-    // parâmetro extra na URL, porque o Supabase (PostgREST) interpreta qualquer
-    // parâmetro desconhecido como uma tentativa de filtro de busca (erro PGRST100).
-    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value";
-    const res = await fetch(url, {
-      cache: "no-store",
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
-    });
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      throw new Error("Falha ao ler do Supabase (HTTP " + res.status + "): " + detail.slice(0, 200));
-    }
-    const rows = await res.json();
-    if (!rows.length) throw new Error("chave não encontrada: " + key);
-    return rows[0].value;
-  }
-
-  async function supabaseSet(key, value) {
-    const url = SUPABASE_URL + "/rest/v1/kv_store?on_conflict=id";
-    const res = await fetch(url, {
-      method: "POST",
-      cache: "no-store",
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: "Bearer " + SUPABASE_ANON_KEY,
-        "Content-Type": "application/json",
-        Prefer: "resolution=merge-duplicates,return=minimal",
-      },
-      body: JSON.stringify({ id: key, value: value, updated_at: new Date().toISOString() }),
-    });
-    if (!res.ok) {
-      const detail = await res.text().catch(() => "");
-      throw new Error("Falha ao salvar no Supabase (HTTP " + res.status + "): " + detail.slice(0, 200));
-    }
-  }
-
-  window.storage = {
-    async get(key, shared) {
-      if (shared && configured) {
-        const value = await supabaseGet(key);
-        return { key, value, shared: true };
-      }
-      const raw = localStorage.getItem(personalKey(key));
-      if (raw === null) throw new Error("chave não encontrada: " + key);
-      return { key, value: raw, shared: !!shared };
-    },
-    async set(key, value, shared) {
-      if (shared && configured) {
-        await supabaseSet(key, value);
-        return { key, value, shared: true };
-      }
-      localStorage.setItem(personalKey(key), value);
-      return { key, value, shared: !!shared };
-    },
-    async delete(key, shared) {
-      if (shared && configured) return { key, deleted: true, shared: true };
-      localStorage.removeItem(personalKey(key));
-      return { key, deleted: true, shared: !!shared };
-    },
-    async list(prefix, shared) {
-      return { keys: [], prefix, shared: !!shared };
-    },
-  };
-})();
-</script>
-
-<!-- Código do sistema (React + JSX). O navegador lê isso, o Babel traduz para
-     JavaScript puro, e o mapa de importações lá em cima resolve as bibliotecas usadas. -->
-<script type="text/babel" data-type="module" data-presets="react">
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { createRoot } from "react-dom/client";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -547,6 +392,129 @@ function checarAlertaOrcamento(obraId, apropriacao, valorNovo, orcamentoItens, c
   const pctNovo = (novoComprometido / orcado) * 100;
   const estouro = novoComprometido - orcado;
   return { orcado, comprometidoAtual, novoComprometido, pctNovo, estouro, ultrapassa: estouro > 0, atencao: pctNovo >= 80 };
+}
+
+/* ---------------------------------------------------------------
+   Participação Glover x Investidores — composição econômica das Contas Investidores
+
+   Cada Conta Investidor mistura, ao longo do tempo, recursos de duas origens:
+   - "glover": dinheiro que a Glover aportou naquela conta (empréstimo/adiantamento);
+   - "investidor": dinheiro que é originalmente do titular da conta.
+
+   Sempre que um gasto de obra é pago por uma Conta Investidor, ele consome as duas origens
+   PROPORCIONALMENTE à composição da conta naquele exato momento — isso é o que impede a dupla
+   contagem: um aporte da Glover só "aparece" como participação Glover quando efetivamente
+   gasto (ou permanece como saldo não utilizado, fora do realizado da obra).
+
+   Processamos TODOS os eventos que afetam QUALQUER Conta Investidor em uma única ordem
+   cronológica global (data + hora de criação), porque uma transferência liga duas contas e
+   precisa que a origem já esteja com a composição correta no momento da saída.
+--------------------------------------------------------------- */
+function computeInvestidorComposicao(contasInvestidores, entries, movimentosInvestidores, transfersInvestidores, retiradasInvestidores) {
+  const comp = {}; // contaId -> { glover, investidor }
+  const porGasto = {}; // entryId -> { glover, investidor }
+  const ensure = (contaId) => { if (!comp[contaId]) comp[contaId] = { glover: 0, investidor: 0 }; return comp[contaId]; };
+
+  contasInvestidores.forEach((c) => {
+    ensure(c.id).investidor = Number(c.saldoInicial) || 0;
+  });
+
+  const eventos = [];
+  entries.forEach((e) => {
+    if (e.origemTipo === "CONTA_INVESTIDOR" && e.tipo === "saida" && e.contaInvestidorId) {
+      eventos.push({ contaId: e.contaInvestidorId, kind: "gasto", valor: Number(e.valor) || 0, data: e.data, createdAt: e.createdAt || 0, refId: e.id });
+    }
+  });
+  (movimentosInvestidores || []).forEach((m) => {
+    eventos.push({
+      contaId: m.contaInvestidorId,
+      kind: m.origemAporte === "GLOVER" ? "aporteGlover" : "aporteInvestidor",
+      valor: Number(m.valor) || 0, data: m.data, createdAt: m.createdAt || 0, refId: m.id,
+    });
+  });
+  (retiradasInvestidores || []).forEach((r) => {
+    eventos.push({
+      contaId: r.contaInvestidorId,
+      kind: r.tipo === "GLOVER" ? "retiradaGlover" : "retiradaInvestidor",
+      valor: Number(r.valor) || 0, data: r.data, createdAt: r.createdAt || 0, refId: r.id,
+    });
+  });
+  const pendingTransfer = {};
+  (transfersInvestidores || []).forEach((t) => {
+    eventos.push({ contaId: t.origemId, kind: "transferOut", valor: Number(t.valor) || 0, data: t.data, createdAt: t.createdAt || 0, refId: t.id });
+    eventos.push({ contaId: t.destinoId, kind: "transferIn", valor: Number(t.valor) || 0, data: t.data, createdAt: (t.createdAt || 0) + 0.5, refId: t.id });
+  });
+
+  eventos.sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : a.createdAt - b.createdAt));
+
+  eventos.forEach((ev) => {
+    const c = ensure(ev.contaId);
+    if (ev.kind === "aporteInvestidor") { c.investidor += ev.valor; return; }
+    if (ev.kind === "aporteGlover") { c.glover += ev.valor; return; }
+    if (ev.kind === "retiradaGlover") { c.glover = Math.max(0, c.glover - ev.valor); return; }
+    if (ev.kind === "retiradaInvestidor") { c.investidor = Math.max(0, c.investidor - ev.valor); return; }
+    if (ev.kind === "gasto") {
+      const total = c.glover + c.investidor;
+      const ratioGlover = total > 0 ? c.glover / total : 0;
+      const gloverParte = ev.valor * ratioGlover;
+      const investidorParte = ev.valor - gloverParte;
+      c.glover = Math.max(0, c.glover - gloverParte);
+      c.investidor = Math.max(0, c.investidor - investidorParte);
+      porGasto[ev.refId] = { glover: gloverParte, investidor: investidorParte };
+      return;
+    }
+    if (ev.kind === "transferOut") {
+      const total = c.glover + c.investidor;
+      const ratioGlover = total > 0 ? c.glover / total : 0;
+      const gloverParte = ev.valor * ratioGlover;
+      const investidorParte = ev.valor - gloverParte;
+      c.glover = Math.max(0, c.glover - gloverParte);
+      c.investidor = Math.max(0, c.investidor - investidorParte);
+      pendingTransfer[ev.refId] = { glover: gloverParte, investidor: investidorParte };
+      return;
+    }
+    if (ev.kind === "transferIn") {
+      const parte = pendingTransfer[ev.refId] || { glover: 0, investidor: ev.valor };
+      c.glover += parte.glover;
+      c.investidor += parte.investidor;
+      return;
+    }
+  });
+
+  return { porConta: comp, porGasto };
+}
+
+// Participação financeira (Glover x cada Conta Investidor) de UMA obra, a partir do split
+// econômico de cada gasto (porGasto) calculado por computeInvestidorComposicao.
+function computeObraParticipacao(obraId, entries, contasInvestidores, porGasto) {
+  let gloverTotal = 0;
+  const porInvestidor = {}; // contaInvestidorId -> valor
+  let totalGeral = 0;
+
+  entries.filter((e) => e.obraId === obraId && e.tipo === "saida").forEach((e) => {
+    const valor = Number(e.valor) || 0;
+    totalGeral += valor;
+    if (e.origemTipo === "CONTA_INVESTIDOR" && e.contaInvestidorId) {
+      const split = porGasto[e.id] || { glover: 0, investidor: valor };
+      gloverTotal += split.glover;
+      porInvestidor[e.contaInvestidorId] = (porInvestidor[e.contaInvestidorId] || 0) + split.investidor;
+    } else {
+      gloverTotal += valor;
+    }
+  });
+
+  const participantes = Object.entries(porInvestidor)
+    .filter(([, valor]) => valor > 0.004)
+    .map(([contaId, valor]) => {
+      const conta = contasInvestidores.find((c) => c.id === contaId);
+      return { contaId, nome: conta?.nome || "Conta Investidor", titular: conta?.titular || "", valor, pct: totalGeral > 0 ? (valor / totalGeral) * 100 : 0 };
+    })
+    .sort((a, b) => b.valor - a.valor);
+
+  return {
+    totalGeral, gloverTotal, gloverPct: totalGeral > 0 ? (gloverTotal / totalGeral) * 100 : 0,
+    participantes, temInvestidor: participantes.length > 0,
+  };
 }
 
 /* ---------------------------------------------------------------
@@ -1072,6 +1040,7 @@ export default function App() {
   const [contasInvestidores, setContasInvestidores] = useState([]);
   const [movimentosInvestidores, setMovimentosInvestidores] = useState([]);
   const [transfersInvestidores, setTransfersInvestidores] = useState([]);
+  const [retiradasInvestidores, setRetiradasInvestidores] = useState([]);
   const [contasPagar, setContasPagar] = useState([]);
   const [orcamentoItens, setOrcamentoItens] = useState([]);
   const [dividas, setDividas] = useState([]);
@@ -1105,6 +1074,7 @@ export default function App() {
     setContasInvestidores(d.contasInvestidores || []);
     setMovimentosInvestidores(d.movimentosInvestidores || []);
     setTransfersInvestidores(d.transfersInvestidores || []);
+    setRetiradasInvestidores(d.retiradasInvestidores || []);
     setContasPagar(d.contasPagar || []);
     setOrcamentoItens(d.orcamentoItens || []);
     setDividas(d.dividas || []);
@@ -1134,6 +1104,7 @@ export default function App() {
     setContasInvestidores([]);
     setMovimentosInvestidores([]);
     setTransfersInvestidores([]);
+    setRetiradasInvestidores([]);
     setContasPagar(seed.contasPagar || []);
     setOrcamentoItens(seed.orcamentoItens || []);
     setDividas(seed.dividas || []);
@@ -1188,7 +1159,7 @@ export default function App() {
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
@@ -1199,7 +1170,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -1246,7 +1217,7 @@ export default function App() {
     setOrcamentoItens(seed.orcamentoItens || []);
     setDividas(seed.dividas || []); setInvestimentos(seed.investimentos || []);
     setCartoesCredito(seed.cartoesCredito || []); setLancamentosCartao(seed.lancamentosCartao || []); setFaturasCartao(seed.faturasCartao || []);
-    setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]);
+    setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
   };
 
   const clearAll = async () => {
@@ -1258,13 +1229,13 @@ export default function App() {
     setDividas([]); setInvestimentos([]);
     setCartoesCredito([]); setLancamentosCartao([]); setFaturasCartao([]);
     setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
-    setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]);
+    setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
   };
 
   const exportarBackup = () => {
     const dados = {
       accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
-      socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores,
+      socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores,
       contasPagar, orcamentoItens, dividas, investimentos,
       cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog,
       exportadoEm: new Date().toISOString(),
@@ -1315,16 +1286,31 @@ export default function App() {
       if (m.tipo === "aporte") socioIn[m.contaId] = (socioIn[m.contaId] || 0) + Number(m.valor);
       else socioOut[m.contaId] = (socioOut[m.contaId] || 0) + Number(m.valor); // retirada e pró-labore saem do caixa
     });
+    // Aportes/retiradas da Glover em Contas Investidores também passam pela conta bancária da
+    // empresa escolhida — mas NUNCA como lançamento de despesa/receita da obra (não usam `entries`).
+    const investOut = {}, investIn = {};
+    movimentosInvestidores.forEach((m) => {
+      if (m.origemAporte === "GLOVER" && m.contaGloverId) {
+        investOut[m.contaGloverId] = (investOut[m.contaGloverId] || 0) + Number(m.valor);
+      }
+    });
+    retiradasInvestidores.forEach((r) => {
+      if (r.tipo === "GLOVER" && r.contaGloverDestinoId) {
+        investIn[r.contaGloverDestinoId] = (investIn[r.contaGloverDestinoId] || 0) + Number(r.valor);
+      }
+    });
     accounts.forEach((a) => {
       const s = map[a.id];
       s.transfIn = transfIn[a.id] || 0;
       s.transfOut = transfOut[a.id] || 0;
       s.socioIn = socioIn[a.id] || 0;
       s.socioOut = socioOut[a.id] || 0;
-      s.saldoAtual = (Number(a.saldoInicial) || 0) + s.entradas - s.saidas + s.transfIn - s.transfOut + s.socioIn - s.socioOut;
+      s.investOut = investOut[a.id] || 0;
+      s.investIn = investIn[a.id] || 0;
+      s.saldoAtual = (Number(a.saldoInicial) || 0) + s.entradas - s.saidas + s.transfIn - s.transfOut + s.socioIn - s.socioOut + s.investIn - s.investOut;
     });
     return map;
-  }, [accounts, entries, transfers, movimentosSocios]);
+  }, [accounts, entries, transfers, movimentosSocios, movimentosInvestidores, retiradasInvestidores]);
 
   // Saldos das Contas Investidores — completamente separados dos saldos bancários da empresa.
   // Só entram aqui lançamentos com origemTipo "CONTA_INVESTIDOR", aportes e transferências
@@ -1346,15 +1332,27 @@ export default function App() {
     (movimentosInvestidores || []).forEach((m) => {
       aporteIn[m.contaInvestidorId] = (aporteIn[m.contaInvestidorId] || 0) + Number(m.valor);
     });
+    const retiradaOut = {};
+    (retiradasInvestidores || []).forEach((r) => {
+      retiradaOut[r.contaInvestidorId] = (retiradaOut[r.contaInvestidorId] || 0) + Number(r.valor);
+    });
     contasInvestidores.forEach((c) => {
       const s = map[c.id];
       s.transfIn = transfIn[c.id] || 0;
       s.transfOut = transfOut[c.id] || 0;
       s.aportes = aporteIn[c.id] || 0;
-      s.saldoAtual = (Number(c.saldoInicial) || 0) + s.entradas - s.saidas + s.transfIn - s.transfOut + s.aportes;
+      s.retiradas = retiradaOut[c.id] || 0;
+      s.saldoAtual = (Number(c.saldoInicial) || 0) + s.entradas - s.saidas + s.transfIn - s.transfOut + s.aportes - s.retiradas;
     });
     return map;
-  }, [contasInvestidores, entries, transfersInvestidores, movimentosInvestidores]);
+  }, [contasInvestidores, entries, transfersInvestidores, movimentosInvestidores, retiradasInvestidores]);
+
+  // Composição econômica (Glover x Investidor) de cada Conta Investidor, e o split de cada
+  // gasto de obra pago por uma delas — base da seção "Participação Financeira" do Painel de Obras.
+  const investidorComposicao = useMemo(
+    () => computeInvestidorComposicao(contasInvestidores, entries, movimentosInvestidores, transfersInvestidores, retiradasInvestidores),
+    [contasInvestidores, entries, movimentosInvestidores, transfersInvestidores, retiradasInvestidores]
+  );
 
   const obraStats = useMemo(() => {
     const map = {};
@@ -1544,10 +1542,11 @@ export default function App() {
           {page === "contasinvestidores" && (
             <ContasInvestidoresPage
               contasInvestidores={contasInvestidores} setContasInvestidores={setContasInvestidores}
-              investidorStats={investidorStats}
-              entries={entries} obras={obras}
+              investidorStats={investidorStats} investidorComposicao={investidorComposicao}
+              entries={entries} obras={obras} accounts={accounts.filter((a) => a.status === "Ativa")}
               movimentosInvestidores={movimentosInvestidores} setMovimentosInvestidores={setMovimentosInvestidores}
               transfersInvestidores={transfersInvestidores} setTransfersInvestidores={setTransfersInvestidores}
+              retiradasInvestidores={retiradasInvestidores} setRetiradasInvestidores={setRetiradasInvestidores}
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
@@ -1557,6 +1556,8 @@ export default function App() {
               entries={entries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
               accounts={accounts}
+              contasInvestidores={contasInvestidores} investidorComposicao={investidorComposicao}
+              movimentosInvestidores={movimentosInvestidores} retiradasInvestidores={retiradasInvestidores}
               currentUser={currentUser}
             />
           )}
@@ -2734,7 +2735,7 @@ function TransferModal({ accounts, onClose, onSave }) {
    "CONTA_INVESTIDOR" é a fonte da verdade — esta página apenas consulta e apresenta.
 --------------------------------------------------------------- */
 
-function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, investidorStats, entries, obras, movimentosInvestidores, setMovimentosInvestidores, transfersInvestidores, setTransfersInvestidores, currentUser, logAudit }) {
+function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, investidorStats, investidorComposicao, entries, obras, accounts, movimentosInvestidores, setMovimentosInvestidores, transfersInvestidores, setTransfersInvestidores, retiradasInvestidores, setRetiradasInvestidores, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
   const [showAporte, setShowAporte] = useState(false);
@@ -2763,15 +2764,42 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
 
   const doAporte = (a) => {
     if (!podeAportar) return;
-    setMovimentosInvestidores((prev) => [...prev, { ...a, id: uid("apinv"), createdAt: Date.now() }]);
+    const registro = { ...a, id: uid("apinv"), createdAt: Date.now(), criadoPor: currentUser?.nome, criadoEm: Date.now() };
+    setMovimentosInvestidores((prev) => [...prev, registro]);
     const conta = contasInvestidores.find((c) => c.id === a.contaInvestidorId);
-    logAudit?.({ tipoOperacao: "Aporte em Conta Investidor", registroAlterado: conta?.nome || "—", valorAnterior: "—", valorNovo: BRL(a.valor) });
+    logAudit?.({
+      tipoOperacao: a.origemAporte === "GLOVER" ? "Aporte da Glover em Conta Investidor" : "Aporte em Conta Investidor",
+      registroAlterado: conta?.nome || "—", valorAnterior: "—", valorNovo: BRL(a.valor),
+    });
     setShowAporte(false);
   };
 
-  const doTransfer = (t) => {
-    if (!podeTransferir) return;
-    setTransfersInvestidores((prev) => [...prev, { ...t, id: uid("trfinv"), createdAt: Date.now() }]);
+  // Trata as 3 operações da funcionalidade "Transferir entre contas": transferência pura entre
+  // Contas Investidoras, retirada da Glover (volta para conta bancária da empresa) e retirada do
+  // próprio investidor (sai da estrutura controlada pelo sistema). Cada uma afeta de forma
+  // diferente a composição econômica (participação) — nunca o custo realizado da obra.
+  const doOperacao = (op) => {
+    if (op.tipo === "TRANSFERENCIA") {
+      if (!podeTransferir) return;
+      setTransfersInvestidores((prev) => [...prev, { origemId: op.origemId, destinoId: op.destinoId, valor: op.valor, data: op.data, descricao: op.descricao, id: uid("trfinv"), createdAt: Date.now() }]);
+      logAudit?.({ tipoOperacao: "Transferência entre Contas Investidoras", registroAlterado: `${contasInvestidores.find((c) => c.id === op.origemId)?.nome} → ${contasInvestidores.find((c) => c.id === op.destinoId)?.nome}`, valorAnterior: "—", valorNovo: BRL(op.valor) });
+    } else {
+      if (!podeTransferir) return;
+      const registro = {
+        id: uid("retinv"), contaInvestidorId: op.origemId, tipo: op.tipo === "RETIRADA_GLOVER" ? "GLOVER" : "INVESTIDOR",
+        valor: op.valor, data: op.data, obraId: op.obraId || null,
+        contaGloverDestinoId: op.tipo === "RETIRADA_GLOVER" ? op.contaGloverDestinoId : null,
+        participanteInvestidor: op.tipo === "RETIRADA_INVESTIDOR" ? op.participanteInvestidor : null,
+        destinoDescricao: op.tipo === "RETIRADA_INVESTIDOR" ? op.destinoDescricao : null,
+        descricao: op.descricao, criadoPor: currentUser?.nome, criadoEm: Date.now(), createdAt: Date.now(),
+      };
+      setRetiradasInvestidores((prev) => [...prev, registro]);
+      const conta = contasInvestidores.find((c) => c.id === op.origemId);
+      logAudit?.({
+        tipoOperacao: op.tipo === "RETIRADA_GLOVER" ? "Retirada Glover em Conta Investidor" : "Retirada de Investidor em Conta Investidor",
+        registroAlterado: conta?.nome || "—", valorAnterior: "—", valorNovo: BRL(op.valor),
+      });
+    }
     setShowTransfer(false);
   };
 
@@ -2808,7 +2836,8 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
       ) : (
         <div className="gf-grid-cards">
           {contasInvestidores.map((c) => {
-            const s = investidorStats[c.id] || { entradas: 0, saidas: 0, saldoAtual: c.saldoInicial, transfIn: 0, transfOut: 0, aportes: 0 };
+            const s = investidorStats[c.id] || { entradas: 0, saidas: 0, saldoAtual: c.saldoInicial, transfIn: 0, transfOut: 0, aportes: 0, retiradas: 0 };
+            const comp = investidorComposicao?.porConta?.[c.id] || { glover: 0, investidor: c.saldoInicial || 0 };
             return (
               <div
                 className={`gf-card gf-account-card gf-account-card-clickable ${c.status !== "Ativa" ? "is-inactive" : ""}`}
@@ -2829,6 +2858,7 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
                   <div><span>Saldo inicial</span><b className="mono">{BRL(c.saldoInicial)}</b></div>
                   <div><span>Gastos de obra</span><b className="mono neg">− {BRL(s.saidas)}</b></div>
                   {s.aportes ? <div><span>Aportes</span><b className="mono pos">+ {BRL(s.aportes)}</b></div> : null}
+                  {s.retiradas ? <div><span>Retiradas</span><b className="mono neg">− {BRL(s.retiradas)}</b></div> : null}
                   {(s.transfIn || s.transfOut) ? (
                     <div><span>Transferências (líq.)</span><b className={`mono ${s.transfIn - s.transfOut >= 0 ? "pos" : "neg"}`}>{BRL(s.transfIn - s.transfOut)}</b></div>
                   ) : null}
@@ -2837,6 +2867,11 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
                   <span>Saldo atual</span>
                   <strong className={`mono ${s.saldoAtual >= 0 ? "pos" : "neg"}`}>{BRL(s.saldoAtual)}</strong>
                 </div>
+                {comp.glover > 0.004 && (
+                  <div className="gf-field-hint" style={{ marginTop: 8 }}>
+                    Composição: <b className="pos">Glover {BRL(comp.glover)}</b> · <b>{c.titular || "Investidor"} {BRL(comp.investidor)}</b>
+                  </div>
+                )}
                 {c.observacoes && <p className="gf-field-hint" style={{ marginTop: 8 }}>{c.observacoes}</p>}
               </div>
             );
@@ -2848,19 +2883,25 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
         <ContaInvestidorModal conta={editingConta} onClose={() => { setShowNew(false); setEditingConta(null); }} onSave={saveConta} />
       )}
       {showTransfer && (
-        <TransferInvestidorModal contas={contasInvestidores.filter((c) => c.status === "Ativa")} onClose={() => setShowTransfer(false)} onSave={doTransfer} />
+        <TransferInvestidorModal
+          contas={contasInvestidores.filter((c) => c.status === "Ativa")}
+          accounts={accounts} obras={obras} investidorComposicao={investidorComposicao}
+          onClose={() => setShowTransfer(false)} onSave={doOperacao}
+        />
       )}
       {showAporte && (
-        <AporteInvestidorModal contas={contasInvestidores.filter((c) => c.status === "Ativa")} onClose={() => setShowAporte(false)} onSave={doAporte} />
+        <AporteInvestidorModal contas={contasInvestidores.filter((c) => c.status === "Ativa")} accounts={accounts} obras={obras} onClose={() => setShowAporte(false)} onSave={doAporte} />
       )}
       {detailContaId && (
         <ContaInvestidorLancamentosModal
           conta={contasInvestidores.find((c) => c.id === detailContaId)}
           entries={entries.filter((e) => e.origemTipo === "CONTA_INVESTIDOR" && e.contaInvestidorId === detailContaId)}
           aportes={movimentosInvestidores.filter((m) => m.contaInvestidorId === detailContaId)}
+          retiradas={retiradasInvestidores.filter((r) => r.contaInvestidorId === detailContaId)}
           transfIn={transfersInvestidores.filter((t) => t.destinoId === detailContaId)}
           transfOut={transfersInvestidores.filter((t) => t.origemId === detailContaId)}
           contasInvestidores={contasInvestidores}
+          composicao={investidorComposicao?.porConta?.[detailContaId]}
           obras={obras}
           onClose={() => setDetailContaId(null)}
         />
@@ -2869,7 +2910,7 @@ function ContasInvestidoresPage({ contasInvestidores, setContasInvestidores, inv
   );
 }
 
-function ContaInvestidorLancamentosModal({ conta, entries, aportes, transfIn, transfOut, contasInvestidores, obras, onClose }) {
+function ContaInvestidorLancamentosModal({ conta, entries, aportes, retiradas, transfIn, transfOut, contasInvestidores, composicao, obras, onClose }) {
   const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
   const contaNome = (id) => contasInvestidores.find((c) => c.id === id)?.nome || "—";
 
@@ -2879,8 +2920,13 @@ function ContaInvestidorLancamentosModal({ conta, entries, aportes, transfIn, tr
       obraId: e.obraId, apropriacao: e.apropriacao, valor: -Math.abs(e.valor), createdAt: e.createdAt || 0,
     })),
     ...aportes.map((m) => ({
-      id: m.id, data: m.data, tipo: "Aporte", descricao: m.descricao || "Aporte de recursos", fornecedor: "—",
-      obraId: null, apropriacao: "—", valor: Math.abs(m.valor), createdAt: m.createdAt || 0,
+      id: m.id, data: m.data, tipo: m.origemAporte === "GLOVER" ? "Aporte Glover" : "Aporte", descricao: m.descricao || "Aporte de recursos", fornecedor: "—",
+      obraId: m.obraId || null, apropriacao: "—", valor: Math.abs(m.valor), createdAt: m.createdAt || 0,
+    })),
+    ...(retiradas || []).map((r) => ({
+      id: r.id, data: r.data, tipo: r.tipo === "GLOVER" ? "Retirada Glover" : "Retirada Investidor",
+      descricao: r.descricao || (r.tipo === "GLOVER" ? "Retirada para conta da Glover" : "Retirada do investidor"),
+      fornecedor: "—", obraId: r.obraId || null, apropriacao: "—", valor: -Math.abs(r.valor), createdAt: r.createdAt || 0,
     })),
     ...transfIn.map((t) => ({
       id: t.id, data: t.data, tipo: "Transferência recebida", descricao: t.descricao || `De: ${contaNome(t.origemId)}`, fornecedor: "—",
@@ -2910,6 +2956,11 @@ function ContaInvestidorLancamentosModal({ conta, entries, aportes, transfIn, tr
         <span>Gastos de obra <b className="neg">− {BRL(totalGastos)}</b></span>
         <span>Saldo atual <b className={running >= 0 ? "pos" : "neg"}>{BRL(running)}</b></span>
       </div>
+      {composicao && (
+        <p className="gf-field-hint" style={{ marginBottom: 14 }}>
+          Composição econômica do saldo atual: <b className="pos">Glover {BRL(composicao.glover)}</b> · <b>{conta?.titular || "Investidor"} {BRL(composicao.investidor)}</b>
+        </p>
+      )}
       <div className="gf-table-wrap">
         <table className="gf-table gf-table-ledger">
           <thead>
@@ -2974,13 +3025,22 @@ function ContaInvestidorModal({ conta, onClose, onSave }) {
   );
 }
 
-function AporteInvestidorModal({ contas, onClose, onSave }) {
-  const [f, setF] = useState({ contaInvestidorId: contas[0]?.id || "", valor: "", data: todayISO(), descricao: "" });
+function AporteInvestidorModal({ contas, accounts, obras, onClose, onSave }) {
+  const [f, setF] = useState({
+    contaInvestidorId: contas[0]?.id || "", origemAporte: "INVESTIDOR",
+    contaGloverId: accounts[0]?.id || "", obraId: "", valor: "", data: todayISO(), descricao: "",
+  });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
   const submit = (e) => {
     e.preventDefault();
     if (!f.contaInvestidorId || !f.valor) return;
-    onSave({ ...f, valor: Number(f.valor) });
+    if (f.origemAporte === "GLOVER" && !f.contaGloverId) return;
+    onSave({
+      contaInvestidorId: f.contaInvestidorId, origemAporte: f.origemAporte,
+      contaGloverId: f.origemAporte === "GLOVER" ? f.contaGloverId : null,
+      obraId: f.origemAporte === "GLOVER" ? (f.obraId || null) : null,
+      valor: Number(f.valor), data: f.data, descricao: f.descricao,
+    });
   };
   return (
     <Modal title="Registrar aporte em Conta Investidor" onClose={onClose}>
@@ -2990,46 +3050,158 @@ function AporteInvestidorModal({ contas, onClose, onSave }) {
             {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </Field>
+        <Field label="Origem do aporte" className="gf-span-2">
+          <div className="gf-segmented gf-origem-segmented" style={{ marginBottom: 0 }}>
+            <button type="button" className={f.origemAporte === "INVESTIDOR" ? "is-active" : ""} onClick={() => upd({ origemAporte: "INVESTIDOR" })}>Investidor / Titular</button>
+            <button type="button" className={f.origemAporte === "GLOVER" ? "is-active gf-origem-investidor" : ""} onClick={() => upd({ origemAporte: "GLOVER" })}>Glover</button>
+          </div>
+        </Field>
+        {f.origemAporte === "GLOVER" && (
+          <>
+            <Field label="Conta bancária Glover de origem">
+              <select required value={f.contaGloverId} onChange={(e) => upd({ contaGloverId: e.target.value })}>
+                <option value="" disabled>Selecione…</option>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Obra relacionada" hint="Opcional — só para histórico/auditoria">
+              <select value={f.obraId} onChange={(e) => upd({ obraId: e.target.value })}>
+                <option value="">—</option>
+                {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+              </select>
+            </Field>
+          </>
+        )}
         <Field label="Valor do aporte (R$)"><input type="number" min="0.01" step="0.01" required value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
         <Field label="Data"><input type="date" required value={f.data} onChange={(e) => upd({ data: e.target.value })} /></Field>
         <Field label="Descrição" className="gf-span-2"><input value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Opcional — ex: novo aporte do cliente" /></Field>
+        {f.origemAporte === "GLOVER" && (
+          <div className="gf-hint gf-span-2">
+            A conta bancária Glover selecionada será debitada em {BRL(Number(f.valor) || 0)}. Este valor não é despesa da obra — apenas aumenta a participação financeira da Glover nesta Conta Investidor.
+          </div>
+        )}
         <div className="gf-form-actions gf-span-2">
           <button type="submit" className="gf-btn gf-btn-primary">Confirmar aporte</button>
-          <span className="gf-hint">Não é receita da empresa — afeta apenas o saldo desta Conta Investidor.</span>
+          <span className="gf-hint">Não é receita da empresa nem gasto de obra — afeta apenas o saldo desta Conta Investidor{f.origemAporte === "GLOVER" ? " e a conta bancária Glover escolhida" : ""}.</span>
         </div>
       </form>
     </Modal>
   );
 }
 
-function TransferInvestidorModal({ contas, onClose, onSave }) {
-  const [f, setF] = useState({ origemId: contas[0]?.id || "", destinoId: contas[1]?.id || "", valor: "", data: todayISO(), descricao: "" });
+// Reúne as 3 operações que partem de uma Conta Investidor: transferência pura para outra Conta
+// Investidor (a participação econômica acompanha o recurso, não muda), retirada da Glover
+// (volta para uma conta bancária da empresa) e retirada do investidor (sai para fora do sistema,
+// ex.: conta pessoal). Cada retirada é validada contra a posição econômica disponível do
+// respectivo participante NESTA conta (nunca pode consumir recursos do outro participante).
+function TransferInvestidorModal({ contas, accounts, obras, investidorComposicao, onClose, onSave }) {
+  const [tipo, setTipo] = useState("TRANSFERENCIA");
+  const [f, setF] = useState({
+    origemId: contas[0]?.id || "", destinoId: contas[1]?.id || "", valor: "", data: todayISO(), descricao: "",
+    contaGloverDestinoId: accounts[0]?.id || "", obraId: "", participanteInvestidor: "", destinoDescricao: "",
+  });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
+
+  const contaOrigem = contas.find((c) => c.id === f.origemId);
+  const comp = investidorComposicao?.porConta?.[f.origemId] || { glover: 0, investidor: contaOrigem?.saldoInicial || 0 };
+  const disponivel = tipo === "RETIRADA_GLOVER" ? comp.glover : tipo === "RETIRADA_INVESTIDOR" ? comp.investidor : null;
+  const excedeLimite = disponivel !== null && Number(f.valor) > disponivel + 0.004;
+
   const submit = (e) => {
     e.preventDefault();
-    if (!f.origemId || !f.destinoId || f.origemId === f.destinoId || !f.valor) return;
-    onSave({ ...f, valor: Number(f.valor) });
+    if (!f.origemId || !f.valor) return;
+    if (tipo === "TRANSFERENCIA") {
+      if (!f.destinoId || f.origemId === f.destinoId) return;
+      onSave({ tipo, origemId: f.origemId, destinoId: f.destinoId, valor: Number(f.valor), data: f.data, descricao: f.descricao });
+    } else if (tipo === "RETIRADA_GLOVER") {
+      if (!f.contaGloverDestinoId || excedeLimite) return;
+      onSave({ tipo, origemId: f.origemId, contaGloverDestinoId: f.contaGloverDestinoId, obraId: f.obraId || null, valor: Number(f.valor), data: f.data, descricao: f.descricao });
+    } else {
+      if (excedeLimite) return;
+      onSave({ tipo, origemId: f.origemId, participanteInvestidor: f.participanteInvestidor, destinoDescricao: f.destinoDescricao, obraId: f.obraId || null, valor: Number(f.valor), data: f.data, descricao: f.descricao });
+    }
   };
+
   return (
-    <Modal title="Transferência entre Contas Investidoras" onClose={onClose}>
+    <Modal title="Transferir / Retirar — Contas Investidoras" onClose={onClose} width={620}>
+      <div className="gf-segmented gf-segmented-3" style={{ marginBottom: 14, display: "flex" }}>
+        <button type="button" className={tipo === "TRANSFERENCIA" ? "is-active" : ""} onClick={() => setTipo("TRANSFERENCIA")}>Transferência</button>
+        <button type="button" className={tipo === "RETIRADA_GLOVER" ? "is-active" : ""} onClick={() => setTipo("RETIRADA_GLOVER")}>Retirada Glover</button>
+        <button type="button" className={tipo === "RETIRADA_INVESTIDOR" ? "is-active" : ""} onClick={() => setTipo("RETIRADA_INVESTIDOR")}>Retirada Investidor</button>
+      </div>
+
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
-        <Field label="Conta de origem">
+        <Field label="Conta Investidor de origem" className={tipo === "TRANSFERENCIA" ? "" : "gf-span-2"}>
           <select required value={f.origemId} onChange={(e) => upd({ origemId: e.target.value })}>
             {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
           </select>
         </Field>
-        <Field label="Conta de destino">
-          <select required value={f.destinoId} onChange={(e) => upd({ destinoId: e.target.value })}>
-            {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-        </Field>
+
+        {tipo === "TRANSFERENCIA" && (
+          <Field label="Conta Investidor de destino">
+            <select required value={f.destinoId} onChange={(e) => upd({ destinoId: e.target.value })}>
+              {contas.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+            </select>
+          </Field>
+        )}
+
+        {tipo === "RETIRADA_GLOVER" && (
+          <>
+            <Field label="Conta bancária Glover de destino">
+              <select required value={f.contaGloverDestinoId} onChange={(e) => upd({ contaGloverDestinoId: e.target.value })}>
+                <option value="" disabled>Selecione…</option>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Obra relacionada" hint="Opcional — só para histórico/auditoria">
+              <select value={f.obraId} onChange={(e) => upd({ obraId: e.target.value })}>
+                <option value="">—</option>
+                {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+              </select>
+            </Field>
+          </>
+        )}
+
+        {tipo === "RETIRADA_INVESTIDOR" && (
+          <>
+            <Field label="Investidor/participante responsável">
+              <input value={f.participanteInvestidor || contaOrigem?.titular || ""} onChange={(e) => upd({ participanteInvestidor: e.target.value })} placeholder={contaOrigem?.titular || "Nome do investidor"} />
+            </Field>
+            <Field label="Obra relacionada" hint="Opcional — só para histórico/auditoria">
+              <select value={f.obraId} onChange={(e) => upd({ obraId: e.target.value })}>
+                <option value="">—</option>
+                {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+              </select>
+            </Field>
+            <Field label="Conta/dados bancários de destino" className="gf-span-2" hint="Pode ser uma conta pessoal do investidor — não precisa ser cadastrada no sistema">
+              <input value={f.destinoDescricao} onChange={(e) => upd({ destinoDescricao: e.target.value })} placeholder="Ex: conta pessoal do investidor, banco X, ag. 0001" />
+            </Field>
+          </>
+        )}
+
         <Field label="Valor (R$)"><input type="number" min="0.01" step="0.01" required value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
         <Field label="Data"><input type="date" required value={f.data} onChange={(e) => upd({ data: e.target.value })} /></Field>
         <Field label="Descrição" className="gf-span-2"><input value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Opcional" /></Field>
-        {f.origemId === f.destinoId && <div className="gf-warn gf-span-2">Escolha contas diferentes para origem e destino.</div>}
+
+        {tipo === "TRANSFERENCIA" && f.origemId === f.destinoId && (
+          <div className="gf-warn gf-span-2">Escolha contas diferentes para origem e destino.</div>
+        )}
+        {disponivel !== null && (
+          <div className={`gf-field-hint gf-span-2 ${excedeLimite ? "gf-warn" : ""}`}>
+            Saldo disponível de {tipo === "RETIRADA_GLOVER" ? "Glover" : (f.participanteInvestidor || contaOrigem?.titular || "investidor")} nesta conta: <b>{BRL(disponivel)}</b>
+            {excedeLimite && <> — {tipo === "RETIRADA_GLOVER" ? "o valor da retirada é superior ao saldo disponível da Glover nesta conta." : "o valor da retirada é superior ao saldo disponível do Investidor nesta conta."}</>}
+          </div>
+        )}
+
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary">Confirmar transferência</button>
-          <span className="gf-hint">Não afeta contas bancárias da empresa, custos de obra nem apropriações.</span>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={excedeLimite}>
+            {tipo === "TRANSFERENCIA" ? "Confirmar transferência" : "Confirmar retirada"}
+          </button>
+          <span className="gf-hint">
+            {tipo === "TRANSFERENCIA"
+              ? "Não afeta contas bancárias da empresa, custos de obra, apropriações nem a participação financeira."
+              : "Não afeta o custo realizado da obra nem apropriações — apenas o saldo desta Conta Investidor" + (tipo === "RETIRADA_GLOVER" ? " e a conta bancária Glover escolhida." : ".")}
+          </span>
         </div>
       </form>
     </Modal>
@@ -3042,7 +3214,7 @@ function TransferInvestidorModal({ contas, onClose, onSave }) {
 
 const PIE_COLORS = ["#2F8F5B", "#0E3B2E", "#7FB69A", "#B23A34", "#C98A2B", "#5D7566", "#3E6B57", "#9AA39B", "#1D5A45", "#84A98C", "#4A5259"];
 
-function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, currentUser }) {
+function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, currentUser }) {
   const [showNew, setShowNew] = useState(false);
   const [editingObra, setEditingObra] = useState(null);
   const [detailObraId, setDetailObraId] = useState(null);
@@ -3168,6 +3340,8 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
           onEdit={() => { setEditingObra(detailObra); setDetailObraId(null); }}
           contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
           allEntries={entries} accounts={accounts}
+          contasInvestidores={contasInvestidores} investidorComposicao={investidorComposicao}
+          movimentosInvestidores={movimentosInvestidores} retiradasInvestidores={retiradasInvestidores}
         />
       )}
     </div>
@@ -3271,10 +3445,15 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClos
   );
 }
 
-function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, accounts }) {
+function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores }) {
   const [tab, setTab] = useState("financeiro");
   const [apropFilter, setApropFilter] = useState("");
   const filtered = apropFilter ? entries.filter((e) => e.apropriacao === apropFilter) : entries;
+
+  const participacao = useMemo(
+    () => computeObraParticipacao(obra.id, entries, contasInvestidores || [], investidorComposicao?.porGasto || {}),
+    [obra.id, entries, contasInvestidores, investidorComposicao]
+  );
 
   const porMes = useMemo(() => {
     const map = {};
@@ -3312,6 +3491,11 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
           <button className={tab === "financeiro" ? "is-active" : ""} onClick={() => setTab("financeiro")}>Visão financeira</button>
           <button className={tab === "orcamento" ? "is-active" : ""} onClick={() => setTab("orcamento")}>Controle orçamentário</button>
           <button className={tab === "lancamentos" ? "is-active" : ""} onClick={() => setTab("lancamentos")}>Lançamentos</button>
+          {participacao.temInvestidor && (
+            <button className={tab === "participacao" ? "is-active" : ""} onClick={() => setTab("participacao")}>
+              <HandCoins size={13} /> Participação
+            </button>
+          )}
         </div>
 
         {tab === "financeiro" && (
@@ -3382,15 +3566,24 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
           />
         )}
         {tab === "lancamentos" && (
-          <ObraLancamentosTab entries={entries} accounts={accounts} />
+          <ObraLancamentosTab entries={entries} accounts={accounts} contasInvestidores={contasInvestidores} />
+        )}
+        {tab === "participacao" && (
+          <ParticipacaoTab
+            obra={obra} entries={entries} contasInvestidores={contasInvestidores || []}
+            participacao={participacao} investidorComposicao={investidorComposicao}
+            movimentosInvestidores={movimentosInvestidores || []} retiradasInvestidores={retiradasInvestidores || []}
+          />
         )}
       </div>
     </Modal>
   );
 }
 
-function ObraLancamentosTab({ entries, accounts }) {
+function ObraLancamentosTab({ entries, accounts, contasInvestidores }) {
   const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const investidorName = (id) => (contasInvestidores || []).find((c) => c.id === id)?.nome || "Conta Investidor";
+  const contaDisplay = (e) => (e.origemTipo === "CONTA_INVESTIDOR" ? investidorName(e.contaInvestidorId) : accountName(e.contaId));
   const ordenados = [...entries].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
 
   return (
@@ -3407,7 +3600,10 @@ function ObraLancamentosTab({ entries, accounts }) {
             <tr key={e.id} className={e.tipo === "entrada" ? "row-pos" : "row-neg"}>
               <td>{fmtDate(e.data)}</td>
               <td><Badge tone={e.tipo === "entrada" ? "green" : "red"}>{e.tipo === "entrada" ? "Entrada" : "Saída"}</Badge></td>
-              <td>{accountName(e.contaId)}</td>
+              <td>
+                {contaDisplay(e)}
+                {e.origemTipo === "CONTA_INVESTIDOR" && <Badge tone="purple" style={{ marginLeft: 6 }}>Investidor</Badge>}
+              </td>
               <td>{e.fornecedor || "—"}</td>
               <td className={`num mono ${e.tipo === "entrada" ? "pos" : "neg"}`}>
                 {e.tipo === "entrada" ? "+" : "−"} {BRL(e.valor)}
@@ -3418,6 +3614,190 @@ function ObraLancamentosTab({ entries, accounts }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Participação Glover x Investidores (dentro de ObraDetail)
+--------------------------------------------------------------- */
+
+function ParticipacaoTab({ obra, entries, contasInvestidores, participacao, investidorComposicao, movimentosInvestidores, retiradasInvestidores }) {
+  const [showHistorico, setShowHistorico] = useState(false);
+
+  const linhas = [
+    { nome: "Glover", valor: participacao.gloverTotal, pct: participacao.gloverPct, isGlover: true },
+    ...participacao.participantes.map((p) => ({ nome: p.titular ? `${p.nome} (${p.titular})` : p.nome, valor: p.valor, pct: p.pct, isGlover: false })),
+  ];
+
+  const pieData = linhas.filter((l) => l.valor > 0.004).map((l) => ({ name: l.nome, value: l.valor }));
+
+  return (
+    <div>
+      <div className="gf-toolbar" style={{ marginBottom: 12 }}>
+        <div>
+          <h3 style={{ margin: 0, fontFamily: "var(--gf-font-display)", fontSize: 15 }}>Participação Financeira</h3>
+          <p className="gf-field-hint" style={{ margin: "2px 0 0" }}>
+            Quanto do custo realizado desta obra pertence economicamente à Glover e a cada Conta Investidor.
+          </p>
+        </div>
+        <button className="gf-btn gf-btn-ghost" onClick={() => setShowHistorico(true)}>
+          <ClipboardCheck size={14} /> Ver composição / histórico
+        </button>
+      </div>
+
+      <div className="gf-table-wrap">
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Participante</th><th className="num">Valor</th><th className="num">Participação</th></tr></thead>
+          <tbody>
+            {linhas.map((l) => (
+              <tr key={l.nome}>
+                <td>
+                  {l.isGlover ? <Badge tone="green">Glover</Badge> : <Badge tone="purple">Investidor</Badge>}
+                  {" "}{l.nome}
+                </td>
+                <td className="num mono">{BRL(l.valor)}</td>
+                <td className="num mono">{l.pct.toFixed(2)}%</td>
+              </tr>
+            ))}
+            <tr style={{ fontWeight: 700 }}>
+              <td>Total</td>
+              <td className="num mono">{BRL(participacao.totalGeral)}</td>
+              <td className="num mono">100,00%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {pieData.length > 0 && (
+        <div className="gf-chart-box gf-chart-box-pie" style={{ marginTop: 16 }}>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={85} label={(d) => `${d.name} ${((d.value / participacao.totalGeral) * 100).toFixed(0)}%`}>
+                {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              </Pie>
+              <Tooltip formatter={(v) => BRL(v)} contentStyle={{ fontFamily: "var(--gf-font-mono)", fontSize: 12, borderRadius: 8, border: "1px solid var(--gf-border)" }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {showHistorico && (
+        <ParticipacaoHistoricoModal
+          obra={obra} entries={entries} contasInvestidores={contasInvestidores}
+          porGasto={investidorComposicao?.porGasto || {}}
+          movimentosInvestidores={movimentosInvestidores} retiradasInvestidores={retiradasInvestidores}
+          onClose={() => setShowHistorico(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGasto, movimentosInvestidores, retiradasInvestidores, onClose }) {
+  const contaNome = (id) => contasInvestidores.find((c) => c.id === id)?.nome || "Conta Investidor";
+
+  const gastosDiretos = entries.filter((e) => e.obraId === obra.id && e.tipo === "saida" && e.origemTipo !== "CONTA_INVESTIDOR");
+  const gastosInvestidor = entries.filter((e) => e.obraId === obra.id && e.tipo === "saida" && e.origemTipo === "CONTA_INVESTIDOR");
+  const aportesGlover = movimentosInvestidores.filter((m) => m.origemAporte === "GLOVER" && m.obraId === obra.id);
+  const aportesInvestidor = movimentosInvestidores.filter((m) => m.origemAporte !== "GLOVER" && m.obraId === obra.id);
+  const retiradasGlover = retiradasInvestidores.filter((r) => r.tipo === "GLOVER" && r.obraId === obra.id);
+  const retiradasInvestidor = retiradasInvestidores.filter((r) => r.tipo === "INVESTIDOR" && r.obraId === obra.id);
+
+  const ordenar = (arr) => [...arr].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
+
+  return (
+    <Modal title={`${obra.nome} — Composição da participação`} onClose={onClose} width={840}>
+      <p className="gf-field-hint" style={{ marginBottom: 14 }}>
+        Histórico de todas as movimentações usadas para calcular a participação financeira desta obra — para auditoria e conferência.
+        Aportes e retiradas não alteram o custo realizado da obra; apenas a origem econômica dos recursos.
+      </p>
+
+      <h4 className="gf-chart-title">Gastos pagos diretamente pela Glover ({gastosDiretos.length})</h4>
+      <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th></tr></thead>
+          <tbody>
+            {gastosDiretos.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
+            {ordenar(gastosDiretos).map((e) => (
+              <tr key={e.id}><td>{fmtDate(e.data)}</td><td>{e.fornecedor || "—"}</td><td>{e.apropriacao || "—"}</td><td className="num mono neg">{BRL(e.valor)}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="gf-chart-title">Gastos pagos por Contas Investidoras ({gastosInvestidor.length})</h4>
+      <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Conta Investidor</th><th>Fornecedor</th><th className="num">Valor</th><th className="num">Parte Glover</th><th className="num">Parte Investidor</th></tr></thead>
+          <tbody>
+            {gastosInvestidor.length === 0 && <tr><td colSpan={6} className="gf-field-hint">Nenhum</td></tr>}
+            {ordenar(gastosInvestidor).map((e) => {
+              const split = porGasto[e.id] || { glover: 0, investidor: e.valor };
+              return (
+                <tr key={e.id}>
+                  <td>{fmtDate(e.data)}</td><td>{contaNome(e.contaInvestidorId)}</td><td>{e.fornecedor || "—"}</td>
+                  <td className="num mono neg">{BRL(e.valor)}</td>
+                  <td className="num mono">{BRL(split.glover)}</td>
+                  <td className="num mono">{BRL(split.investidor)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="gf-chart-title">Aportes Glover em Contas Investidoras vinculados a esta obra ({aportesGlover.length})</h4>
+      <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
+          <tbody>
+            {aportesGlover.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
+            {ordenar(aportesGlover).map((m) => (
+              <tr key={m.id}><td>{fmtDate(m.data)}</td><td>{contaNome(m.contaInvestidorId)}</td><td className="num mono pos">{BRL(m.valor)}</td><td>{m.descricao || "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="gf-chart-title">Retiradas Glover vinculadas a esta obra ({retiradasGlover.length})</h4>
+      <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
+          <tbody>
+            {retiradasGlover.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhuma</td></tr>}
+            {ordenar(retiradasGlover).map((r) => (
+              <tr key={r.id}><td>{fmtDate(r.data)}</td><td>{contaNome(r.contaInvestidorId)}</td><td className="num mono neg">{BRL(r.valor)}</td><td>{r.descricao || "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="gf-chart-title">Aportes de investidores vinculados a esta obra ({aportesInvestidor.length})</h4>
+      <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
+          <tbody>
+            {aportesInvestidor.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
+            {ordenar(aportesInvestidor).map((m) => (
+              <tr key={m.id}><td>{fmtDate(m.data)}</td><td>{contaNome(m.contaInvestidorId)}</td><td className="num mono pos">{BRL(m.valor)}</td><td>{m.descricao || "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <h4 className="gf-chart-title">Retiradas de investidores vinculadas a esta obra ({retiradasInvestidor.length})</h4>
+      <div className="gf-table-wrap">
+        <table className="gf-table gf-table-ledger">
+          <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
+          <tbody>
+            {retiradasInvestidor.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhuma</td></tr>}
+            {ordenar(retiradasInvestidor).map((r) => (
+              <tr key={r.id}><td>{fmtDate(r.data)}</td><td>{contaNome(r.contaInvestidorId)}</td><td className="num mono neg">{BRL(r.valor)}</td><td>{r.descricao || "—"}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Modal>
   );
 }
 
@@ -8124,12 +8504,3 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
   .gf-topbar{ padding:16px; }
 }
 `;
-
-const rootEl = document.getElementById("root");
-const root = createRoot(rootEl);
-root.render(<App />);
-
-</script>
-
-</body>
-</html>
