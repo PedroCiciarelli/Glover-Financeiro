@@ -1,4 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glover Engenharia — Financeiro</title>
+
+<!-- Permite "Adicionar à tela de início" no celular, como se fosse um app -->
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<meta name="theme-color" content="#0E3B2E" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Glover Financeiro" />
+<meta name="mobile-web-app-capable" content="yes" />
+
+<!-- Mapa de importações: diz ao navegador onde buscar "react", "recharts" etc.
+     (usa o esm.sh, que serve pacotes do npm prontos para rodar direto no navegador) -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "recharts": "https://esm.sh/recharts@2.12.7?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.383.0?external=react",
+    "xlsx": "https://esm.sh/xlsx@0.18.5"
+  }
+}
+</script>
+
+<!-- Babel: converte o código React/JSX para JavaScript puro, direto no navegador -->
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; padding: 0; background: #F3F5F1; }
+  #root { min-height: 100vh; }
+  #gf-loading-fallback {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #667066; font-size: 14px;
+  }
+  #gf-config-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    background: #B23A34; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 13px; padding: 10px 16px; text-align: center; display: none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Este aviso só aparece se o Supabase ainda não foi configurado -->
+<div id="gf-config-banner">
+  ⚠️ Este sistema ainda não está conectado a um banco de dados compartilhado — os dados vão ficar salvos
+  só neste navegador. Edite este arquivo e preencha SUPABASE_URL e SUPABASE_ANON_KEY.
+</div>
+
+<div id="root"><div id="gf-loading-fallback">Carregando o sistema…</div></div>
+
+<!-- ======================================================================
+     CONFIGURAÇÃO DO BANCO DE DADOS COMPARTILHADO (Supabase)
+     Já preenchido com os dados do projeto "Glover-Financeiro".
+====================================================================== -->
+<script>
+  window.SUPABASE_URL = "https://ctaenjjuwdfgrxrhimum.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN0YWVuamp1d2RmZ3J4cmhpbXVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MDMxNDUsImV4cCI6MjEwMzA3OTE0NX0.KCGID8irF42yHmNDdrSEVkvfFjSaDXC03jfNYmLh3_0";
+</script>
+<!-- ====================================================================== -->
+
+<!-- "Atalho" de armazenamento: fora do Claude não existe window.storage, então esta
+     versão implementa a mesma API usando o Supabase (dados compartilhados, na nuvem)
+     para o que é de equipe, e a memória do navegador (localStorage) para o que é
+     pessoal de cada dispositivo (ex: sessão de login). -->
+<script>
+(function () {
+  const SUPABASE_URL = window.SUPABASE_URL || "";
+  const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "";
+  const configured = SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 20;
+  if (!configured) {
+    document.getElementById("gf-config-banner").style.display = "block";
+  }
+
+  function personalKey(key) { return "gf-pessoal:" + key; }
+
+  async function supabaseGet(key) {
+    // Usamos apenas a opção "cache: no-store" do fetch para evitar cache — NUNCA um
+    // parâmetro extra na URL, porque o Supabase (PostgREST) interpreta qualquer
+    // parâmetro desconhecido como uma tentativa de filtro de busca (erro PGRST100).
+    const url = SUPABASE_URL + "/rest/v1/kv_store?id=eq." + encodeURIComponent(key) + "&select=value";
+    const res = await fetch(url, {
+      cache: "no-store",
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: "Bearer " + SUPABASE_ANON_KEY },
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error("Falha ao ler do Supabase (HTTP " + res.status + "): " + detail.slice(0, 200));
+    }
+    const rows = await res.json();
+    if (!rows.length) throw new Error("chave não encontrada: " + key);
+    return rows[0].value;
+  }
+
+  async function supabaseSet(key, value) {
+    const url = SUPABASE_URL + "/rest/v1/kv_store?on_conflict=id";
+    const res = await fetch(url, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify({ id: key, value: value, updated_at: new Date().toISOString() }),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      throw new Error("Falha ao salvar no Supabase (HTTP " + res.status + "): " + detail.slice(0, 200));
+    }
+  }
+
+  window.storage = {
+    async get(key, shared) {
+      if (shared && configured) {
+        const value = await supabaseGet(key);
+        return { key, value, shared: true };
+      }
+      const raw = localStorage.getItem(personalKey(key));
+      if (raw === null) throw new Error("chave não encontrada: " + key);
+      return { key, value: raw, shared: !!shared };
+    },
+    async set(key, value, shared) {
+      if (shared && configured) {
+        await supabaseSet(key, value);
+        return { key, value, shared: true };
+      }
+      localStorage.setItem(personalKey(key), value);
+      return { key, value, shared: !!shared };
+    },
+    async delete(key, shared) {
+      if (shared && configured) return { key, deleted: true, shared: true };
+      localStorage.removeItem(personalKey(key));
+      return { key, deleted: true, shared: !!shared };
+    },
+    async list(prefix, shared) {
+      return { keys: [], prefix, shared: !!shared };
+    },
+  };
+})();
+</script>
+
+<!-- Código do sistema (React + JSX). O navegador lê isso, o Babel traduz para
+     JavaScript puro, e o mapa de importações lá em cima resolve as bibliotecas usadas. -->
+<script type="text/babel" data-type="module" data-presets="react">
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { createRoot } from "react-dom/client";
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -8504,3 +8659,12 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
   .gf-topbar{ padding:16px; }
 }
 `;
+
+const rootEl = document.getElementById("root");
+const root = createRoot(rootEl);
+root.render(<App />);
+
+</script>
+
+</body>
+</html>
