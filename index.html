@@ -164,7 +164,7 @@ import {
   Copy, X, ArrowLeftRight, Download, ChevronRight, ArrowUpRight, ArrowDownRight,
   TrendingUp, TrendingDown, Filter, ChevronLeft, Check, Scale, BarChart3,
   CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut, ClipboardCheck, CreditCard,
-  FolderKanban, Paperclip, Send, HandCoins,
+  FolderKanban, Paperclip, Send, HandCoins, CalendarRange, GripVertical, ImageDown,
 } from "lucide-react";
 
 const GLOVER_LOGO_DATA_URI = "data:image/png;base64,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";
@@ -186,6 +186,12 @@ const SESSION_KEY = "glover-financeiro-sessao-local-v1";
 const DEFAULT_SOCIOS = [
   { id: "pedro", nome: "Pedro", participacao: 60 },
   { id: "fabio", nome: "Fabio", participacao: 40 },
+];
+
+// Planejamento Semanal (módulo operacional, sem dados financeiros) — disciplinas cadastráveis.
+const DEFAULT_DISCIPLINAS = [
+  "Civil", "Elétrica", "Hidráulica", "HVAC / Ar-condicionado", "Incêndio / SPK",
+  "Drywall", "Forro", "Pintura", "Serralheria", "Marcenaria", "Esquadrias", "Dados", "Outros",
 ];
 
 /* ---------------------------------------------------------------
@@ -235,6 +241,10 @@ const PERMISSION_GROUPS = [
   { group: "Obras Gerenciamento", keys: [
     { key: "gerenciamento_lancar", label: "Lançar contas a pagar, depósitos e gerar remessas (obras por gerenciamento)" },
   ] },
+  { group: "Planejamento Semanal", keys: [
+    { key: "planejamento_visualizar", label: "Acessar o Planejamento Semanal" },
+    { key: "planejamento_gerenciar", label: "Criar/editar/excluir planejamentos semanais" },
+  ] },
   { group: "Administração", keys: [
     { key: "relatorios_acessar", label: "Acessar relatórios e dashboards" },
     { key: "config_alterar", label: "Alterar configurações do sistema" },
@@ -255,6 +265,7 @@ const ASSISTENTE_PERMS = {
   fornecedores_cadastrar: true, apropriacoes_gerenciar: true,
   relatorios_acessar: true, socios_acessar: true, cartao_lancar: true, gerenciamento_lancar: true,
   investidores_visualizar: true, investidores_aportar: true, investidores_transferir: true,
+  planejamento_visualizar: true, planejamento_gerenciar: true,
 };
 
 const DEFAULT_USUARIOS = [
@@ -1200,6 +1211,8 @@ export default function App() {
   const [orcamentoItens, setOrcamentoItens] = useState([]);
   const [dividas, setDividas] = useState([]);
   const [investimentos, setInvestimentos] = useState([]);
+  const [disciplinas, setDisciplinas] = useState(DEFAULT_DISCIPLINAS);
+  const [planejamentosSemanais, setPlanejamentosSemanais] = useState([]);
   const [cartoesCredito, setCartoesCredito] = useState([]);
   const [lancamentosCartao, setLancamentosCartao] = useState([]);
   const [faturasCartao, setFaturasCartao] = useState([]);
@@ -1234,6 +1247,8 @@ export default function App() {
     setOrcamentoItens(d.orcamentoItens || []);
     setDividas(d.dividas || []);
     setInvestimentos(d.investimentos || []);
+    setDisciplinas(d.disciplinas && d.disciplinas.length ? d.disciplinas : DEFAULT_DISCIPLINAS);
+    setPlanejamentosSemanais(d.planejamentosSemanais || []);
     setCartoesCredito(d.cartoesCredito || []);
     setLancamentosCartao(d.lancamentosCartao || []);
     setFaturasCartao(d.faturasCartao || []);
@@ -1264,6 +1279,8 @@ export default function App() {
     setOrcamentoItens(seed.orcamentoItens || []);
     setDividas(seed.dividas || []);
     setInvestimentos(seed.investimentos || []);
+    setDisciplinas(DEFAULT_DISCIPLINAS);
+    setPlanejamentosSemanais([]);
     setCartoesCredito(seed.cartoesCredito || []);
     setLancamentosCartao(seed.lancamentosCartao || []);
     setFaturasCartao(seed.faturasCartao || []);
@@ -1314,7 +1331,7 @@ export default function App() {
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
@@ -1325,7 +1342,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -1373,6 +1390,7 @@ export default function App() {
     setDividas(seed.dividas || []); setInvestimentos(seed.investimentos || []);
     setCartoesCredito(seed.cartoesCredito || []); setLancamentosCartao(seed.lancamentosCartao || []); setFaturasCartao(seed.faturasCartao || []);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]);
   };
 
   const clearAll = async () => {
@@ -1385,13 +1403,14 @@ export default function App() {
     setCartoesCredito([]); setLancamentosCartao([]); setFaturasCartao([]);
     setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]);
   };
 
   const exportarBackup = () => {
     const dados = {
       accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
       socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores,
-      contasPagar, orcamentoItens, dividas, investimentos,
+      contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais,
       cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog,
       exportadoEm: new Date().toISOString(),
     };
@@ -1649,7 +1668,7 @@ export default function App() {
     fornecedores: "relatorios_acessar", contaspagar: null, cartoescredito: "cartao_lancar", custosinternos: "relatorios_acessar",
     dividasinvestimentos: "relatorios_acessar", obrasgerenciamento: "gerenciamento_lancar",
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
-    contasinvestidores: "investidores_visualizar",
+    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar",
   };
   if (NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
@@ -1770,6 +1789,15 @@ export default function App() {
               accounts={accounts} obras={obras}
             />
           )}
+          {page === "planejamentosemanal" && (
+            <PlanejamentoSemanalPage
+              obras={obras}
+              planejamentosSemanais={planejamentosSemanais} setPlanejamentosSemanais={setPlanejamentosSemanais}
+              disciplinas={disciplinas} setDisciplinas={setDisciplinas}
+              fornecedorOptions={fornecedorOptions}
+              currentUser={currentUser} logAudit={logAudit}
+            />
+          )}
           {page === "socios" && (
             <SociosPage
               socios={socios} setSocios={setSocios} socioStats={socioStats}
@@ -1814,6 +1842,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "obrasgerenciamento", label: "Obras Gerenciamento", icon: FolderKanban, perm: "gerenciamento_lancar" },
     { id: "custosinternos", label: "Custos Internos", icon: BarChart3, perm: "relatorios_acessar" },
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
+    { id: "planejamentosemanal", label: "Planejamento Semanal", icon: CalendarRange, perm: "planejamento_visualizar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
@@ -8292,6 +8321,746 @@ function ParticipacaoModal({ socios, onClose, onSave }) {
 }
 
 /* ---------------------------------------------------------------
+   Planejamento Semanal (módulo operacional — sem dados financeiros)
+--------------------------------------------------------------- */
+
+const WEEKDAY_NAMES_PT = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+function weekdayName(iso) {
+  const d = new Date(iso + "T00:00:00");
+  return WEEKDAY_NAMES_PT[d.getDay()];
+}
+
+// Gera todos os dias (YYYY-MM-DD) do intervalo, inclusive, em qualquer tamanho.
+function datesInRange(inicio, fim) {
+  const out = [];
+  let cur = inicio;
+  let guard = 0;
+  while (cur <= fim && guard < 3660) {
+    out.push(cur);
+    cur = addDaysISO(cur, 1);
+    guard++;
+  }
+  return out;
+}
+
+function slugify(text) {
+  return (text || "obra")
+    .toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-+|-+$)/g, "") || "obra";
+}
+
+// Campo de Disciplina: seleciona entre as disciplinas cadastradas, com opção de adicionar uma nova
+// (fica disponível para todos os planejamentos futuros, sem precisar alterar código).
+function DisciplinaSelect({ value, onChange, disciplinas, setDisciplinas }) {
+  const [adding, setAdding] = useState(false);
+  const [novo, setNovo] = useState("");
+
+  const confirmar = () => {
+    const v = novo.trim();
+    if (!v) return;
+    if (!disciplinas.includes(v)) setDisciplinas((prev) => [...prev, v]);
+    onChange(v);
+    setNovo(""); setAdding(false);
+  };
+
+  if (adding) {
+    return (
+      <div className="gf-inline-select">
+        <input
+          autoFocus placeholder="Nova disciplina" value={novo} onChange={(e) => setNovo(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), confirmar())}
+        />
+        <button type="button" className="gf-icon-btn" onClick={confirmar}><Check size={15} /></button>
+        <button type="button" className="gf-icon-btn" onClick={() => setAdding(false)}><X size={15} /></button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gf-inline-select">
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="" disabled>Selecione…</option>
+        {disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
+      </select>
+      <button type="button" className="gf-icon-btn" title="Cadastrar nova disciplina" onClick={() => setAdding(true)}><Plus size={15} /></button>
+    </div>
+  );
+}
+
+// Quebra manual de texto para desenho em <canvas>, respeitando a largura máxima de cada coluna.
+function wrapCanvasText(ctx, text, maxWidth) {
+  const words = (text == null ? "" : String(text)).split(/\s+/).filter(Boolean);
+  if (!words.length) return ["—"];
+  const lines = [];
+  let current = words[0];
+  for (let i = 1; i < words.length; i++) {
+    const test = `${current} ${words[i]}`;
+    if (ctx.measureText(test).width <= maxWidth) current = test;
+    else { lines.push(current); current = words[i]; }
+  }
+  lines.push(current);
+  return lines;
+}
+
+// Gera e baixa uma imagem PNG em alta resolução do planejamento semanal, desenhada inteiramente
+// em <canvas> nativo (sem dependências externas) — funciona igual tanto no preview do artifact
+// quanto no HTML publicado no GitHub Pages. A altura do canvas é calculada a partir do conteúdo
+// (quebra de texto manual, medida com ctx.measureText) para nunca cortar texto nem sobrepor linhas.
+async function gerarPlanejamentoPNG(plano, obra) {
+  const W = 1000;
+  const marginX = 40;
+  const contentW = W - marginX * 2;
+  const colWidths = { desc: contentW * 0.30, disc: contentW * 0.16, forn: contentW * 0.20, obs: contentW * 0.34 };
+  const colX = {
+    desc: marginX,
+    disc: marginX + colWidths.desc,
+    forn: marginX + colWidths.desc + colWidths.disc,
+    obs: marginX + colWidths.desc + colWidths.disc + colWidths.forn,
+  };
+  const cellPadX = 10, cellPadY = 8, lineH = 16;
+  const fontCell = "13px Arial, Helvetica, sans-serif";
+  const BAND_H = 34, BAND_GAP = 10, HEAD_ROW_H = 26, AFTER_ROWS_GAP = 10, DAY_GAP = 16, EMPTY_TEXT_H = 36;
+  const headerH = 150, footerH = 30;
+
+  const measureCanvas = document.createElement("canvas");
+  const mctx = measureCanvas.getContext("2d");
+  mctx.font = fontCell;
+
+  const dias = [...(plano.dias || [])];
+  const dayLayouts = dias.map((dia) => {
+    const atividades = [...(dia.atividades || [])].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+    if (!atividades.length) return { dia, atividades: [], rowHeights: [], increment: BAND_H + BAND_GAP + EMPTY_TEXT_H + DAY_GAP };
+    const rowHeights = atividades.map((a) => {
+      const descLines = wrapCanvasText(mctx, a.descricao, colWidths.desc - cellPadX * 2);
+      const discLines = wrapCanvasText(mctx, a.disciplina, colWidths.disc - cellPadX * 2);
+      const fornLines = wrapCanvasText(mctx, a.fornecedor, colWidths.forn - cellPadX * 2);
+      const obsLines = wrapCanvasText(mctx, a.observacao, colWidths.obs - cellPadX * 2);
+      const maxLines = Math.max(descLines.length, discLines.length, fornLines.length, obsLines.length, 1);
+      return maxLines * lineH + cellPadY * 2;
+    });
+    const sumRows = rowHeights.reduce((s, h) => s + h, 0);
+    return { dia, atividades, rowHeights, increment: BAND_H + BAND_GAP + HEAD_ROW_H + sumRows + AFTER_ROWS_GAP + DAY_GAP };
+  });
+
+  const totalH = headerH + 16 + dayLayouts.reduce((s, d) => s + d.increment, 0) + footerH;
+
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(W * scale);
+  canvas.height = Math.ceil(totalH * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, W, totalH);
+
+  ctx.fillStyle = "#0E3B2E";
+  ctx.fillRect(0, 0, W, headerH);
+
+  let logoImg = null;
+  try {
+    logoImg = await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = GLOVER_LOGO_DATA_URI;
+    });
+  } catch (e) { logoImg = null; }
+
+  if (logoImg && logoImg.width && logoImg.height) {
+    const logoH = 40;
+    const logoW = logoImg.width * (logoH / logoImg.height);
+    ctx.drawImage(logoImg, marginX, 16, logoW, logoH);
+  }
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 22px Arial, Helvetica, sans-serif";
+  ctx.fillText("GLOVER ENGENHARIA", marginX, 90);
+  ctx.fillStyle = "#BFE3CD";
+  ctx.font = "600 14px Arial, Helvetica, sans-serif";
+  ctx.fillText("PLANEJAMENTO SEMANAL", marginX, 110);
+  ctx.fillStyle = "#EFF4F0";
+  ctx.font = "13px Arial, Helvetica, sans-serif";
+  ctx.fillText(`Obra: ${obra?.nome || "—"}`, marginX, 128);
+  ctx.fillText(`Período: ${fmtDate(plano.dataInicio)} a ${fmtDate(plano.dataFim)}`, marginX, 144);
+
+  let y = headerH + 16;
+  dayLayouts.forEach(({ dia, atividades, rowHeights }) => {
+    ctx.fillStyle = "#E4F2E9";
+    ctx.fillRect(marginX, y, contentW, BAND_H);
+    ctx.strokeStyle = "#DEE3DB";
+    ctx.strokeRect(marginX + 0.5, y + 0.5, contentW - 1, BAND_H - 1);
+    ctx.fillStyle = "#0E3B2E";
+    ctx.font = "bold 14px Arial, Helvetica, sans-serif";
+    ctx.fillText(`${weekdayName(dia.data).toUpperCase()} — ${fmtDate(dia.data)}`, marginX + 10, y + 22);
+    y += BAND_H + BAND_GAP;
+
+    if (!atividades.length) {
+      ctx.fillStyle = "#6B7570";
+      ctx.font = "italic 12.5px Arial, Helvetica, sans-serif";
+      ctx.fillText("Nenhuma atividade cadastrada.", marginX + 10, y + 16);
+      y += EMPTY_TEXT_H;
+    } else {
+      ctx.fillStyle = "#F0F1EE";
+      ctx.fillRect(marginX, y, contentW, HEAD_ROW_H);
+      ctx.strokeStyle = "#DEE3DB";
+      ctx.strokeRect(marginX + 0.5, y + 0.5, contentW - 1, HEAD_ROW_H - 1);
+      ctx.fillStyle = "#1B2420";
+      ctx.font = "bold 11px Arial, Helvetica, sans-serif";
+      ctx.fillText("ATIVIDADE", colX.desc + cellPadX, y + 17);
+      ctx.fillText("DISCIPLINA", colX.disc + cellPadX, y + 17);
+      ctx.fillText("FORNECEDOR", colX.forn + cellPadX, y + 17);
+      ctx.fillText("OBSERVAÇÃO", colX.obs + cellPadX, y + 17);
+      y += HEAD_ROW_H;
+
+      atividades.forEach((a, i) => {
+        const rh = rowHeights[i];
+        ctx.fillStyle = i % 2 === 0 ? "#FFFFFF" : "#F7F8F6";
+        ctx.fillRect(marginX, y, contentW, rh);
+        ctx.strokeStyle = "#DEE3DB";
+        ctx.strokeRect(marginX + 0.5, y + 0.5, contentW - 1, rh - 1);
+        [colX.disc, colX.forn, colX.obs].forEach((x) => {
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + rh); ctx.stroke();
+        });
+        ctx.fillStyle = "#1B2420";
+        ctx.font = fontCell;
+        const drawCell = (text, x, w) => {
+          const lines = wrapCanvasText(ctx, text, w - cellPadX * 2);
+          lines.forEach((line, li) => ctx.fillText(line, x + cellPadX, y + cellPadY + lineH * (li + 1) - 4));
+        };
+        drawCell(a.descricao, colX.desc, colWidths.desc);
+        drawCell(a.disciplina, colX.disc, colWidths.disc);
+        drawCell(a.fornecedor, colX.forn, colWidths.forn);
+        drawCell(a.observacao, colX.obs, colWidths.obs);
+        y += rh;
+      });
+      y += AFTER_ROWS_GAP;
+    }
+    y += DAY_GAP;
+  });
+
+  ctx.fillStyle = "#6B7570";
+  ctx.font = "11px Arial, Helvetica, sans-serif";
+  ctx.fillText(`Gerado em ${nowStamp()} · Glover Engenharia`, marginX, totalH - 12);
+
+  const dataUrl = canvas.toDataURL("image/png");
+  const a = document.createElement("a");
+  a.href = dataUrl;
+  a.download = `planejamento-${slugify(obra?.nome)}-${plano.dataInicio}-a-${plano.dataFim}.png`;
+  a.click();
+}
+
+// Página principal: mostra as obras do Painel de Obras como cards, sem NENHUMA informação
+// financeira (sem verbas, valores, saldo, apropriações, participação de investidores etc.).
+function PlanejamentoSemanalPage({ obras, planejamentosSemanais, setPlanejamentosSemanais, disciplinas, setDisciplinas, fornecedorOptions, currentUser, logAudit }) {
+  const [selectedObraId, setSelectedObraId] = useState(null);
+  const podeGerenciar = can(currentUser, "planejamento_gerenciar");
+
+  const obrasOrdenadas = useMemo(
+    () => [...obras].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { numeric: true, sensitivity: "base" })),
+    [obras]
+  );
+  const selectedObra = obras.find((o) => o.id === selectedObraId);
+
+  if (selectedObra) {
+    return (
+      <ObraPlanejamentosList
+        obra={selectedObra}
+        planejamentos={planejamentosSemanais.filter((p) => p.obraId === selectedObra.id)}
+        setPlanejamentosSemanais={setPlanejamentosSemanais}
+        disciplinas={disciplinas} setDisciplinas={setDisciplinas}
+        fornecedorOptions={fornecedorOptions}
+        podeGerenciar={podeGerenciar}
+        currentUser={currentUser} logAudit={logAudit}
+        onBack={() => setSelectedObraId(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="gf-stack">
+      <div className="gf-toolbar"><h2>Planejamento Semanal</h2></div>
+      <p className="gf-field-hint">
+        Selecione uma obra para consultar ou criar o planejamento semanal das atividades. Esta área é exclusivamente
+        operacional — nenhuma informação financeira é exibida aqui.
+      </p>
+      {obras.length === 0 ? (
+        <div className="gf-card">
+          <EmptyState icon={CalendarRange} title="Nenhuma obra cadastrada" body="Cadastre uma obra no Painel de Obras para começar a planejar as atividades semanais." />
+        </div>
+      ) : (
+        <div className="gf-grid-cards">
+          {obrasOrdenadas.map((o) => {
+            const qtd = planejamentosSemanais.filter((p) => p.obraId === o.id).length;
+            return (
+              <button className="gf-card gf-obra-card" key={o.id} onClick={() => setSelectedObraId(o.id)}>
+                <div className="gf-card-head">
+                  <div><div className="gf-eyebrow">{o.cliente || "—"}</div><h3>{o.nome}</h3></div>
+                  <Badge tone={o.status === "Concluída" ? "gray" : o.status === "Cancelada" ? "red" : "green"}>{o.status}</Badge>
+                </div>
+                <div className="gf-account-rows">
+                  <div><span>Planejamentos cadastrados</span><b className="mono">{qtd}</b></div>
+                </div>
+                <span className="gf-card-cta">Abrir planejamento semanal <ChevronRight size={14} /></span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Lista de planejamentos de uma obra (mais recente primeiro) + ações de Visualizar/Editar/
+// Gerar PNG/Duplicar/Excluir e criação de um novo planejamento.
+function ObraPlanejamentosList({ obra, planejamentos, setPlanejamentosSemanais, disciplinas, setDisciplinas, fornecedorOptions, podeGerenciar, currentUser, logAudit, onBack }) {
+  const [showNovo, setShowNovo] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [viewId, setViewId] = useState(null);
+
+  const ordenados = useMemo(
+    () => [...planejamentos].sort((a, b) => (a.dataInicio < b.dataInicio ? 1 : a.dataInicio > b.dataInicio ? -1 : 0)),
+    [planejamentos]
+  );
+
+  const criarPlano = (dataInicio, dataFim) => {
+    const dias = datesInRange(dataInicio, dataFim).map((data) => ({ data, atividades: [] }));
+    const novo = {
+      id: uid("plano"), obraId: obra.id, dataInicio, dataFim, status: "Em elaboração", dias,
+      criadoPor: currentUser?.nome || "—", criadoEm: Date.now(),
+      editadoPor: currentUser?.nome || "—", editadoEm: Date.now(), historico: [],
+    };
+    setPlanejamentosSemanais((prev) => [...prev, novo]);
+    logAudit?.({ tipoOperacao: "Criação de Planejamento Semanal", registroAlterado: `${obra.nome} (${fmtDate(dataInicio)} a ${fmtDate(dataFim)})`, valorAnterior: "—", valorNovo: "Em elaboração" });
+    setShowNovo(false);
+    setEditId(novo.id);
+  };
+
+  const excluirPlano = (plano) => {
+    if (!window.confirm(`Excluir o planejamento de ${fmtDate(plano.dataInicio)} a ${fmtDate(plano.dataFim)}? Esta ação não pode ser desfeita.`)) return;
+    setPlanejamentosSemanais((prev) => prev.filter((p) => p.id !== plano.id));
+    logAudit?.({ tipoOperacao: "Exclusão de Planejamento Semanal", registroAlterado: `${obra.nome} (${fmtDate(plano.dataInicio)} a ${fmtDate(plano.dataFim)})`, valorAnterior: plano.status, valorNovo: "Excluído" });
+  };
+
+  const duplicarPlano = (plano) => {
+    const idMap = {};
+    const dias = plano.dias.map((d) => ({
+      data: d.data,
+      atividades: d.atividades.map((a) => {
+        let novoGroupId = a.groupId || null;
+        if (a.groupId) {
+          if (!idMap[a.groupId]) idMap[a.groupId] = uid("planoact-grp");
+          novoGroupId = idMap[a.groupId];
+        }
+        return { ...a, id: uid("planoact"), groupId: novoGroupId };
+      }),
+    }));
+    const copia = {
+      id: uid("plano"), obraId: obra.id, dataInicio: plano.dataInicio, dataFim: plano.dataFim, status: "Em elaboração", dias,
+      criadoPor: currentUser?.nome || "—", criadoEm: Date.now(),
+      editadoPor: currentUser?.nome || "—", editadoEm: Date.now(), historico: [],
+    };
+    setPlanejamentosSemanais((prev) => [...prev, copia]);
+    logAudit?.({ tipoOperacao: "Duplicação de Planejamento Semanal", registroAlterado: `${obra.nome} (${fmtDate(plano.dataInicio)} a ${fmtDate(plano.dataFim)})`, valorAnterior: "—", valorNovo: "Cópia criada" });
+  };
+
+  const editando = planejamentos.find((p) => p.id === editId);
+  const visualizando = planejamentos.find((p) => p.id === viewId);
+
+  if (editando || visualizando) {
+    const plano = editando || visualizando;
+    return (
+      <PlanEditor
+        obra={obra} plano={plano} readOnly={!editando}
+        setPlanejamentosSemanais={setPlanejamentosSemanais}
+        disciplinas={disciplinas} setDisciplinas={setDisciplinas}
+        fornecedorOptions={fornecedorOptions}
+        podeGerenciar={podeGerenciar}
+        currentUser={currentUser} logAudit={logAudit}
+        onBack={() => { setEditId(null); setViewId(null); }}
+      />
+    );
+  }
+
+  return (
+    <div className="gf-stack">
+      <button className="gf-btn gf-btn-ghost" onClick={onBack} style={{ alignSelf: "flex-start" }}>← Voltar para Planejamento Semanal</button>
+      <div className="gf-toolbar">
+        <h2>Planejamento Semanal — {obra.nome}</h2>
+        {podeGerenciar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNovo(true)}><Plus size={15} /> Novo Planejamento Semanal</button>}
+      </div>
+
+      {ordenados.length === 0 ? (
+        <div className="gf-card">
+          <EmptyState icon={CalendarRange} title="Nenhum planejamento cadastrado" body='Clique em "+ Novo Planejamento Semanal" para criar o primeiro planejamento desta obra.' />
+        </div>
+      ) : (
+        <div className="gf-stack" style={{ gap: 10 }}>
+          {ordenados.map((p) => {
+            const totalAtividades = p.dias.reduce((s, d) => s + d.atividades.length, 0);
+            return (
+              <div className="gf-card" key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+                <div>
+                  <div className="gf-card-head" style={{ marginBottom: 4 }}>
+                    <h3 style={{ fontFamily: "var(--gf-font-display)", color: "var(--gf-primary)" }}>{fmtDate(p.dataInicio)} a {fmtDate(p.dataFim)}</h3>
+                    <Badge tone={p.status === "Finalizado" ? "green" : "orange"}>{p.status}</Badge>
+                  </div>
+                  <div className="gf-field-hint">
+                    {p.dias.length} dia(s) · {totalAtividades} atividade(s) · Criado por {p.criadoPor || "—"} em {nowStampFromTs(p.criadoEm)}
+                    {p.editadoPor && p.editadoEm && p.editadoEm !== p.criadoEm ? ` · Última edição por ${p.editadoPor} em ${nowStampFromTs(p.editadoEm)}` : ""}
+                  </div>
+                </div>
+                <div className="gf-row-actions">
+                  <button className="gf-btn gf-btn-ghost" onClick={() => setViewId(p.id)}>Visualizar</button>
+                  {podeGerenciar && <button className="gf-btn gf-btn-ghost" onClick={() => setEditId(p.id)}><Pencil size={14} /> Editar</button>}
+                  <button className="gf-btn gf-btn-ghost" onClick={() => gerarPlanejamentoPNG(p, obra)}><ImageDown size={14} /> Gerar PNG</button>
+                  {podeGerenciar && <button className="gf-btn gf-btn-ghost" onClick={() => duplicarPlano(p)}><Copy size={14} /> Duplicar</button>}
+                  {podeGerenciar && <button className="gf-icon-btn danger" title="Excluir" onClick={() => excluirPlano(p)}><Trash2 size={15} /></button>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showNovo && <NovoPlanejamentoModal onClose={() => setShowNovo(false)} onCreate={criarPlano} />}
+    </div>
+  );
+}
+
+function NovoPlanejamentoModal({ onClose, onCreate }) {
+  const [dataInicio, setDataInicio] = useState(todayISO());
+  const [dataFim, setDataFim] = useState(todayISO());
+  const [erro, setErro] = useState("");
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!dataInicio || !dataFim) { setErro("Informe as duas datas."); return; }
+    if (dataFim < dataInicio) { setErro("A data final não pode ser anterior à data inicial."); return; }
+    onCreate(dataInicio, dataFim);
+  };
+
+  return (
+    <Modal title="Novo Planejamento Semanal" onClose={onClose} width={420}>
+      <form onSubmit={submit} className="gf-stack" style={{ gap: 14 }}>
+        <Field label="Data inicial"><input type="date" required value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} /></Field>
+        <Field label="Data final"><input type="date" required value={dataFim} onChange={(e) => setDataFim(e.target.value)} /></Field>
+        {erro && <p className="gf-warn">{erro}</p>}
+        <div className="gf-form-actions">
+          <button type="submit" className="gf-btn gf-btn-primary">Criar planejamento</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+// Editor (e visualizador, quando readOnly) de um planejamento: um card por dia, com as atividades
+// daquele dia em linhas compactas e reordenáveis (drag-and-drop nativo).
+function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplinas, setDisciplinas, fornecedorOptions, podeGerenciar, currentUser, logAudit, onBack }) {
+  const [atividadeModal, setAtividadeModal] = useState(null);
+  const [repeatPrompt, setRepeatPrompt] = useState(null);
+  const [dragInfo, setDragInfo] = useState(null);
+
+  const editavel = !readOnly && podeGerenciar;
+
+  const atualizarPlano = (updater, historicoAcao) => {
+    setPlanejamentosSemanais((prev) => prev.map((p) => {
+      if (p.id !== plano.id) return p;
+      const base = updater(p);
+      const historicoExtra = (p.status === "Finalizado" && historicoAcao)
+        ? [{ usuario: currentUser?.nome || "—", dataHora: nowStamp(), acao: historicoAcao }, ...(p.historico || [])]
+        : (p.historico || []);
+      return { ...base, editadoPor: currentUser?.nome || "—", editadoEm: Date.now(), historico: historicoExtra };
+    }));
+  };
+
+  const salvarAtividade = (diaData, dados, repetirDias) => {
+    const camposConteudo = { descricao: dados.descricao, disciplina: dados.disciplina, fornecedor: dados.fornecedor, observacao: dados.observacao };
+
+    if (dados.id) {
+      const atividadeOriginal = plano.dias.flatMap((d) => d.atividades).find((a) => a.id === dados.id);
+      const temRepeticoes = atividadeOriginal?.groupId && plano.dias.some((d) => d.atividades.some((a) => a.groupId === atividadeOriginal.groupId && a.id !== atividadeOriginal.id));
+      if (temRepeticoes) {
+        setRepeatPrompt({ kind: "edit", atividadeId: dados.id, groupId: atividadeOriginal.groupId, camposConteudo });
+        return;
+      }
+      aplicarEdicao(dados.id, null, camposConteudo, false);
+    } else {
+      const groupId = (repetirDias && repetirDias.length) ? uid("planoact-grp") : null;
+      const diasAlvo = [diaData, ...(repetirDias || [])];
+      atualizarPlano((p) => ({
+        ...p,
+        dias: p.dias.map((d) => diasAlvo.includes(d.data)
+          ? { ...d, atividades: [...d.atividades, { id: uid("planoact"), ordem: d.atividades.length, groupId, ...camposConteudo }] }
+          : d),
+      }), "Adicionou atividade em planejamento finalizado");
+    }
+    setAtividadeModal(null);
+  };
+
+  const aplicarEdicao = (atividadeId, groupId, camposConteudo, aplicarATodas) => {
+    atualizarPlano((p) => ({
+      ...p,
+      dias: p.dias.map((d) => ({
+        ...d,
+        atividades: d.atividades.map((a) => {
+          if (aplicarATodas && groupId && a.groupId === groupId) return { ...a, ...camposConteudo };
+          if (!aplicarATodas && a.id === atividadeId) return { ...a, ...camposConteudo };
+          return a;
+        }),
+      })),
+    }), "Editou atividade de planejamento finalizado");
+    setRepeatPrompt(null);
+    setAtividadeModal(null);
+  };
+
+  const excluirAtividade = (diaData, atividade) => {
+    const temRepeticoes = atividade.groupId && plano.dias.some((d) => d.atividades.some((a) => a.groupId === atividade.groupId && a.id !== atividade.id));
+    if (temRepeticoes) {
+      setRepeatPrompt({ kind: "delete", atividadeId: atividade.id, groupId: atividade.groupId, diaData });
+      return;
+    }
+    if (!window.confirm("Excluir esta atividade?")) return;
+    aplicarExclusao(atividade.id, diaData, null, false);
+  };
+
+  const aplicarExclusao = (atividadeId, diaData, groupId, aplicarATodas) => {
+    atualizarPlano((p) => ({
+      ...p,
+      dias: p.dias.map((d) => ({
+        ...d,
+        atividades: (aplicarATodas && groupId)
+          ? d.atividades.filter((a) => a.groupId !== groupId)
+          : d.atividades.filter((a) => !(d.data === diaData && a.id === atividadeId)),
+      })),
+    }), "Excluiu atividade de planejamento finalizado");
+    setRepeatPrompt(null);
+  };
+
+  const duplicarAtividade = (diaData, atividade) => {
+    atualizarPlano((p) => ({
+      ...p,
+      dias: p.dias.map((d) => d.data === diaData
+        ? { ...d, atividades: [...d.atividades, {
+            id: uid("planoact"), ordem: d.atividades.length, groupId: null,
+            descricao: atividade.descricao, disciplina: atividade.disciplina, fornecedor: atividade.fornecedor, observacao: atividade.observacao,
+          }] }
+        : d),
+    }));
+  };
+
+  const reordenarAtividades = (diaData, draggedId, targetId) => {
+    if (draggedId === targetId) return;
+    atualizarPlano((p) => ({
+      ...p,
+      dias: p.dias.map((d) => {
+        if (d.data !== diaData) return d;
+        const lista = [...d.atividades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+        const fromIdx = lista.findIndex((a) => a.id === draggedId);
+        const toIdx = lista.findIndex((a) => a.id === targetId);
+        if (fromIdx === -1 || toIdx === -1) return d;
+        const [moved] = lista.splice(fromIdx, 1);
+        lista.splice(toIdx, 0, moved);
+        return { ...d, atividades: lista.map((a, i) => ({ ...a, ordem: i })) };
+      }),
+    }));
+  };
+
+  const finalizarPlano = () => {
+    if (!window.confirm("Finalizar este planejamento? Ele continuará podendo ser consultado normalmente.")) return;
+    setPlanejamentosSemanais((prev) => prev.map((p) => p.id === plano.id
+      ? { ...p, status: "Finalizado", editadoPor: currentUser?.nome || "—", editadoEm: Date.now() }
+      : p));
+    logAudit?.({ tipoOperacao: "Finalização de Planejamento Semanal", registroAlterado: `${obra.nome} (${fmtDate(plano.dataInicio)} a ${fmtDate(plano.dataFim)})`, valorAnterior: "Em elaboração", valorNovo: "Finalizado" });
+  };
+
+  return (
+    <div className="gf-stack">
+      <button className="gf-btn gf-btn-ghost" onClick={onBack} style={{ alignSelf: "flex-start" }}>← Voltar para {obra.nome}</button>
+      <div className="gf-toolbar">
+        <div>
+          <h2>Planejamento Semanal — {obra.nome}</h2>
+          <div className="gf-field-hint">Período: {fmtDate(plano.dataInicio)} a {fmtDate(plano.dataFim)}</div>
+        </div>
+        <div className="gf-row-actions">
+          <Badge tone={plano.status === "Finalizado" ? "green" : "orange"}>{plano.status}</Badge>
+          <button className="gf-btn gf-btn-ghost" onClick={() => gerarPlanejamentoPNG(plano, obra)}><ImageDown size={14} /> Gerar PNG</button>
+          {editavel && plano.status !== "Finalizado" && (
+            <button className="gf-btn gf-btn-primary" onClick={finalizarPlano}><Check size={14} /> Finalizar Planejamento</button>
+          )}
+        </div>
+      </div>
+
+      {readOnly && <p className="gf-field-hint">Modo de visualização — nenhuma alteração pode ser feita aqui.</p>}
+      {!readOnly && !podeGerenciar && <p className="gf-field-hint">Seu usuário não tem permissão para editar planejamentos semanais.</p>}
+      {plano.status === "Finalizado" && editavel && (
+        <p className="gf-field-hint">Este planejamento já foi finalizado. Qualquer alteração feita agora ficará registrada no histórico.</p>
+      )}
+
+      <div className="gf-plano-dias">
+        {plano.dias.map((dia) => {
+          const atividadesOrdenadas = [...dia.atividades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+          return (
+            <div className="gf-card gf-plano-dia-card" key={dia.data}>
+              <div className="gf-card-head">
+                <h3>{weekdayName(dia.data).toUpperCase()} — {fmtDate(dia.data)}</h3>
+                {editavel && (
+                  <button className="gf-btn gf-btn-ghost" onClick={() => setAtividadeModal({ diaData: dia.data, atividade: null })}>
+                    <Plus size={14} /> Adicionar Atividade
+                  </button>
+                )}
+              </div>
+              {atividadesOrdenadas.length === 0 ? (
+                <p className="gf-field-hint">Nenhuma atividade cadastrada para este dia.</p>
+              ) : (
+                <div className="gf-plano-atividades">
+                  {atividadesOrdenadas.map((a) => (
+                    <div
+                      key={a.id} className="gf-plano-atividade-row"
+                      draggable={editavel}
+                      onDragStart={() => editavel && setDragInfo({ diaData: dia.data, atividadeId: a.id })}
+                      onDragOver={(e) => editavel && dragInfo && dragInfo.diaData === dia.data && e.preventDefault()}
+                      onDrop={(e) => {
+                        if (!editavel) return;
+                        e.preventDefault();
+                        if (dragInfo && dragInfo.diaData === dia.data) reordenarAtividades(dia.data, dragInfo.atividadeId, a.id);
+                        setDragInfo(null);
+                      }}
+                    >
+                      {editavel && <span className="gf-plano-drag-handle"><GripVertical size={14} /></span>}
+                      <div className="gf-plano-atividade-info">
+                        <div className="gf-plano-atividade-desc">{a.descricao}</div>
+                        <div className="gf-plano-atividade-meta">
+                          <Badge tone="blue">{a.disciplina || "—"}</Badge>
+                          <span>{a.fornecedor || "—"}</span>
+                          {a.groupId && <Badge tone="purple">Repete</Badge>}
+                        </div>
+                        {a.observacao && <div className="gf-plano-atividade-obs">{a.observacao}</div>}
+                      </div>
+                      {editavel && (
+                        <div className="gf-row-actions">
+                          <button className="gf-icon-btn" title="Editar" onClick={() => setAtividadeModal({ diaData: dia.data, atividade: a })}><Pencil size={14} /></button>
+                          <button className="gf-icon-btn" title="Duplicar" onClick={() => duplicarAtividade(dia.data, a)}><Copy size={14} /></button>
+                          <button className="gf-icon-btn danger" title="Excluir" onClick={() => excluirAtividade(dia.data, a)}><Trash2 size={14} /></button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {atividadeModal && (
+        <AtividadeModal
+          diaData={atividadeModal.diaData}
+          atividade={atividadeModal.atividade}
+          diasDoPlano={plano.dias}
+          disciplinas={disciplinas} setDisciplinas={setDisciplinas}
+          fornecedorOptions={fornecedorOptions}
+          onClose={() => setAtividadeModal(null)}
+          onSave={salvarAtividade}
+        />
+      )}
+
+      {repeatPrompt && (
+        <Modal title={repeatPrompt.kind === "edit" ? "Atividade repetida" : "Excluir atividade repetida"} onClose={() => setRepeatPrompt(null)} width={440}>
+          <p style={{ marginTop: 0 }}>
+            {repeatPrompt.kind === "edit"
+              ? "Esta atividade se repete em outros dias. Deseja alterar apenas esta atividade ou todas as repetições?"
+              : "Esta atividade se repete em outros dias. Deseja excluir apenas deste dia ou de todos os dias?"}
+          </p>
+          <div className="gf-form-actions">
+            <button
+              className="gf-btn gf-btn-ghost"
+              onClick={() => (repeatPrompt.kind === "edit"
+                ? aplicarEdicao(repeatPrompt.atividadeId, repeatPrompt.groupId, repeatPrompt.camposConteudo, false)
+                : aplicarExclusao(repeatPrompt.atividadeId, repeatPrompt.diaData, repeatPrompt.groupId, false))}
+            >Apenas este dia</button>
+            <button
+              className="gf-btn gf-btn-primary"
+              onClick={() => (repeatPrompt.kind === "edit"
+                ? aplicarEdicao(repeatPrompt.atividadeId, repeatPrompt.groupId, repeatPrompt.camposConteudo, true)
+                : aplicarExclusao(repeatPrompt.atividadeId, repeatPrompt.diaData, repeatPrompt.groupId, true))}
+            >Todas as repetições</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// Formulário de criação/edição de uma atividade de um dia do planejamento.
+function AtividadeModal({ diaData, atividade, diasDoPlano, disciplinas, setDisciplinas, fornecedorOptions, onClose, onSave }) {
+  const isEdicao = !!atividade;
+  const [descricao, setDescricao] = useState(atividade?.descricao || "");
+  const [disciplina, setDisciplina] = useState(atividade?.disciplina || "");
+  const [fornecedor, setFornecedor] = useState(atividade?.fornecedor || "");
+  const [observacao, setObservacao] = useState(atividade?.observacao || "");
+  const [repete, setRepete] = useState(false);
+  const [diasSelecionados, setDiasSelecionados] = useState([]);
+  const [erro, setErro] = useState("");
+
+  const outrosDias = diasDoPlano.filter((d) => d.data !== diaData);
+  const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((s) => ({ value: s, label: s }))];
+
+  const toggleDia = (data) => {
+    setDiasSelecionados((prev) => (prev.includes(data) ? prev.filter((d) => d !== data) : [...prev, data]));
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!descricao.trim()) { setErro("Informe a descrição da atividade."); return; }
+    if (!disciplina) { setErro("Selecione a disciplina."); return; }
+    onSave(diaData, { id: atividade?.id, descricao: descricao.trim(), disciplina, fornecedor, observacao: observacao.trim() }, repete ? diasSelecionados : []);
+  };
+
+  return (
+    <Modal title={isEdicao ? "Editar Atividade" : "Adicionar Atividade"} onClose={onClose} width={520}>
+      <form onSubmit={submit} className="gf-stack" style={{ gap: 14 }}>
+        <Field label="Descrição">
+          <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Descreva a atividade…" />
+        </Field>
+        <Field label="Disciplina">
+          <DisciplinaSelect value={disciplina} onChange={setDisciplina} disciplinas={disciplinas} setDisciplinas={setDisciplinas} />
+        </Field>
+        <Field label="Fornecedor">
+          <SearchableSelect value={fornecedor} onChange={setFornecedor} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+        </Field>
+        <Field label="Observação" hint="Opcional">
+          <textarea rows={2} value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Observações adicionais…" />
+        </Field>
+        {!isEdicao && outrosDias.length > 0 && (
+          <div>
+            <label className="gf-checkbox">
+              <input type="checkbox" checked={repete} onChange={(e) => { setRepete(e.target.checked); if (!e.target.checked) setDiasSelecionados([]); }} />
+              Esta atividade se repete em outros dias?
+            </label>
+            {repete && (
+              <div className="gf-rateio-box" style={{ marginTop: 8 }}>
+                {outrosDias.map((d) => (
+                  <label className="gf-checkbox" key={d.data} style={{ fontWeight: 500 }}>
+                    <input type="checkbox" checked={diasSelecionados.includes(d.data)} onChange={() => toggleDia(d.data)} />
+                    {weekdayName(d.data)} — {fmtDate(d.data)}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {erro && <p className="gf-warn">{erro}</p>}
+        <div className="gf-form-actions">
+          <button type="submit" className="gf-btn gf-btn-primary">Salvar atividade</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ---------------------------------------------------------------
    CSS
 --------------------------------------------------------------- */
 
@@ -8426,11 +9195,12 @@ const CSS = `
 label.gf-field{ display:flex; flex-direction:column; gap:5px; }
 .gf-field-label{ font-size:11.5px; font-weight:600; color:var(--gf-muted); text-transform:uppercase; letter-spacing:.4px; }
 .gf-field-hint{ font-size:11px; color:var(--gf-muted); }
-input, select{
+input, select, textarea{
   font-family:var(--gf-font-body); font-size:13.5px; padding:9px 10px; border-radius:8px;
   border:1px solid var(--gf-border); background:#fff; color:var(--gf-ink); width:100%;
 }
-input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1px; border-color:var(--gf-accent); }
+textarea{ resize:vertical; font-family:inherit; }
+input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); outline-offset:1px; border-color:var(--gf-accent); }
 .gf-span-2{ grid-column:span 2; }
 .gf-inline-select{ display:flex; gap:6px; align-items:center; }
 .gf-inline-select select, .gf-inline-select input{ flex:1; }
@@ -8636,6 +9406,16 @@ input:focus, select:focus{ outline:2px solid var(--gf-accent); outline-offset:1p
 .gf-empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:36px 10px; color:var(--gf-muted); text-align:center; }
 .gf-empty strong{ color:var(--gf-ink); font-size:13.5px; }
 .gf-empty p{ margin:0; font-size:12.5px; max-width:320px; }
+
+/* Planejamento Semanal */
+.gf-plano-dias{ display:flex; flex-direction:column; gap:14px; }
+.gf-plano-atividades{ display:flex; flex-direction:column; gap:8px; margin-top:4px; }
+.gf-plano-atividade-row{ display:flex; align-items:flex-start; gap:10px; border:1px solid var(--gf-border); border-radius:10px; padding:10px 12px; background:var(--gf-gray-100); }
+.gf-plano-drag-handle{ color:var(--gf-muted); cursor:grab; padding-top:2px; flex:0 0 auto; }
+.gf-plano-atividade-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:5px; }
+.gf-plano-atividade-desc{ font-weight:600; font-size:13.5px; color:var(--gf-ink); }
+.gf-plano-atividade-meta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--gf-muted); }
+.gf-plano-atividade-obs{ font-size:12px; color:var(--gf-muted); font-style:italic; }
 
 @media (max-width: 900px){
   .gf-tiles{ grid-template-columns:repeat(3,1fr); }
