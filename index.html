@@ -8761,6 +8761,7 @@ function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplin
   const [atividadeModal, setAtividadeModal] = useState(null);
   const [repeatPrompt, setRepeatPrompt] = useState(null);
   const [dragInfo, setDragInfo] = useState(null);
+  const [dragOverDia, setDragOverDia] = useState(null);
 
   const editavel = !readOnly && podeGerenciar;
 
@@ -8867,6 +8868,44 @@ function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplin
     }));
   };
 
+  // Move uma atividade para outro dia do mesmo planejamento (drag-and-drop entre dias),
+  // opcionalmente inserindo-a na posição de uma atividade-alvo dentro do dia de destino.
+  // Se origem e destino forem o mesmo dia, apenas reordena. Move apenas a atividade arrastada
+  // (mesmo que ela faça parte de um grupo de repetição) — as demais repetições não são afetadas.
+  const moverAtividadeEntreDias = (fromDiaData, atividadeId, toDiaData, targetId) => {
+    if (fromDiaData === toDiaData) {
+      if (targetId && targetId !== atividadeId) reordenarAtividades(fromDiaData, atividadeId, targetId);
+      return;
+    }
+    atualizarPlano((p) => {
+      let atividadeMovida = null;
+      const diasSemAtividade = p.dias.map((d) => {
+        if (d.data !== fromDiaData) return d;
+        const restante = d.atividades
+          .filter((a) => {
+            if (a.id === atividadeId) { atividadeMovida = a; return false; }
+            return true;
+          })
+          .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+          .map((a, i) => ({ ...a, ordem: i }));
+        return { ...d, atividades: restante };
+      });
+      if (!atividadeMovida) return p;
+      const diasFinal = diasSemAtividade.map((d) => {
+        if (d.data !== toDiaData) return d;
+        const listaAtual = [...d.atividades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+        let insertIdx = listaAtual.length;
+        if (targetId) {
+          const idx = listaAtual.findIndex((a) => a.id === targetId);
+          if (idx !== -1) insertIdx = idx;
+        }
+        listaAtual.splice(insertIdx, 0, atividadeMovida);
+        return { ...d, atividades: listaAtual.map((a, i) => ({ ...a, ordem: i })) };
+      });
+      return { ...p, dias: diasFinal };
+    }, "Moveu atividade para outro dia em planejamento finalizado");
+  };
+
   const finalizarPlano = () => {
     if (!window.confirm("Finalizar este planejamento? Ele continuará podendo ser consultado normalmente.")) return;
     setPlanejamentosSemanais((prev) => prev.map((p) => p.id === plano.id
@@ -8902,7 +8941,21 @@ function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplin
         {plano.dias.map((dia) => {
           const atividadesOrdenadas = [...dia.atividades].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
           return (
-            <div className="gf-card gf-plano-dia-card" key={dia.data}>
+            <div
+              className={`gf-card gf-plano-dia-card${dragOverDia === dia.data ? " gf-plano-dia-dragover" : ""}`}
+              key={dia.data}
+              onDragOver={(e) => { if (editavel && dragInfo) e.preventDefault(); }}
+              onDragEnter={() => { if (editavel && dragInfo) setDragOverDia(dia.data); }}
+              onDragLeave={(e) => { if (e.currentTarget === e.target) setDragOverDia(null); }}
+              onDrop={(e) => {
+                if (!editavel || !dragInfo) return;
+                e.preventDefault();
+                // Drop fora de uma linha específica (dia vazio ou espaço abaixo da lista): move para o fim do dia.
+                moverAtividadeEntreDias(dragInfo.diaData, dragInfo.atividadeId, dia.data, null);
+                setDragInfo(null);
+                setDragOverDia(null);
+              }}
+            >
               <div className="gf-card-head">
                 <h3>{weekdayName(dia.data).toUpperCase()} — {fmtDate(dia.data)}</h3>
                 {editavel && (
@@ -8912,7 +8965,7 @@ function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplin
                 )}
               </div>
               {atividadesOrdenadas.length === 0 ? (
-                <p className="gf-field-hint">Nenhuma atividade cadastrada para este dia.</p>
+                <p className="gf-field-hint">Nenhuma atividade cadastrada para este dia. {editavel && "Arraste uma atividade de outro dia para cá, se desejar."}</p>
               ) : (
                 <div className="gf-plano-atividades">
                   {atividadesOrdenadas.map((a) => (
@@ -8920,12 +8973,15 @@ function PlanEditor({ obra, plano, readOnly, setPlanejamentosSemanais, disciplin
                       key={a.id} className="gf-plano-atividade-row"
                       draggable={editavel}
                       onDragStart={() => editavel && setDragInfo({ diaData: dia.data, atividadeId: a.id })}
-                      onDragOver={(e) => editavel && dragInfo && dragInfo.diaData === dia.data && e.preventDefault()}
+                      onDragEnd={() => { setDragInfo(null); setDragOverDia(null); }}
+                      onDragOver={(e) => { if (editavel && dragInfo) e.preventDefault(); }}
                       onDrop={(e) => {
-                        if (!editavel) return;
+                        if (!editavel || !dragInfo) return;
                         e.preventDefault();
-                        if (dragInfo && dragInfo.diaData === dia.data) reordenarAtividades(dia.data, dragInfo.atividadeId, a.id);
+                        e.stopPropagation();
+                        moverAtividadeEntreDias(dragInfo.diaData, dragInfo.atividadeId, dia.data, a.id);
                         setDragInfo(null);
+                        setDragOverDia(null);
                       }}
                     >
                       {editavel && <span className="gf-plano-drag-handle"><GripVertical size={14} /></span>}
@@ -9416,6 +9472,9 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
 .gf-plano-atividade-desc{ font-weight:600; font-size:13.5px; color:var(--gf-ink); }
 .gf-plano-atividade-meta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12px; color:var(--gf-muted); }
 .gf-plano-atividade-obs{ font-size:12px; color:var(--gf-muted); font-style:italic; }
+.gf-plano-dia-card{ transition:background-color .12s ease, box-shadow .12s ease; }
+.gf-plano-dia-dragover{ background-color:var(--gf-blue-50, #eff6ff); box-shadow:inset 0 0 0 2px var(--gf-primary); }
+.gf-plano-atividade-row[draggable="true"]{ cursor:grab; }
 
 @media (max-width: 900px){
   .gf-tiles{ grid-template-columns:repeat(3,1fr); }
