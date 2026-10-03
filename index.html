@@ -1091,12 +1091,21 @@ function SearchableSelect({ value, onChange, options, placeholder = "Buscar…",
   const [query, setQuery] = useState("");
   const [extraOpen, setExtraOpen] = useState(false);
   const wrapRef = useRef(null);
+  const extraRef = useRef(null);
 
   useEffect(() => {
     const onClickOutside = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); setQuery(""); setExtraOpen(false); } };
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  // Garante que, ao abrir o grupo "Obras Concluídas", a lista role automaticamente até ele —
+  // sem isso, se o grupo ficar perto do fim da área visível, os itens revelados pareciam "não aparecer".
+  useEffect(() => {
+    if (extraOpen && extraRef.current) {
+      extraRef.current.scrollIntoView({ block: "nearest" });
+    }
+  }, [extraOpen]);
 
   const temExtra = !!(extraOptions && extraOptions.length);
   const selected = options.find((o) => o.value === value) || (temExtra && extraOptions.find((o) => o.value === value));
@@ -1131,12 +1140,12 @@ function SearchableSelect({ value, onChange, options, placeholder = "Buscar…",
             {filtered.map((o) => renderItem(o, false))}
             {q && filteredExtra.map((o) => renderItem(o, true))}
             {!q && temExtra && (
-              <>
+              <div ref={extraRef}>
                 <div className="gf-searchselect-group" onClick={() => setExtraOpen((v) => !v)}>
                   <Archive size={12} /> {extraLabel} ({extraOptions.length}) <ChevronRight size={12} className={extraOpen ? "gf-rot90" : ""} />
                 </div>
                 {extraOpen && extraOptions.map((o) => renderItem(o, true))}
-              </>
+              </div>
             )}
           </div>
         </div>
