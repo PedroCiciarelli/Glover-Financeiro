@@ -275,10 +275,16 @@ const DEFAULT_USUARIOS = [
   { id: "perfil4", nome: "4º usuário (a definir)", papel: "customizavel", ativo: true, senha: "1234", perms: permsAllFalse() },
 ];
 
-const PAPEL_LABEL = { admin: "Administrador", operacional: "Operacional", customizavel: "Personalizado" };
+const PAPEL_LABEL = { admin: "Administrador", operacional: "Operacional", customizavel: "Personalizado", investidor: "Investidor (somente leitura)" };
+
+// Usuário "Investidor": acesso somente leitura, restrito a UMA obra (Painel de Obras) e a UMA
+// Conta Investidor. Independente das permissões gravadas, só pode visualizar essas duas páginas.
+const INVESTIDOR_PAGES = ["obras", "contasinvestidores"];
+const isInvestidor = (u) => !!u && u.papel === "investidor";
 
 function can(user, key) {
   if (!user || !user.ativo) return false;
+  if (isInvestidor(user)) return key === "investidores_visualizar"; // nenhuma permissão de edição, nunca
   return !!(user.perms && user.perms[key]);
 }
 
@@ -1218,7 +1224,7 @@ function ApropriacaoField({ value, onChange, centroCustoId, centroCustoPreenchid
 
 export default function App() {
   const [ready, setReady] = useState(false);
-  const [page, setPage] = useState("lancamentos");
+  const [pageRaw, setPage] = useState("lancamentos");
   const [accounts, setAccounts] = useState([]);
   const [obras, setObras] = useState([]);
   const [apropriacoes, setApropriacoes] = useState(DEFAULT_APROPRIACOES);
@@ -1356,6 +1362,8 @@ export default function App() {
     if (firstLoad.current) { firstLoad.current = false; return; }
     const t = setTimeout(async () => {
       try {
+        // Sessão de investidor é estritamente somente leitura: nunca grava no banco compartilhado.
+        if (isInvestidor(usuarios.find((u) => u.id === currentUserId))) return;
         const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
@@ -1397,6 +1405,8 @@ export default function App() {
   }, [currentUserId, ready]);
 
   const currentUser = usuarios.find((u) => u.id === currentUserId) || null;
+  const ehInvestidor = isInvestidor(currentUser);
+  const page = ehInvestidor && !INVESTIDOR_PAGES.includes(pageRaw) ? "obras" : pageRaw;
 
   const logAudit = (entry) => {
     setAuditLog((prev) => [{
@@ -1695,7 +1705,7 @@ export default function App() {
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
     contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar",
   };
-  if (NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
+  if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
       <div className="gf-app">
         <style>{CSS}</style>
@@ -1706,6 +1716,14 @@ export default function App() {
       </div>
     );
   }
+
+  // Escopo do usuário Investidor: só enxerga a obra e a Conta Investidor vinculadas a ele.
+  const obrasEscopo = ehInvestidor
+    ? obras.filter((o) => o.id === currentUser.investidorObraId).map((o) => ({ ...o, arquivada: false }))
+    : obras;
+  const contasInvestidoresEscopo = ehInvestidor
+    ? contasInvestidores.filter((c) => c.id === currentUser.investidorContaId)
+    : contasInvestidores;
 
   return (
     <div className="gf-app">
@@ -1740,9 +1758,9 @@ export default function App() {
           )}
           {page === "contasinvestidores" && (
             <ContasInvestidoresPage
-              contasInvestidores={contasInvestidores} setContasInvestidores={setContasInvestidores}
+              contasInvestidores={contasInvestidoresEscopo} setContasInvestidores={setContasInvestidores}
               investidorStats={investidorStats} investidorComposicao={investidorComposicao}
-              entries={entries} obras={obras} accounts={accounts.filter((a) => a.status === "Ativa")}
+              entries={entries} obras={obras} accounts={ehInvestidor ? [] : accounts.filter((a) => a.status === "Ativa")}
               movimentosInvestidores={movimentosInvestidores} setMovimentosInvestidores={setMovimentosInvestidores}
               transfersInvestidores={transfersInvestidores} setTransfersInvestidores={setTransfersInvestidores}
               retiradasInvestidores={retiradasInvestidores} setRetiradasInvestidores={setRetiradasInvestidores}
@@ -1751,7 +1769,8 @@ export default function App() {
           )}
           {page === "obras" && (
             <ObrasPage
-              obras={obras} setObras={setObras} obraStats={obraStats} obraSemObra={obraSemObra}
+              obras={obrasEscopo} setObras={setObras} obraStats={obraStats} obraSemObra={ehInvestidor ? { ...obraSemObra, count: 0 } : obraSemObra}
+              modoInvestidor={ehInvestidor}
               entries={entries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
               accounts={accounts}
@@ -1843,7 +1862,7 @@ export default function App() {
             />
           )}
           {page === "usuarios" && (
-            <UsuariosPage usuarios={usuarios} setUsuarios={setUsuarios} currentUser={currentUser} auditLog={auditLog} logAudit={logAudit} />
+            <UsuariosPage usuarios={usuarios} setUsuarios={setUsuarios} currentUser={currentUser} auditLog={auditLog} logAudit={logAudit} obras={obras} contasInvestidores={contasInvestidores} />
           )}
         </div>
       </main>
@@ -1871,7 +1890,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
-  ].filter((it) => !it.perm || can(currentUser, it.perm));
+  ].filter((it) => (isInvestidor(currentUser) ? INVESTIDOR_PAGES.includes(it.id) : (!it.perm || can(currentUser, it.perm))));
   return (
     <nav className="gf-sidebar">
       <div className="gf-brand">
@@ -2001,11 +2020,22 @@ function LoginScreen({ usuarios, onLogin }) {
   const [selecionado, setSelecionado] = useState(null);
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  // Investidores entram digitando nome + senha (a lista de usuários da equipe não é exibida
+  // para eles, e eles não aparecem na lista da equipe).
+  const [modoInvestidor, setModoInvestidor] = useState(false);
+  const [nomeInvestidor, setNomeInvestidor] = useState("");
 
   const escolher = (id) => { setSelecionado(id); setSenha(""); setErro(""); };
 
   const entrar = (e) => {
     e?.preventDefault();
+    if (modoInvestidor) {
+      const nome = nomeInvestidor.trim().toLowerCase();
+      const u = usuarios.find((x) => x.ativo && isInvestidor(x) && x.nome.trim().toLowerCase() === nome);
+      if (!u || (u.senha || "") !== senha) { setErro("Usuário ou senha incorretos."); return; }
+      onLogin(u.id);
+      return;
+    }
     const u = usuarios.find((x) => x.id === selecionado);
     if (!u) return;
     if ((u.senha || "") !== senha) { setErro("Senha incorreta. Tente novamente."); return; }
@@ -2019,11 +2049,23 @@ function LoginScreen({ usuarios, onLogin }) {
           <img src={GLOVER_LOGO_DATA_URI} alt="Glover Engenharia" className="gf-login-logo-img" />
         </div>
         <div className="gf-brand-sub" style={{ color: "var(--gf-muted)", marginBottom: 18 }}>financeiro</div>
-        <h2 style={{ fontFamily: "var(--gf-font-display)", fontSize: 18, margin: "0 0 4px", color: "var(--gf-primary)" }}>Quem está acessando?</h2>
-        <p className="gf-field-hint" style={{ marginBottom: 16 }}>Selecione seu usuário e informe a senha.</p>
+        <h2 style={{ fontFamily: "var(--gf-font-display)", fontSize: 18, margin: "0 0 4px", color: "var(--gf-primary)" }}>{modoInvestidor ? "Acesso do investidor" : "Quem está acessando?"}</h2>
+        <p className="gf-field-hint" style={{ marginBottom: 16 }}>{modoInvestidor ? "Informe o usuário e a senha fornecidos pela Glover Engenharia." : "Selecione seu usuário e informe a senha."}</p>
 
-        <div className="gf-login-users">
-          {usuarios.filter((u) => u.ativo).map((u) => (
+        {modoInvestidor && (
+          <form onSubmit={entrar}>
+            <Field label="Usuário">
+              <input autoFocus value={nomeInvestidor} onChange={(e) => { setNomeInvestidor(e.target.value); setErro(""); }} placeholder="Seu nome de usuário" />
+            </Field>
+            <Field label="Senha" className="gf-login-senha-field">
+              <input type="password" value={senha} onChange={(e) => { setSenha(e.target.value); setErro(""); }} placeholder="Digite sua senha" />
+            </Field>
+            {erro && <div className="gf-warn" style={{ marginTop: 6 }}>{erro}</div>}
+          </form>
+        )}
+
+        {!modoInvestidor && <div className="gf-login-users">
+          {usuarios.filter((u) => u.ativo && !isInvestidor(u)).map((u) => (
             <button key={u.id} className={`gf-login-user ${selecionado === u.id ? "is-selected" : ""}`} onClick={() => escolher(u.id)}>
               <div className="gf-sidebar-avatar" style={{ background: "var(--gf-primary)" }}>{u.nome.slice(0, 1)}</div>
               <div>
@@ -2033,9 +2075,9 @@ function LoginScreen({ usuarios, onLogin }) {
               {selecionado === u.id && <Check size={16} className="pos" />}
             </button>
           ))}
-        </div>
+        </div>}
 
-        {selecionado && (
+        {!modoInvestidor && selecionado && (
           <form onSubmit={entrar}>
             <Field label="Senha" className="gf-login-senha-field">
               <input type="password" autoFocus value={senha} onChange={(e) => { setSenha(e.target.value); setErro(""); }} placeholder="Digite sua senha" />
@@ -2045,8 +2087,12 @@ function LoginScreen({ usuarios, onLogin }) {
         )}
 
         <button className="gf-btn gf-btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: 16 }}
-          disabled={!selecionado || !senha} onClick={entrar}>
+          disabled={modoInvestidor ? (!nomeInvestidor.trim() || !senha) : (!selecionado || !senha)} onClick={entrar}>
           Entrar
+        </button>
+        <button type="button" className="gf-btn gf-btn-ghost" style={{ width: "100%", justifyContent: "center", marginTop: 8 }}
+          onClick={() => { setModoInvestidor((v) => !v); setSelecionado(null); setSenha(""); setErro(""); setNomeInvestidor(""); }}>
+          {modoInvestidor ? "← Voltar ao acesso da equipe" : "Acesso de investidor"}
         </button>
         <p className="gf-field-hint" style={{ marginTop: 14, textAlign: "center" }}>
           Acesso restrito à equipe da Glover Engenharia. As senhas podem ser alteradas por um administrador na página Usuários.
@@ -3424,7 +3470,7 @@ function TransferInvestidorModal({ contas, accounts, obras, investidorComposicao
 
 const PIE_COLORS = ["#2F8F5B", "#0E3B2E", "#7FB69A", "#B23A34", "#C98A2B", "#5D7566", "#3E6B57", "#9AA39B", "#1D5A45", "#84A98C", "#4A5259"];
 
-function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, currentUser }) {
+function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, currentUser, modoInvestidor = false }) {
   const [showNew, setShowNew] = useState(false);
   const [editingObra, setEditingObra] = useState(null);
   const [detailObraId, setDetailObraId] = useState(null);
@@ -3486,7 +3532,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
       <div className="gf-toolbar">
         <h2>Obras</h2>
         <div className="gf-toolbar-actions">
-          <button
+          {!modoInvestidor && <button
             type="button"
             className={`gf-btn gf-btn-ghost gf-archive-trigger${arquivoDragOver ? " gf-archive-trigger-dragover" : ""}`}
             title="Arraste uma obra até aqui para arquivá-la, ou clique para ver as obras concluídas/arquivadas"
@@ -3502,7 +3548,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
             }}
           >
             <Archive size={15} /> Obras Concluídas{obrasArquivadas.length > 0 ? ` (${obrasArquivadas.length})` : ""}
-          </button>
+          </button>}
           {podeGerenciar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNew(true)}><Plus size={15} /> Nova obra</button>}
         </div>
       </div>
@@ -3635,6 +3681,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
           allEntries={entries} accounts={accounts}
           contasInvestidores={contasInvestidores} investidorComposicao={investidorComposicao}
           movimentosInvestidores={movimentosInvestidores} retiradasInvestidores={retiradasInvestidores}
+          somenteLeitura={modoInvestidor}
         />
       )}
     </div>
@@ -3738,7 +3785,7 @@ function ObraModal({ obra, orcamentoItens, apropriacoes, setApropriacoes, onClos
   );
 }
 
-function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores }) {
+function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClose, onEdit, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, somenteLeitura = false }) {
   const [tab, setTab] = useState("financeiro");
   const [apropFilter, setApropFilter] = useState("");
   const filtered = apropFilter ? entries.filter((e) => e.apropriacao === apropFilter) : entries;
@@ -3777,7 +3824,7 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
           <div><span>Local</span><b>{obra.localizacao || "—"}</b></div>
           <div><span>Orçamento previsto</span><b className="mono">{BRL(obra.orcamento)}</b></div>
           <div><span>Período</span><b>{fmtDate(obra.dataInicio)} — {fmtDate(obra.dataFim)}</b></div>
-          <button className="gf-btn gf-btn-ghost gf-detail-edit" onClick={onEdit}><Pencil size={13} /> Editar obra</button>
+          {!somenteLeitura && <button className="gf-btn gf-btn-ghost gf-detail-edit" onClick={onEdit}><Pencil size={13} /> Editar obra</button>}
         </div>
 
         <div className="gf-segmented" style={{ marginTop: 4, marginBottom: 14 }}>
@@ -3855,7 +3902,7 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
         {tab === "orcamento" && (
           <OrcamentoTab
             obra={obra} contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
-            allEntries={allEntries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
+            allEntries={allEntries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes} somenteLeitura={somenteLeitura}
           />
         )}
         {tab === "lancamentos" && (
@@ -4098,7 +4145,7 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
    Painel de Controle Orçamentário (dentro de ObraDetail)
 --------------------------------------------------------------- */
 
-function OrcamentoTab({ obra, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, apropriacoes, setApropriacoes }) {
+function OrcamentoTab({ obra, contasPagar, orcamentoItens, setOrcamentoItens, allEntries, apropriacoes, setApropriacoes, somenteLeitura = false }) {
   const [showImport, setShowImport] = useState(false);
   const [apropDetail, setApropDetail] = useState(null);
 
@@ -4122,9 +4169,11 @@ function OrcamentoTab({ obra, contasPagar, orcamentoItens, setOrcamentoItens, al
     <div>
       <div className="gf-toolbar" style={{ marginBottom: 12 }}>
         <div />
-        <button className="gf-btn gf-btn-ghost" onClick={() => setShowImport(true)}>
-          <Layers size={14} /> Carregar orçamento (Excel)
-        </button>
+        {!somenteLeitura && (
+          <button className="gf-btn gf-btn-ghost" onClick={() => setShowImport(true)}>
+            <Layers size={14} /> Carregar orçamento (Excel)
+          </button>
+        )}
       </div>
 
       {!orc.temOrcamento ? (
@@ -7592,7 +7641,7 @@ function AprovacaoEditModal({ item, obras, apropriacoes, fornecedorOptions, onCl
    Página: Usuários e Permissões
 --------------------------------------------------------------- */
 
-function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit }) {
+function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit, obras = [], contasInvestidores = [] }) {
   const [tab, setTab] = useState("usuarios");
   const [editingUser, setEditingUser] = useState(null);
   const [showNew, setShowNew] = useState(false);
@@ -7654,7 +7703,14 @@ function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit }
                   <button className="gf-icon-btn" title="Editar permissões" onClick={() => setEditingUser(u)}><Pencil size={14} /></button>
                 </div>
               </div>
-              <p className="gf-field-hint">{ALL_PERM_KEYS.filter((k) => u.perms?.[k]).length} de {ALL_PERM_KEYS.length} permissões ativas</p>
+              {isInvestidor(u) ? (
+                <p className="gf-field-hint">
+                  Somente leitura · Obra: <b>{obras.find((o) => o.id === u.investidorObraId)?.nome || "— (não definida)"}</b>
+                  {" "}· Conta: <b>{contasInvestidores.find((c) => c.id === u.investidorContaId)?.nome || "— (não definida)"}</b>
+                </p>
+              ) : (
+                <p className="gf-field-hint">{ALL_PERM_KEYS.filter((k) => u.perms?.[k]).length} de {ALL_PERM_KEYS.length} permissões ativas</p>
+              )}
             </div>
           ))}
         </div>
@@ -7697,26 +7753,39 @@ function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit }
       )}
 
       {(editingUser || showNew) && (
-        <UsuarioModal usuario={editingUser} onClose={() => { setEditingUser(null); setShowNew(false); }} onSave={salvarUsuario} />
+        <UsuarioModal usuario={editingUser} usuarios={usuarios} obras={obras} contasInvestidores={contasInvestidores} onClose={() => { setEditingUser(null); setShowNew(false); }} onSave={salvarUsuario} />
       )}
     </div>
   );
 }
 
-function UsuarioModal({ usuario, onClose, onSave }) {
+function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores = [], onClose, onSave }) {
   const [f, setF] = useState(usuario ? { ...usuario, perms: { ...usuario.perms } } : {
     nome: "", papel: "customizavel", ativo: true, senha: "", perms: permsAllFalse(),
   });
+  const [erro, setErro] = useState("");
   const upd = (p) => setF((s) => ({ ...s, ...p }));
   const togglePerm = (key) => setF((s) => ({ ...s, perms: { ...s.perms, [key]: !s.perms[key] } }));
   const aplicarTemplate = (papel) => {
-    const perms = papel === "admin" ? permsAllTrue() : papel === "operacional" ? { ...ASSISTENTE_PERMS } : permsAllFalse();
+    const perms = papel === "admin" ? permsAllTrue()
+      : papel === "operacional" ? { ...ASSISTENTE_PERMS }
+      : papel === "investidor" ? { ...permsAllFalse(), investidores_visualizar: true }
+      : permsAllFalse();
     upd({ papel, perms });
   };
+  const ehInv = f.papel === "investidor";
   const submit = (e) => {
     e.preventDefault();
     if (!f.nome.trim() || !String(f.senha || "").trim()) return;
-    onSave({ ...f, nome: f.nome.trim() });
+    if (ehInv) {
+      if (!f.investidorObraId || !f.investidorContaId) { setErro("Selecione a obra e a Conta Investidor que este investidor poderá visualizar."); return; }
+      const nomeNorm = f.nome.trim().toLowerCase();
+      if (usuarios.some((u) => u.id !== f.id && u.nome.trim().toLowerCase() === nomeNorm)) {
+        setErro("Já existe um usuário com este nome. O investidor entra digitando o nome, então ele precisa ser único."); return;
+      }
+    }
+    const { investidorObraId, investidorContaId, ...resto } = f;
+    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}) });
   };
 
   return (
@@ -7737,10 +7806,33 @@ function UsuarioModal({ usuario, onClose, onSave }) {
             <button type="button" className={f.papel === "admin" ? "is-active" : ""} onClick={() => aplicarTemplate("admin")}>Administrador</button>
             <button type="button" className={f.papel === "operacional" ? "is-active" : ""} onClick={() => aplicarTemplate("operacional")}>Operacional</button>
             <button type="button" className={f.papel === "customizavel" ? "is-active" : ""} onClick={() => aplicarTemplate("customizavel")}>Personalizado</button>
+            <button type="button" className={f.papel === "investidor" ? "is-active" : ""} onClick={() => aplicarTemplate("investidor")}>Investidor</button>
           </div>
         </div>
 
-        <div className="gf-span-2">
+        {ehInv && (
+          <>
+            <div className="gf-span-2 gf-hint">
+              Perfil <b>somente leitura</b>: o investidor só vê a obra e a Conta Investidor escolhidas abaixo (Painel de Obras e Contas Investidores) e não consegue criar, editar ou excluir nada.
+              Ele entra pela opção “Acesso de investidor” da tela de login, digitando este nome de usuário e a senha.
+            </div>
+            <Field label="Obra que poderá visualizar">
+              <select required value={f.investidorObraId || ""} onChange={(e) => { upd({ investidorObraId: e.target.value }); setErro(""); }}>
+                <option value="" disabled>Selecione…</option>
+                {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}{o.arquivada ? " (concluída)" : ""}</option>)}
+              </select>
+            </Field>
+            <Field label="Conta Investidor que poderá visualizar">
+              <select required value={f.investidorContaId || ""} onChange={(e) => { upd({ investidorContaId: e.target.value }); setErro(""); }}>
+                <option value="" disabled>Selecione…</option>
+                {contasInvestidores.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+            </Field>
+            {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+          </>
+        )}
+
+        {!ehInv && <div className="gf-span-2">
           {PERMISSION_GROUPS.map((g) => (
             <div key={g.group} style={{ marginBottom: 12 }}>
               <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>{g.group}</span>
@@ -7754,7 +7846,7 @@ function UsuarioModal({ usuario, onClose, onSave }) {
               </div>
             </div>
           ))}
-        </div>
+        </div>}
 
         <div className="gf-form-actions gf-span-2">
           <button type="submit" className="gf-btn gf-btn-primary">Salvar usuário</button>
