@@ -1807,7 +1807,7 @@ export default function App() {
               lancamentosCartao={lancamentosCartao} setLancamentosCartao={setLancamentosCartao}
               faturasCartao={faturasCartao} setFaturasCartao={setFaturasCartao}
               entries={entries} setEntries={setEntries}
-              accounts={accounts.filter((a) => a.status === "Ativa")}
+              accounts={accounts.filter((a) => a.status === "Ativa")} accountsTodas={accounts}
               obras={obras} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
               orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
               currentUser={currentUser} logAudit={logAudit}
@@ -5789,7 +5789,7 @@ function RateioViewModal({ conta, centroCustoName, onClose }) {
    Página: Cartões de Crédito
 --------------------------------------------------------------- */
 
-function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCartao, setLancamentosCartao, faturasCartao, setFaturasCartao, entries, setEntries, accounts, obras, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
+function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCartao, setLancamentosCartao, faturasCartao, setFaturasCartao, entries, setEntries, accounts, accountsTodas, obras, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
   const [tab, setTab] = useState("compras");
   const [showNovaCompra, setShowNovaCompra] = useState(false);
   const [showNovoCartao, setShowNovoCartao] = useState(false);
@@ -6073,7 +6073,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
       )}
       {faturaDetail && (
         <FaturaDetailModal
-          fatura={faturaDetail} cartaoName={cartaoName} obraName={obraName} accounts={accounts}
+          fatura={faturaDetail} cartaoName={cartaoName} obraName={obraName} accounts={accounts} accountsTodas={accountsTodas || accounts}
           lancamentosCartao={lancamentosCartao} setLancamentosCartao={setLancamentosCartao}
           podeLancar={podeLancar} onClose={() => setFaturaDetailId(null)}
           onPagar={pagarFatura} onEstornar={estornarPagamento}
@@ -6321,7 +6321,7 @@ function NovaFaturaModal({ cartoesCredito, onClose, onSave }) {
   );
 }
 
-function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, lancamentosCartao, setLancamentosCartao, podeLancar, onClose, onPagar, onEstornar }) {
+function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTodas, lancamentosCartao, setLancamentosCartao, podeLancar, onClose, onPagar, onEstornar }) {
   const [showPagamento, setShowPagamento] = useState(false);
   const disponiveis = lancamentosCartao.filter((lc) => lc.cartaoId === fatura.cartaoId && (!lc.faturaId || lc.faturaId === fatura.id));
   const vinculadas = lancamentosCartao.filter((lc) => lc.faturaId === fatura.id);
@@ -6369,10 +6369,49 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, lancamentos
           <span className="gf-hint">{vinculadas.length} compra(s) vinculada(s) — {BRL(total)}</span>
         </div>
       ) : (
-        <div className="gf-form-actions">
-          <span className="gf-hint">Pago em {fmtDate(fatura.pagamento?.data)}</span>
-          {podeLancar && <button className="gf-btn gf-btn-ghost" onClick={() => onEstornar(fatura)}><Undo2 size={14} /> Estornar pagamento</button>}
-        </div>
+        <>
+          <h4 className="gf-chart-title">Detalhes do pagamento</h4>
+          {(() => {
+            const pg = fatura.pagamento || {};
+            const contasPg = pg.contas || [];
+            const totalPago = contasPg.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+            const nomeConta = (id) => (accountsTodas || accounts).find((a) => a.id === id)?.nome || "Conta não encontrada";
+            return (
+              <>
+                <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+                  <div><span>Data do pagamento</span><b>{fmtDate(pg.data)}</b></div>
+                  <div><span>Valor pago</span><b className="mono neg">{BRL(totalPago)}</b></div>
+                  <div><span>Registrado em</span><b>{pg.processadoEm ? nowStampFromTs(pg.processadoEm) : "—"}</b></div>
+                </div>
+                <div className="gf-table-wrap" style={{ marginBottom: 14 }}>
+                  <table className="gf-table">
+                    <thead><tr><th>Conta bancária de origem</th><th>Data</th><th className="num">Valor debitado</th></tr></thead>
+                    <tbody>
+                      {contasPg.length === 0 && <tr><td colSpan={3}>Sem detalhes de conta registrados para este pagamento.</td></tr>}
+                      {contasPg.map((c, i) => (
+                        <tr key={`${c.contaId}-${i}`}>
+                          <td>{nomeConta(c.contaId)}</td>
+                          <td>{fmtDate(pg.data)}</td>
+                          <td className="num mono neg">− {BRL(c.valor)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    {contasPg.length > 1 && (
+                      <tfoot><tr><td colSpan={2}><b>Total</b></td><td className="num mono neg"><b>− {BRL(totalPago)}</b></td></tr></tfoot>
+                    )}
+                  </table>
+                </div>
+                {Math.abs(totalPago - total) > 0.005 && (
+                  <p className="gf-field-hint">Diferença entre o valor da fatura ({BRL(total)}) e o total pago ({BRL(totalPago)}).</p>
+                )}
+              </>
+            );
+          })()}
+          <div className="gf-form-actions">
+            <span className="gf-hint">{(fatura.pagamento?.entriesGeradas || []).length} lançamento(s) de saída gerado(s) nas contas acima, por centro de custo.</span>
+            {podeLancar && <button className="gf-btn gf-btn-ghost" onClick={() => onEstornar(fatura)}><Undo2 size={14} /> Estornar pagamento</button>}
+          </div>
+        </>
       )}
 
       {showPagamento && (
