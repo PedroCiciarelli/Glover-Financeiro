@@ -7828,14 +7828,104 @@ function AprovacaoEditModal({ item, obras, apropriacoes, fornecedorOptions, onCl
    da conta é sempre R$ 0,00. Os dois lados contam no resultado das obras.
 --------------------------------------------------------------- */
 
+// Anexos do faturamento direto (nota fiscal / boleto). Os arquivos ficam em chaves próprias do
+// armazenamento compartilhado (não no bloco principal); no lançamento fica só a lista (nome, tipo, tamanho).
+const FD_ANEXO_TIPOS = ["Nota fiscal", "Boleto", "Outro"];
+const FD_ANEXO_MAX_CHARS = 4_200_000; // ~3,1 MB de arquivo (limite de valor do armazenamento é 5 MB)
+const fdChaveAnexo = (fdId, anexoId) => `glover:fd:anexo:${fdId}:${anexoId}`;
+const fdAdivinharTipo = (nome) => (/boleto/i.test(nome) ? "Boleto" : /(^|[^a-z])(nf|nfe|nfs|nota)/i.test(nome) ? "Nota fiscal" : "Nota fiscal");
+const fdLerArquivo = (file) => new Promise((resolve, reject) => {
+  const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = () => reject(new Error("Falha ao ler o arquivo.")); r.readAsDataURL(file);
+});
+
+function FdAnexosField({ anexos, onChange }) {
+  const inputRef = useRef(null);
+  const [carregando, setCarregando] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const adicionar = async (files) => {
+    if (!files || !files.length) return;
+    setCarregando(true); setAviso("");
+    const novos = [], recusados = [];
+    for (const f of Array.from(files)) {
+      try {
+        let dataUri, tipo = f.type, tamanho = f.size;
+        if (/^image\//.test(f.type)) { const r = await relProcessarFoto(f); dataUri = r.dataUri; tipo = "image/jpeg"; tamanho = Math.round(dataUri.length * 0.75); }
+        else if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)) { dataUri = await fdLerArquivo(f); tipo = "application/pdf"; }
+        else { recusados.push(`${f.name} (formato não aceito — use PDF, JPG ou PNG)`); continue; }
+        if (dataUri.length > FD_ANEXO_MAX_CHARS) { recusados.push(`${f.name} (maior que 3 MB — compacte o arquivo)`); continue; }
+        novos.push({ id: uid("anx"), nome: f.name, tipo, tamanho, tipoDoc: fdAdivinharTipo(f.name), dataUri });
+      } catch (e) { recusados.push(`${f.name} (não foi possível ler)`); }
+    }
+    if (novos.length) onChange([...(anexos || []), ...novos]);
+    if (recusados.length) setAviso("Não anexado: " + recusados.join("; "));
+    setCarregando(false);
+  };
+  return (
+    <div>
+      <input ref={inputRef} type="file" multiple accept=".pdf,.jpg,.jpeg,.png,image/jpeg,image/png,application/pdf"
+        style={{ display: "none" }} onChange={(e) => { adicionar(e.target.files); e.target.value = ""; }} />
+      <button type="button" className="gf-btn gf-btn-ghost" onClick={() => inputRef.current?.click()} disabled={carregando}>
+        <Paperclip size={14} /> {carregando ? "Carregando…" : "Anexar nota fiscal / boleto (PDF, JPG, PNG)"}
+      </button>
+      {aviso && <p className="gf-warn" style={{ marginTop: 6 }}>{aviso}</p>}
+      {(anexos || []).length > 0 && (
+        <div className="gf-anexos-list">
+          {anexos.map((a) => (
+            <div className="gf-anexo-item" key={a.id}>
+              <Paperclip size={12} /> <span>{a.nome}</span> <span className="gf-muted">({((a.tamanho || 0) / 1024).toFixed(0)} KB)</span>
+              <select value={a.tipoDoc || "Outro"} onChange={(e) => onChange(anexos.map((x) => (x.id === a.id ? { ...x, tipoDoc: e.target.value } : x)))} style={{ marginLeft: 8 }}>
+                {FD_ANEXO_TIPOS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <button type="button" className="gf-icon-btn" title="Remover" onClick={() => onChange(anexos.filter((x) => x.id !== a.id))}><X size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FdAnexosModal({ registro, onClose }) {
+  const lista = registro.saida.anexos || [];
+  const [baixando, setBaixando] = useState("");
+  const [erro, setErro] = useState("");
+  const baixar = async (a) => {
+    setBaixando(a.id); setErro("");
+    try {
+      const t = await relLerTexto(fdChaveAnexo(registro.id, a.id));
+      if (!t) throw new Error("Arquivo não encontrado no armazenamento.");
+      const l = document.createElement("a"); l.href = t; l.download = a.nome; document.body.appendChild(l); l.click(); l.remove();
+    } catch (e) { setErro((e && e.message) || "Não foi possível baixar o arquivo."); }
+    setBaixando("");
+  };
+  return (
+    <Modal title={`Anexos — ${registro.saida.fornecedor}`} onClose={onClose} width={520}>
+      {lista.length === 0 ? <EmptyState icon={Paperclip} title="Sem anexos" body="Nenhum arquivo anexado a este lançamento." /> : (
+        <div className="gf-anexos-list">
+          {lista.map((a) => (
+            <button type="button" key={a.id} className="gf-anexo-item" onClick={() => baixar(a)} disabled={baixando === a.id} style={{ width: "100%", textAlign: "left", cursor: "pointer" }}>
+              <Paperclip size={13} /> <span>{a.nome}</span> <Badge tone={a.tipoDoc === "Boleto" ? "orange" : "blue"}>{a.tipoDoc || "Arquivo"}</Badge>
+              <span className="gf-muted">({((a.tamanho || 0) / 1024).toFixed(0)} KB)</span>
+              <Download size={13} /> {baixando === a.id && <span className="gf-muted">baixando…</span>}
+            </button>
+          ))}
+        </div>
+      )}
+      {erro && <p className="gf-warn" style={{ marginTop: 8 }}>{erro}</p>}
+    </Modal>
+  );
+}
+
 function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obrasTodas, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
   const conta = accounts.find(isFatDiretoAccount);
   const podeGerenciar = can(currentUser, "fatdireto_gerenciar");
   const idsEscopo = useMemo(() => new Set(obras.map((o) => o.id)), [obras]);
   const todasObras = obrasTodas || obras;
   const nomeObra = (id) => todasObras.find((o) => o.id === id)?.nome || "—";
-  const blank = { id: null, data: todayISO(), valor: "", obraEntradaId: "", mesmaObra: true, obraSaidaId: "", fornecedor: "", apropriacao: "", descricao: "" };
+  const blank = { id: null, data: todayISO(), valor: "", obraEntradaId: "", mesmaObra: true, obraSaidaId: "", fornecedor: "", apropriacao: "", descricao: "", anexos: [] };
   const [form, setForm] = useState(blank);
+  const [salvando, setSalvando] = useState(false);
+  const [verAnexos, setVerAnexos] = useState(null);
   const [erros, setErros] = useState({});
   const [excecoes, setExcecoes] = useState([]);
   const [filtros, setFiltros] = useState({ q: "", obraId: "", de: "", ate: "" });
@@ -7895,9 +7985,9 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
 
   const limpar = () => { setForm({ ...blank, data: form.data }); setErros({}); setExcecoes([]); };
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    if (!podeGerenciar || !conta) return;
+    if (!podeGerenciar || !conta || salvando) return;
     const er = {};
     if (!form.data) er.data = true;
     if (!form.valor || Number(form.valor) <= 0) er.valor = true;
@@ -7910,6 +8000,19 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
     const editando = !!form.id;
     const atual = editando ? registros.find((r) => r.id === form.id) : null;
     const fdId = editando ? form.id : uid("fd");
+    // Anexos: grava primeiro os arquivos novos; se algum falhar, nada é lançado.
+    setSalvando(true);
+    const anexosMeta = (form.anexos || []).map(({ dataUri, ...m }) => m);
+    try {
+      for (const a of (form.anexos || []).filter((x) => x.dataUri)) await relGravarTexto(fdChaveAnexo(fdId, a.id), a.dataUri);
+    } catch (err) {
+      setSalvando(false);
+      window.alert("Não foi possível salvar os anexos: " + ((err && err.message) || err) + "\nNada foi lançado. Tente novamente.");
+      return;
+    }
+    for (const a of (atual?.saida.anexos || []).filter((x) => !anexosMeta.some((m) => m.id === x.id))) {
+      try { await relGravarTexto(fdChaveAnexo(fdId, a.id), ""); } catch (err2) { /* melhor esforço */ }
+    }
     const obraE = todasObras.find((o) => o.id === form.obraEntradaId);
     const comum = { contaId: conta.id, origemTipo: "CONTA_EMPRESA", contaInvestidorId: null, data: form.data, valor, fatDireto: true, fdId };
     const carimbo = (orig) => (editando ? { createdAt: orig?.createdAt || Date.now(), ...(orig?.status ? { status: orig.status, criadoPor: orig.criadoPor, criadoEm: orig.criadoEm, aprovadoPor: orig.aprovadoPor, aprovadoEm: orig.aprovadoEm } : {}), ...carimbarEdicao(currentUser) } : { createdAt: Date.now(), ...carimbarCriacao(currentUser) });
@@ -7922,6 +8025,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
     const saida = {
       ...comum, id: editando ? atual.saida.id : uid("lan"), tipo: "saida", obraId: obraSaidaEfetiva,
       fornecedor: form.fornecedor.trim(), apropriacao: form.apropriacao, descricao: form.descricao.trim(),
+      anexos: anexosMeta,
       ...carimbo(atual?.saida),
     };
     if (editando) setEntries((prev) => prev.map((x) => (x.id === entrada.id ? entrada : x.id === saida.id ? saida : x)));
@@ -7931,6 +8035,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
       registroAlterado: `${nomeObra(entrada.obraId)} → ${saida.fornecedor}${entrada.obraId !== saida.obraId ? ` (gasto: ${nomeObra(saida.obraId)})` : ""}`,
       valorAnterior: editando ? BRL(atual.saida.valor) : "—", valorNovo: BRL(valor),
     });
+    setSalvando(false);
     limpar();
   };
 
@@ -7939,6 +8044,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
       id: r.id, data: r.saida.data, valor: String(r.saida.valor), obraEntradaId: r.entrada.obraId,
       mesmaObra: r.entrada.obraId === r.saida.obraId, obraSaidaId: r.saida.obraId,
       fornecedor: r.saida.fornecedor || "", apropriacao: r.saida.apropriacao || "", descricao: r.saida.descricao || "",
+      anexos: (r.saida.anexos || []).map((a) => ({ ...a })),
     });
     setExcecoes(r.saida.apropriacao ? [r.saida.apropriacao] : []);
     setErros({});
@@ -7948,6 +8054,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
     if (!podeGerenciar) return;
     if (!window.confirm(`Excluir este faturamento direto de ${BRL(r.saida.valor)} (${r.saida.fornecedor})? Serão removidos a entrada e a saída correspondentes.`)) return;
     setEntries((prev) => prev.filter((x) => x.id !== r.entrada.id && x.id !== r.saida.id));
+    (r.saida.anexos || []).forEach((a) => { relGravarTexto(fdChaveAnexo(r.id, a.id), "").catch(() => {}); });
     logAudit?.({ tipoOperacao: "Exclusão de Faturamento Direto", registroAlterado: `${nomeObra(r.entrada.obraId)} → ${r.saida.fornecedor}`, valorAnterior: BRL(r.saida.valor), valorNovo: "—" });
     if (form.id === r.id) limpar();
   };
@@ -8028,10 +8135,13 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
               <Field label="Descrição / NF" className="gf-span-2">
                 <input value={form.descricao} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Ex.: NF 1234 — material elétrico" />
               </Field>
+              <Field label="Anexos (nota fiscal, boleto)" hint="Um ou mais arquivos — PDF, JPG ou PNG, até ~3 MB cada" className="gf-span-2">
+                <FdAnexosField anexos={form.anexos} onChange={(v) => setForm((f) => ({ ...f, anexos: v }))} />
+              </Field>
             </div>
             {Object.keys(erros).length > 0 && <div className="gf-warn gf-form-error">Preencha os campos obrigatórios: obra faturada, obra do gasto, data, valor, fornecedor e apropriação.</div>}
             <div className="gf-form-actions">
-              <button type="submit" className="gf-btn gf-btn-primary" disabled={!conta}>{form.id ? "Salvar alterações" : "Lançar faturamento direto"}</button>
+              <button type="submit" className="gf-btn gf-btn-primary" disabled={!conta || salvando}>{salvando ? "Salvando…" : form.id ? "Salvar alterações" : "Lançar faturamento direto"}</button>
               <span className="gf-hint">Cria a entrada na obra faturada e a saída na obra do gasto, ambas na conta {FAT_DIRETO_NOME}.</span>
             </div>
           </form>
@@ -8076,11 +8186,11 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
         <div className="gf-table-wrap">
           <table className="gf-table gf-table-ledger">
             <thead>
-              <tr><th>Data</th><th>Obra faturada</th><th>Obra do gasto</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Descrição</th><th></th></tr>
+              <tr><th>Data</th><th>Obra faturada</th><th>Obra do gasto</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Descrição</th><th>Anexos</th><th></th></tr>
             </thead>
             <tbody>
               {filtrados.length === 0 && (
-                <tr><td colSpan={8}><EmptyState icon={Receipt} title="Nenhum faturamento direto encontrado" body="Registre um novo faturamento direto acima ou ajuste os filtros." /></td></tr>
+                <tr><td colSpan={9}><EmptyState icon={Receipt} title="Nenhum faturamento direto encontrado" body="Registre um novo faturamento direto acima ou ajuste os filtros." /></td></tr>
               )}
               {filtrados.map((r) => (
                 <tr key={r.id}>
@@ -8091,6 +8201,11 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
                   <td>{r.saida.apropriacao || "—"}</td>
                   <td className="num mono">{BRL(r.saida.valor)}</td>
                   <td className="gf-td-desc" title={r.saida.descricao}>{r.saida.descricao || "—"}</td>
+                  <td>
+                    {(r.saida.anexos || []).length > 0
+                      ? <button type="button" className="gf-btn gf-btn-ghost" style={{ padding: "4px 8px" }} onClick={() => setVerAnexos(r)}><Paperclip size={12} /> {r.saida.anexos.length}</button>
+                      : <span className="gf-muted">—</span>}
+                  </td>
                   <td>
                     {podeGerenciar && (
                       <div className="gf-row-actions">
@@ -8105,6 +8220,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
           </table>
         </div>
       </section>
+      {verAnexos && <FdAnexosModal registro={verAnexos} onClose={() => setVerAnexos(null)} />}
     </div>
   );
 }
