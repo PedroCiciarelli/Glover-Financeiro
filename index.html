@@ -10260,7 +10260,15 @@ function relRodape(ctx, d, n, total, logo) {
   relTexto(ctx, `Página ${n} de ${total}`, REL_W / 2, yTxt, { fonte: relFonte(24, 500), cor: REL_COR.muted, align: "center" });
   // logo oficial com fundo cinza, no canto inferior direito
   const ph = 130, pw = logo ? ph * (logo.width / logo.height) : 265, px = REL_W - REL_M - pw, py = REL_H - 190;
-  if (logo) { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high"; ctx.drawImage(logo, px, py, pw, ph); }
+  if (logo) {
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 14);
+    else { const r = 14; ctx.moveTo(px + r, py); ctx.arcTo(px + pw, py, px + pw, py + ph, r); ctx.arcTo(px + pw, py + ph, px, py + ph, r); ctx.arcTo(px, py + ph, px, py, r); ctx.arcTo(px, py, px + pw, py, r); ctx.closePath(); }
+    ctx.clip();
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high"; ctx.drawImage(logo, px, py, pw, ph);
+    ctx.restore();
+  }
 }
 function relCabecalho(ctx, d, pg) {
   relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 118, { fonte: relFonte(24, 700), cor: REL_COR.verde, espaco: 4 });
@@ -11038,17 +11046,23 @@ function RelNovoModal({ obra, meta, lista, usuarios, currentUser, logAudit, onCl
   const [resp, setResp] = useState(currentUser?.nome || nomes[0] || "");
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [numManual, setNumManual] = useState("");
   const usuarioNome = currentUser?.nome || "—";
+  const sugestao = Math.max(0, ...lista.filter((r) => !r.excluido).map((r) => Number(r.numero) || 0)) + 1;
 
   const criar = async (e) => {
     e.preventDefault();
+    const manual = numManual.trim() === "" ? null : Number(numManual);
+    if (manual !== null && (!Number.isInteger(manual) || manual < 1 || manual > 9999)) return setErro("O número do relatório deve ser um inteiro entre 1 e 9999.");
+    if (manual !== null && lista.some((r) => !r.excluido && Number(r.numero) === manual) && !window.confirm(`Já existe um relatório nº ${String(manual).padStart(2, "0")} nesta obra. Usar o mesmo número mesmo assim?`)) return;
     if (![ini, fim, ref].every(relDataValida)) return setErro("Informe datas válidas.");
     if (fim < ini) return setErro("A data final do período não pode ser anterior à data inicial.");
     if (!resp.trim()) return setErro("Informe o responsável pelo relatório.");
     setSalvando(true); setErro("");
     try {
       const relId = uid("rel");
-      const numero = await relReservarNumero(obra.id, relId, usuarioNome);
+      const reservado = await relReservarNumero(obra.id, relId, usuarioNome);
+      const numero = manual !== null ? manual : reservado;
       const agora = Date.now();
       const rel = {
         id: relId, obraId: obra.id, numero, periodoIni: ini, periodoFim: fim, dataRef: ref, responsavel: resp.trim(),
@@ -11074,8 +11088,10 @@ function RelNovoModal({ obra, meta, lista, usuarios, currentUser, logAudit, onCl
           <input list="rel-resp" value={resp} onChange={(e) => setResp(e.target.value)} required />
           <datalist id="rel-resp">{nomes.map((n) => <option key={n} value={n} />)}</datalist>
         </Field>
+        <Field label="Número do relatório" hint={`Deixe em branco para numeração automática (próximo: ${String(sugestao).padStart(2, "0")}). Você pode digitar outro número e alterá-lo depois.`}>
+          <input type="number" min="1" max="9999" step="1" value={numManual} placeholder={`Automático (${String(sugestao).padStart(2, "0")})`} onChange={(e) => setNumManual(e.target.value)} />
+        </Field>
         <p className="gf-field-hint" style={{ gridColumn: "1 / -1" }}>
-          O número do relatório é atribuído automaticamente (sequencial por obra).{" "}
           {meta?.atualId ? "Será usada a versão mais recente do cronograma importado." : "Atenção: nenhum cronograma foi importado para esta obra; o avanço físico e a Curva S ficarão indisponíveis até a importação do XML."}
         </p>
         {erro && <div className="gf-rel-aviso gf-rel-aviso-erro" style={{ gridColumn: "1 / -1" }}>{erro}</div>}
@@ -11463,9 +11479,16 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
   const voltar = () => { if (dirty && !window.confirm("Há alterações não salvas. Sair mesmo assim?")) return; onBack(); };
 
   const salvar = async (extra = {}, opcoes = {}) => {
+    const nn = Number(rel.numero);
+    if (!Number.isInteger(nn) || nn < 1 || nn > 9999) { window.alert("O número do relatório deve ser um inteiro entre 1 e 9999."); return false; }
     setSalvando(true); setMsg("");
     try {
-      let novo = { ...rel, ...extra };
+      const salvoAntes = await relLer(relChave.sum(rel.obraId, rel.id));
+      if (!salvoAntes || nn !== Number(salvoAntes.numero)) {
+        const outros = (await relListarRelatorios(rel.obraId)).filter((r) => !r.excluido && r.id !== rel.id && Number(r.numero) === nn);
+        if (outros.length && !window.confirm(`Já existe um relatório nº ${String(nn).padStart(2, "0")} nesta obra. Usar o mesmo número mesmo assim?`)) { setSalvando(false); return false; }
+      }
+      let novo = { ...rel, ...extra, numero: nn };
       novo.ind = cons ? { prev: cons.geral.prev, real: cons.geral.real } : null;
       if (rel.status === REL_STATUS_FINAL && editandoFinal && cons) {
         novo.snapshot = { geradoEm: Date.now(), geradoPor: usuarioNome, versaoId: rel.cronVersaoId, cons };
@@ -11614,6 +11637,9 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
             <Field label="Data inicial do período"><input type="date" value={rel.periodoIni} disabled={somenteLeitura} onChange={(e) => { const v = e.target.value; upd({ periodoIni: v, ...(rel.introEditada ? {} : { introTexto: relTextoIntroducao(obra.nome, v, rel.periodoFim) }) }); }} /></Field>
             <Field label="Data final do período"><input type="date" value={rel.periodoFim} disabled={somenteLeitura} onChange={(e) => { const v = e.target.value; upd({ periodoFim: v, ...(rel.introEditada ? {} : { introTexto: relTextoIntroducao(obra.nome, rel.periodoIni, v) }) }); }} /></Field>
             <Field label="Data de referência da aferição"><input type="date" value={rel.dataRef} disabled={somenteLeitura} onChange={(e) => upd({ dataRef: e.target.value })} /></Field>
+            <Field label="Número do relatório">
+              <input type="number" min="1" max="9999" step="1" value={rel.numero} disabled={somenteLeitura} onChange={(e) => upd({ numero: e.target.value === "" ? "" : Math.trunc(Number(e.target.value)) })} />
+            </Field>
             <Field label="Responsável">
               <input list="rel-resp2" value={rel.responsavel || ""} disabled={somenteLeitura} onChange={(e) => upd({ responsavel: e.target.value })} />
               <datalist id="rel-resp2">{nomesResp.map((n) => <option key={n} value={n} />)}</datalist>
