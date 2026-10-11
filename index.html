@@ -165,6 +165,7 @@ import {
   TrendingUp, TrendingDown, Filter, ChevronLeft, Check, Scale, BarChart3,
   CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut, ClipboardCheck, CreditCard,
   FolderKanban, Paperclip, Send, HandCoins, CalendarRange, GripVertical, ImageDown, Archive, ArchiveRestore,
+  FileText, Upload, Eye, FileDown, ArrowUp, ArrowDown, ImagePlus, Sparkles,
 } from "lucide-react";
 
 const GLOVER_LOGO_DATA_URI = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA1QAAADsCAYAAABzEOfYAABAuklEQVR4nO3d218Ud74v/G+lrWqatmm6aRqkQQQPqC22BzxiDuozk4CT2Rmz9ihkTaJrLibPzb5a+5/Ys6/WczPrtV/zzGTWHjWzJu7ntUwkmSw1Bx0PISpqx0MMCAhC0wJN2zR0h9RzgW1Q6aYP9fvV6fO+mYlgVUlVNb/P7/D9Cf/jt78lACUUSRK1tbfJX138im7c/EZQ+3oAAAAAAFh7Qe0LAGNIhSmPp5xa9rXSrh07ZLWvCQAAAACANQQqKNjcMJWyo7mZWltaEKoAAAAAwNAWqX0BoG/OxQ7a/w/7nwpTKX6/n4hIPtnRgel/AAAAAGBICFSQN6+njNra35IlSUr7PX6/n0qdTvn48ePCVCLB8eoAAAAAANjDlD/ISzZhKsVXXU1t7W1yURbfCwAAAACgJwhUkLNcwlSKx1OOUAUAAAAAhoNABTnJJ0yleDzl9Jt335W9njIGVwYAAAAAwB8CFWStkDCVIkkStbW/hVAFAAAAAIaAQAVZWVlXLxcaplIQqgAAAADAKBCoYEHr1qyV33hzPykRplIkSaJ3Dh2W161Zi72qAAAAAEC3EKggo3Vr1sot+1qZHb9lXyshVAEAAACAXiFQQVqsw1RKy75W2rxxI0IVAAAAAOgOAhXMi1eYStmzdy+1trQgVAEAAACAriBQwXN4h6kUv9+PUAUAAAAAurJI7QsAbWltaZH9fr9q5/f7/VRUZJNPfvShMJVIqHYdAAAAAADZwAgVPKF2mEpZvrye2trb5CIFqwoCAAAAALCAQAVEpJ0wleLxlCNUAQAAAIDmIVCB5sJUisdTTocOH8YGwAAAAACgWQhUJqfVMJXicDiorf0thCoAAAAA0CQEKpMqkiTa/4v9mg5TKZIkIVQBAAAAgCYhUJlQkSRRW3ubvHx5vdqXkjVJkuidQ4fldWvWoqw6AAAAAGgGApXJpMKUx1Ou9qXkpWVfKyFUAQAAAIBWIFCZCI8wlUgkKBweYXZ8otlQtXnjRoQqAAAAAFAdApVJ8ApTR4/8WTh65KjAOlTt2buXWltaEKoAAAAAQFUIVCbAM0yFwg9pKpGgo0eOCt99183sfEREfr8foQoAAAAAVIVAZXBeTxn95t13mYapaDT6JEylTCUSdPz/HBeCwSCz8xLNhqr9v9iPDYABAAAAQBUIVAbm9ZRRW/tbssQwbITDI/THP/zhqTA118mODuahavnyemprb0OoAgAAAADuEKgMileYOnrkqDCVSGT8vpMdHcLpU6eYXQcRkcdTTuUeD6b/AQAAAABXCFQGpKUwlfL1lStCx0cnmV0PAAAAAIAaFql9AaAsLYaplBs3vxGISN77k/+LWF4fAAAAAAAvGKEykJV19bJWw1TKjZvfCEeP/FlI5Pn3AQAAAAC0BIHKINatWSu/8eZ+piM/wWCQ/vDH9/IOUymh8ENCqAIAAAAAI0CgMoB1a9bKLftamZ4jGAzSyY4OQanjhcIP6Y//7x+YbwAMAAAAAMASApXO6TFMpUQeRenokaMIVQAAAACgWwhUOqbnMJUylUjQ0SNHhWg0yuoUAAAAAADMIFDplBHCVMpUIkETkQjr0wAAAAAAKA5l03Vo7+498qbNm5ie4/y5c3T2/HnmYQoAAAAAQM8QqHSmtaVF9vv9TM/R8dHJ1J5RAJqTmEnS2FSEJr+Py4+ScUr8kKQH0xML/j33Ihs5xGKSLIuoVCoRXEVOkiwihysG4Gs4Fqbvf/ieRqcnZCKi3vjDrP6e7QWRvNYSIiLy2tyCZBHJVeRkd6EAAAaBQKUjCFNgRsOxMIXio3JoeoIeJKI0mozndZxuGpv7nzIRkWgRqUZaTLW2MvLa3EKF3aPAFQPwMzYVoVD8oXx/crSg9yMlGAul/q+c+j8+q4OWSA5aUlxG3uIywS4WF3QOAACjQaDSCYQpMItYcpLuPxqSv300TN3xsYX/QgGSM0nqjo+lziMTEfntXqoudlP14ko0HEFzYslJCk0+lLsfDdOdqTFKziSZn3NgOkoD01Gi6CARkewWbVRf5KLaxZVCeXEZRnqBqeFYWO1L0AyMGmsXApUOIEyB0SVmktQz0S/fmBiYbbipKBgLzfbSj9ySfVYHrSvxUV1JjWCURuO/3DkpL/xdudvtXkGNnlX4DGEgMZOkgUdD8uXxe6q/H0REo8k4jSbj1BkdfNIJsbqkWvA5KtW+NLo91i1/MnKL2fHrbS76Wc0OQz/n18N35DOjd5kdX7SI9H8v/0nWP8P3By4x+czSIyWev+FYWPM/U5/VQdYXFtESawktFm1UKpVofgYJApWGFUkS7dm7l2mYSiQSdOrT/0SYAlUMx8J0Y/yePGeakaYMTEdpYOQW0cgtuclRRctLqjX/oQ7GMRwL03cT9+XO2ZEhzXrcCSGLIZG2OqpotatOtdHdupIaQRz9TmY1ctcdH6OxqYhhRwkSM0k6G+lleo5dzlqmxwf9S3UczZmlIhPNBsqViyvIaysTtPYOIlBpWFt7m+zxlDM7fiKRoKNH/iyEwtktWAZQSk+kXz43erfg9R48dUYHqTM6KPusDtpUuozqnDXohAAmeiL9cnDiPvMpr0pLziTp3HgvnRvvVa0DQrKItMtZSyxHWG6O9cg7l2ww5Ps/8GiIWRglmh2danDVGfJnB+zNnaLvFm20pbRWM9PzEag0DGEKjEaPQepZA9NRGhi+Tu7Ru3KzewWCFSjGCO9HSqoDot7moi3ulVyDVb2zWjgzepfZlKbO6CAFPKtIC404pZ1jGESJiALF5VhzB4oYTcbpkzkzSAKeVaoGKwQqE0KYAt6GY2E6G74pa2H9h1JGk3E68ThY7fas0cT6EdCn4ViYvhr9VtbbiFQ2uuNj1D1wiWuDxy4WU5OjilhOleyO3JeNtmZwIDrEPMwHDPYzA21IdeD47V7a7l2rSrBCoDIZhCngKZacpAuhbzS7RkoJo8k4ffDgslw/7qLm8rWam9cN2pWYSdKXQ12Gfj9SUg0eXsVLAp5VQqpoBgtnI73U6FnF6vCquDLew7RQQZOjypCjeqAdwViIgj0hubm0lhrLVnEtJoVAZSIIU8DT7bFu+fTod1zKOmtBd3yMuvvOqfJBDvpjtvcj5czoXeqKDsg/8TYynQZoF4up3uZitg4tOZOknki/bJQpv2NTEeZr9paXVBviZwXad268l27GQlxnj7zA5SygunB4hP71d79DmALmYslJ+rD/vPzJyC3TNRaJZj/I/9J3VsbeKTAfs78fRLOjuu8PXJK/DgXlBMOfwRb3SqYNeNbrjXi6OcZ2dKre5iJUSAWeUrNHvg4FuZSIR6AygXB4hI4eOSpMJRJqXwoY3EB0iP7Ud86Qa0FykWowXg/f0fReH8AX3o+nnRvvpRP3L8hjUxEmx6+we8hndTA5NtHse26EjpNYcpLpejMioo2lqOwH6jg33ksf9H7JtPOGCIHK8BCmgJevQ0H5gweXmZbc1Zszo3fpg94v5VhyUu1LAZXh/ZjfwHSUjg1cknsi/Uw6HzaVLmNx2Ce+Gv1W950m3ZH7TP8NbtFGKNoDahqYjtLv733GrPOGCIHK8BCmgLXETJI+7D8vnxtnuxmkXg1MR+lPfecwBdCk8H4sLDmTpBPD14nF1Jw6Z43gFm1KH/aJ7vgY6b3DhPVGvs3uFUyPD5CN5EySjg1cYhaqEKiytHf3HnnXjh2664lCmAKWYslJOnH/AqYwLSA5k6T3GfbCgzbh/cjNufFe+vuDq4pPzdlSWqvo8Z7VpeOpvT2Rfqajpm7Rhr36QDNYhioEqiy0trTImzZvoh3NzdTa0iIXSZLalwSgurGpCP2p75yh9pZi7cTwdfr7g6u6bXxB9vB+5KczOkgn7l9QNFTVldQIIsOqm53RQWK9PoMV5hv5OnxMjw+QK1ahCoEqgyJJosOH3pH9fv+TP/P7/dTW3iY7F7Nb6AqgdWNTETo2cAnrQfLQGR1EqDI4vB+FGZiOKhqqJItIu5xsR6luM66Sx8JwLMx0I1/RIlKDC8UoQHtSoUrJ6boIVGkUSRK1tbfJHk/5c1/zeMrp0D8dlr2eMhWuDEBdaCwWDqHKuPB+KEPpUFXvZLsHUld0gOXhmWBdUGOro4qwHx9oVXImSR8Pfq3YZwwC1Ty8nrK0YSpFkiR659Bhed2atWgUgWmgsaicBwlMBTMavB/KUjJU2cVianJUKXBV8xtNxklPayRjyUnmG/muxugUaNzAdJSuP1RmDSQC1TNmw9RbGcPUXC37Wmnv7j26+RAFyFcsOYnGooL2VKxHY8NAEKbYUDJUrWHcwL88fo/l4RXFupBGk6OK7GIxy1MAKOLceC8NRIcKPg4C1RypMCXlWHRi0+ZN1H7wIIpVgGElHg+No7GojN3uFeQqcqp9GaCQxEySTg9fw/vByMB0lDoVKKnuKnJSvc2lxCXNa2A6qouNfhMzSeYb+bIOrwBKOhO+WXCnDQLVY+vWrJXfOXQ45zCV4quuprb2NqyrAkP622AnqpUpxGd1UKNnFRobBoL3g73O6CBdV2BUZYt7JdN378b4Pc3PWGFdQKPe5kKHEejKaDJe8NQ/BCqaDVMt+1oLPo7HU05t7W/JNVVVmv9ABcjW16Eg9tFREKb6GQveD37OjN4teGpOhd1DLDf6DcZCmt/ol3UBDdahFYCFc+O9Bb27ixS8Fl3avHGjvGfvXsWOJ0kSHWxvp9OnTslfX7mCDxXQtYHoEJ0b71X7MtKqt7loibWEpBdE8trcT963CruHEjNJSu0z8f0P39Po9IQcmp6gB4ko01LBmWCqn7Ho4f1wL7KRQyx+6v1wFTlJsog0NhV5sn/S5Pdx+VEyTmq/Iwv5j9B1+e2iEqGQ9TnN7hV0Yvi6glf1tFtjPfJmr1+Tv/97Iv0yy3vrFm1UYfcwOz4AS13hO/LOJRvyendNHahaW1qe2mNKSXv27qWKykr5ZEeHJj9UARYSS07Sf4Sua2q01S3aaI3dS5W2MsHnqMz4vZJFfOoXu89R+eRdjCUnKTT5UO5+NEzBWIjdBc+BqX7GouX3o9peIWTTqH0m3D/1bCZmkjTwaEh+MPmQuiZHSCvrw1Kljt+sfTHvd6nOWSO4R+8yCxaXooPUWLZKkyXDWRfOaHavYHp8AJY6o4MU8KzKq6CKaQMVyzCV4vf7qaLCKx89clSYSiSYngtAaWeGujSzyL7JUUXLS6qzaiRmwy4WU52zWKhz1tCLjxuOwYn7TMsIY6qfsWjl/RAtIm11VFF9SbWg5OinZBGpzlkj1DlraCfNjsbdmrgv8+qAyGRgOkrXw3fkQjooAg4fnRm9q+RlPZGcSVLPRL/c4KrX1Ds/HAsTy7V+btFGdc4aTf2bM0n9XlH7OnKhxZA+V73NRbW2wmoJ9MYfUn/ikWqdOPmOUpkuUBVJEu3fv1/2VVdzOZ/HU06HDh+Wj3/wVyEUfsjlnACFuj3Wrfq6ENEi0i5nLdU7qwua3rOQuQ3HsakI3RzrkZWugIWpfsaihffDLdqo2b2CfIsrBR6NLJ+jknyOSmF7cpK6wncUf0dydWb0LlUvrsj7vWpw1QlnI73MQvFX473U4Kpncux8sS6YEXD4WB5ecQ6xGNMTFVZrKyt4Jkbj4/8diA7RlfEe7p+1XZMj1DSTzDm8mqooRZEkUVt7G7cwleJwOKit/S1sAgy6EEtO0unR71S9hiZHFb29tFlo9KxiGqae5Spy0s4lG4Rf170i+O1eRY6JqX7Govb7IVpEerV8Nf1j3W6hzlnDJUzNZReLn7wjLDfKzcbp4Wt5/06VHo/ssaK1jX5jyUmm05tFi0gNKJUOCvI5KulnNTuEA76tgs/q4Hbe5ONZK7n+PdMEKudiB7W1t2W9Ya/SJEmiln2ttGvHDs18wALM50LoG9WmMvmsDvrV0mZh55INXIPUs+xiMe31NSnyQY6pfsai5lS/5tJa+vWyVwQtTCVLBatfLW3m2tiZKzX1L9+/v5pxAAhO3Gd5+Jyw3sh3q6NK89PRQJ8q7B56s/ZFobm0lts5ux8N5/x3TBGovJ4yOvRPh1ULU3PtaG6m1pYWbAIMmjQcC3Mr0vCs3e4V9Gbti4quAylU6oN8d54LrTHVz1iGY2Gm6+zSES0iHfBtFTZ7/dxHpBbiKnIW9I4U6mykl/LdkNMuFhPLUbbu+JgmNvpNzCSpa3KE6TlYh1OAzV6/8HpF48LfqIB82kGGD1ReTxm1tb+V94a9LPj9fmprb5Odi9Xp1QNI52z4JvcR1FRjUcvT4ho9q3LuicdUP+P5VIWqfvU2F/162SuKFWRhJfWOiJwDX3ImSZ2hYN73ZQ3jIPDdxH3VZ6XcHuthOqra5KjKqyoaQK7qnDXCq+WruZwr184QQweqdWvWyloLUykeTzkd+qfDstdTWDUUAKX0RPpllhWg5uOzOujtpc2abywSzfbEv169Pat1I6JFxFQ/g2G9f898mhxV9LOaHZoblUrHVeSkXy97hfsUwM7oYN4bcrqKnFRvcyl8RT8q5NqUwnojX9ahFGCuBle9YmucMwnFR3PqDDFsoFq3Zq3csq+VtBimUiRJoncOHUaxCtCEc4xKCKfjszro9ertqq6VypVkEWnnkg0LTjvY416OqX4Gw/v9eL2ikfLdYFJNkkXMuuNBSYWsEdriXsn059wdUW+UinVHQL3Nhc864O7FygDz0fDeeG6VuQ0ZqDZv3Ci37GtV+zKy1rKvlRCqQE28e99TYUovPe/PqnPWpJ3eVG9zkRaKBoByeL8fr1c06mo/n2elOh54hqpCRoIq7B5yizaFr+hHhazzKhTrwhiswygoT6+/d+eSHm+rwlJ/4lFO32+4QNXa0iLv2btX7cvIWWkpenhAPTx73/UeplJcRU56+5l1VaJFpN2VATQwDIbn+6H3MDUX71BVyChVM8OiGvmWYS4U6yIqPqsD+zjpkFFGFFmX6c913aGhAlVrS4vs9/vVvgwAXRmOhYlX77tRwlSKXSym16u3PwlVe9zLsTjbYAaiQ9zej+bSWsOEqZQmr5/bmqrO6GDeI0F1zhqB5SgV7ymjROwLYmwqXcby8AAZSRaRWK+lyqUwhSECVZEkUfvBgwhTAHm4MX6PS8+paBHptarNhglTKak1I82ltZjqZ0BXxnu4vB9+u5c2e/2Ge35S7wev6n+3x/K/XwGHT8lLecpoMk4D0SFmx39WLDlJndFBZsd3izbDhX/Qn+pit9qX8ITuA1WRJFFbe5vsq65mep5weISOHTlC4TDbvRwAeIolJ7ntO/Vzb6OuClDkQrKIhmwMm10sOcll3ym3aKMXDTxVVLKIdNC3lcu/r5CKdg2uOqbBj1c4JyK6VUCwzMYWjpusAqRTKpVo5nNT14EqFaZYb9gbDAbp6JGjQv/goHD0yFEhGAwyPR8AL/c5zetvLq0ln6OSx6kAFMOrOtu+JZsMN3L7LFeRk3hs/juajOe9ma5kEWkr441+eZRQT8wk6RLD0SnRIlJdCUanQH1a+tzUbaDyesroN+++yyVMnezoEKYSCSIimkok6GRHh3D61Cmm5wXg4cYE2/1JiGZ73xvLsMEt6A/r/XuIiHa7VxhmkfhCGj2ruKynKmTt0GrGC90LKZyRrZ6JfqYb+e5y1mqqIQvmpaXPTl0GKq+njHhs2Hv568t0sqNj3g/Xr69cEd774x+ExOOgBaA3Y1MR4rGR70+8jYbvfQfjGZuKMC9G4RZtzCtVaQ2PDa+7JvOfmm8Xi4llZcJCCmdk66vxXqbHr3dWm+qZBe3KdzSaBd0FqpV19TKPMNXx0Uk6deZ0xg+NUPgh/evvfidEo+wbpQBKC8UfMu8p9du9KKsLutTNuEIa0WypbrN1NriKnEwDC9HjMuUFFIBYwzjkFlI4YyGs90xrclShkinAPHQVqNatWSu/8eZ+4hGmbtz8JqsP1KlEgiYiEabXA8ACj+l+271r0ZMJunQvPsr0+PU2l2mrpAU87KcADxXQYeQqclK9zaXk5TzlbITdCBLrjXx53DuAbIXio9z3d0tHN4Fq3Zq1csu+VqbnSCQS9P99cDzrMAWgV4mZJPPpfujJBL2KJSeZvx8bS8011W8u1tPqiIhuFli9dIt7JbP7k5xJUk+kX/GG4NhUhGlVynqbC5/poCl3YsNMj79Yyv5510Wgam1p4RKmjh75s/BtT7dpf8mBeYxMPmR+DtbTZgBYCU2ynQ7rFm2mr3rJeqRjNBkvqKJehd1Detvo9ybrUukMQyZArnh0fOXSgaD5QNXa0sJ8w95UmAqF2TcyAbSgkOkw2ai3uTRVfQcgF6PTE0yPjz18ZhsqfruX6TnGpwq7j80My7wXUt59Pqw38vVZHVgPC5rCumJmrhVJNRuoiiSJ9v9iP/MwFQ6P0L/+7ncIU2AqDxg3GP0lbDfaBmCJ9fop7OEza3UJ22pxhXYc1TlrBJajVDfG7ynWIGS9Z9qm0mUsDw+Qk7GpCNMOBCKiJVJugWoRo+soCK8Ne8PhETp65OiTPaYAzILlPHsiIt/iSjQYQbdYTiPx272mq+yXjs9RSWJIJFZ7JinRcRRw+OgMg+l5RETBWIi2JycLXpeUmEkyLXThFm2GLKByZvQunRm9q5miBnMd8G0VMCKY3unha8zvW1lRSU7fr7kRKl5h6rvvuhGmwJTGpthWpUSDEfSM9b4m9YsrmB5fbwLF7H7XK9Fx1OCqE0SGn2dKTFsaeDTEdCNfTFEFLfn7g6syjz00vbaynDoRNBWovJ4y+s277zIPU8FgkI7/n+MIU2BKk4w3K0WDEfRs8vs423n5GL19ypLiMqbHL6QwBRGRZBFpK8OKhF2TIwVv9MuiwEWKaBExRRU04+8Prsqsp/oRzY7K5roOXDOByuspIx4b9gaDQTrZ0YEPBzCt0ekJpg1Gb3FuvToAWvKIYYeDz+rA6O0zWAfMR4nCAhUR0WqGFUuTM8mCNvodiA4Ry418dzlr8cyC6hIzSTo10MklTBERrcmjYI4mAtXKunqZR5g6feoUwhSYXohhQQrRImKfEtA1lu9HrouczUCyiEzLk48nCu9AYr1vVlc0/03Wr4yzLZXegO0vQGU9kX759/c+k4MF7i2Xi/o8CuaoXpSCx4a9REQdH53Ehr0ARBT/gd1c+xppMbNj5+Nf7pzU5ILjfLlFG/1j3W58jjHE8v3IdZGzWSyRHMxGWRIz3ytynDWuOqEzOsjk82Q0GaeeSL+ca+GHWHKSaYGhJkcVRqdAFbHkJN1/NCR/Nd7LdAR2PvlM9yNSOVDxCFOJRIJOffqfCFMAj03/oEwDYz61NrbrIcyO9y8WMxr/forZsUulEvwemofXWkKsep+jBa6hSnEVOane5mIWYIIT96nOWZPT32G9Dw/rzZfBeLqiA9Rb4HYF/YlHzCp/ZiPf/edUC1R7d++RN23exPQc2LAX4Hksq+NIFtUHvQEKwjK0LpYwHXY+ixlO+Rv9Xrn7ucW9UugeuMQkxHTHx2g4Fs5689zETJLpPjx+uxfTtyFno8m4rjv+RIuY97pOVdZQtba0IEwBGBB64NkrtGoZqAcN1PkVL7Lp4nOjwu5hut7ru4nsN+ctpJBFNtaVLtPFPQFQUiFFWLgGqiJJotaWFtnv9zM9z+yGvQhTAGA8SlQtA4D85DsdKBud0cGsO0xYbuRbb3NlPVIGYBRu0UaNBUxz5RqoWvf9jFOYOoowBQAAmsFyZEPv9DQVss5ZI7C8l7eyGHnqifQz3cjXX1LN7NgAWrXbs6agUVm+I1RWtmXRU2EKG/YCqCOfyjgAZlC6qEjtS9AsvU2FDDh8zI59KTq44Ea/LDfydYs2yrXaIIDe+e1e8jkqCzqGJvahUkIwGKQ//PE9hCkAFaHELgAYXYOrThAZfdYlZ5LUM9GfdpRqOBZmuuif5ZRGAC0SLSK9WBkouBPBEIEqGAxiw14ADRiOhdW+BABNYrlfkN7p7XNDsogUKC5ndvyvxtOvj/pq9FtmxSgKqXAGoFf7KzcKSnQG6z5QXf76MsIUAAAAcMNyj6bRZJwGokPP/TnrjXwLqXAGoEevlq9WrACLrgNVx0cn6dSZ0whTAAAAwI1dLKYmRxWz418Zf744BeuNfBtcdWhPQUH0VHynyVFFDa56xZ553Qaqjo9O0o2b3+DlB9CQye/jTH/hA+iZ3qa28RKKj+ryc2N5STWzNkh3fIzGpiJP/jsxk6SuyRFWp6MmRxVGp6BgAYeP6m0utS9jQU2OKtq5ZIOi76/uAlUikaBjR44gTAHkiWUP0iMd75AOQERMGwPf//A9s2PrWeIHdiXAa21lzI5dYfcwfV5uzimhfnush2mpdJZTGMFcdlcGmBVtUQKLMEWkw0B18sSH1D84iBcfIE8syzeHpieYHRtA70anJ3Q5EsPaAx1/bmwsZTdNbu5Gv13RAVanIb/dq7vS9aBddrGY9riXq30Z89rtXsEkTBHpMFBNTU+pfQkAumZ7gV3P0YNElNmxAXhwL2I3gtsbx4bz82FZaGEx4zUdPkcl01H/7sh9uSfSL7Mslb6udBk6qUFRDa56QUtT/0SLSG8u2SQ0MhyJ1V2gAoDCeK0lzI49mow/6VEFNhZL6ElmycGwpx6l05/Hel1Z8SIb87DAcu+ms5Feujx+j9nx620uxaqcAcyllal/fruXfr3sFaHQjXsXgkAFYDKse2xDkw8xrYkhTM1hy20tYdoAR2GKp92PDTP9vHAVOVkenoiI6pw1TDf6HZhmN/LPcsoimJvaU//coo3eXLJJ2OtrUmSfqYUsYn4GANCU0tkGI7NGzIPJh1TnrGF1eACmSovYjeASzQaICrsHjdjH7sVHmR3bLdq4Va7b5aylM6N3uZxLKW7RRqx77bWsyVHFtFJjIXh0BPDQ4KoXvn00LPMcnXeLNmp2r6A6Zw3Xe4tABWAyrD+ouyZHaCfTM5iXluakG5VdLCbRIhKrimo3YyHaTH4mx9abWHKS6ejLEsnB7NjPanDVCWcjvUwr8SmN5VRFPXCIxZjuyMHuyoDQ33eO+bshWkTaX7lRUOueYsofgAmxbJgnZ5LUE+nHtD/QrRppMbNjjybjNBAdYnZ8Pbk19vzmtUpiuV70WZJFpEBxObfzFUq0iNx78MGceE39S84kVd3TDoEKwISWMG5oBCfuMz2+WbHcUwd+xPrnfGviPjociOhSdJDp8b02N9fAoKe9nHY5a9W+BDARXlX/zozefWpDbJ4w5Q/AhCptZQKN9zJr1HXHxyiWnFS9gMJ/W9XKtYEzHAvT+wOXmP1cWRcUgVmPG+LM7mMwFqLtGng/1NQT6Wc+BYj31B+7WExNjirqZBwUCyVaRGpwoRgF8MVr6t9HDy7Lv1y6i0shirkwQgVgQuXF7Ec6usJ30AuvsFLGFehgFo+GuNnfj3OMCziotd5Qq0UO5goUl3Mr1gGQwmvq32gyTp2hIPfPVwQqABOSLCLzBkdndNB0e1KNJyZ0XwIaZvntXqbHN+P7kcJ6o1oiopWLK5geP50Ku0fzxWP0NDURjIXX1L/O6CD3taoIVAAmxaPBcSH0jal64R9OTTA7ttYbaUZTz+H9ODPUZar3g4goMZOkj8O3mJ+nenGlaqFBy3s7NTmqTD3VFNTHa8Pf/whdl3l2WiFQAZgUjwZHMBYy1Uam3VPs9tpAQQq+fBzej+74mOkq/l1/eIf5Ggqf1aFqaPA5Ksmt0fWOepiSCMbGs+ofz04rBCoAk7KLxeSzst+n5dPQdTmho71Z8jU2FSGW05h4VywzO8kiMp/2RzTbi2qG94NotmjLufFe5udZV+Jjfo6FaHGPp3qbC/sugSbwmvrXHR+j65zWqyJQAZjYptJlzM+h1gJR3roZl8JGQ4g/HtP+kjNJ+tIEU/8SM0n6NHSdy79Tzel+KXXOGi7TmnKh5amIYD68pv7xKqWOQAVgYr7FlVw+0Dqjg4be7Dcxk2S6pw6PkRJ4Hq9GcTAWottj3YZ9P4iI/jbYybwQBdHsu6KVNUJa2uvJLdrI56hU+zIAnuA19Y9otpQ665kACFRgGI2BgNqXoDuSRaRAcTmXc50Yvq7ahnus3R7rYbouhMdICcxvq6OKy3k+Gbll2PWGX4eCcnec3frCuVZraI1Qg6tOM6NUWpyCCMBr6h+PmTIIVGAYfr+f2g8elIskSe1L0RWeJXSPDVySjRaqEjNJOhthuy6ER4EEmN9qjhugHh+6Yrj3oyfSL/NYN0WkvVEYnh1WmYgWkeqcNfgMAU3iNfWPdSl1BCowFF91NbW1tyFU5cAuFnMryZ2cSRouVH051MV0dMpv92ITThXZxWJq4jRKZbT3oyfSL58Yvs7tfFochdHCnk9amnoI8CyeU/9YllJHoALD8XjKEapytMW9ktsvfSM1Gnsi/XIwFmJ6Dkz3Ux/PRrFR3g/eYcot2jQ5CsMzkM9HtIjUwHGUFSAfvKb+sSyljkAFhuTxlNOhw4dlrwd792Sjwu7hunFsqtGo5zUjY1MRYt1gxFQdbeDdKNb7+/F1KMg1TBFpc3QqRc29nwLF5RjhBl3gNfWPVSl1BCowLIfDQW3tbyFUZYnnKBXRbKPx/YFLsh6rm41NRejYwCXm142pOtrBe+qWHt+PxEySTg10clszlaLV0akU3h1Wc2lhyiFANnhO/TszelfxIkAIVGBokiQhVGWpwu5RZWrKJyO36NRAp242N+2J9MvHBi4xXTeVUu/UTsUys7OLxdRcyj/g6uX9GJuK0F/6zjKfAjuf3Z41mn9P1NgDqslRpZkS8gDZ4DX1j4joU4U3VUegAk0Yj7BbL5AKVevWrNVNT69aAp5VqpT5DcZC9Pt7n8la36vqeviOfGL4OvEIU2gMaU9jmbrvB8sKVflKzCTpeviO/G9957jsM/WseptLU5X90vE5Kskt2riecw3WToEO8Zr6N5qMK7qpOgIVaMLJjg4hGAwyO74kSdSyr5UQqjLjOeT+rORMkk4MX6cP+89rbu3I2FSEPuj9Uj4zepfbOTFVR3ski6jq+/HBg8vyh/3nmVWpylVPpF/+S99Zru/Fs3ZXBnTznvBc51Vvc5GryMntfABK4dkOCcZCpFRHLgIVaAbrUEVECFVZaHDVCz6rQ7Xzd8fH6P2BS7IWglUsOUl/f3BV/re+c/LAdJTbeTE6pV08p6TMpzs+Rr/v+Uz++4OrqgWrgegQfdh/Xj4xfJ3UGJVK2e1eoav3pM5Zw22Ek/eaWAAl8fyc/Th8i5T4LEWgAk3hFar27t6DUJXBnor1qv8yTgWr/91zRr491s11DclwLEx/f3BV/n3PZ3JndJDbeYlmK/s1ef2q//whPV5TUjLpjA7S73s+k08NdHKZCpiYSdLtsW75f/eckT94cFnujo8xP2cmPquDGnU4isuj0IxbtFGF3cP8PAAs8fqcTc4k6ePBrwtuEy5S4mIAlHSyo0MgItnv9zM7x6bNm8haZJUfnwue4Spy0qvlq+mTkVtqXwqNJuOz1zFyS/bbvVRd7KbqxZWC0j3Tw7Ew3Y8NyzdjIVV73fe4l+uyzHFv/CERg1K0LC3OszpcakqKFt6PYCxEwVhIFkMibXVUUaWtTFBqTVEsOUmhyYdy96NhUqPYRDqiRdREp08+Glx1wtlIL9OiNlouIa8lZvrM0iOen7MD01G6Hr4jF9JJg0AFmnSyo0Pou9crt+xrZXaOx4ENoSqNBle9cH9yVJWqXek8bjwSjdySRYtIq4pc5LWWkNtaIix6YVFWvbKJmSSNTUVo8vu4/CgZp974Q1K7tz3FZ3VQg6tel89jd3xMMz/HbNXbXFTnrMnr72rt/UjOJOnceC/ReK9MD2b/bbW2Mlos2qh4kU1Y6N2IJSfpUWKSxhMT8sOpCXqQiBLPaa652ONertv1QZJFpEBxObEa+dZ6CXktMdtnlh41uOqFbx8NcxkRPzN6l7w2d96juwhUoFk3bn4jEBHzUFXqdMrHjx8XphIJZufRqxcrA8KDvrOqVO9aSHIm+WPAInqul9Et2qh0UREREfUnHnGpzFcovfa6m9WLlQFh/P4FruvrsvVMY/Gp9yP1bujlvZiryVGl206HlIBnldAZHWQyMhJw+FgcFkA1uysDQn/fOS5blXwaui7/cukuIZ9ZIlhDBZp24+Y3QsdHJ5mew1ddTW3tbboa9udFsoi0b8km1deL5GM0GX/SqNRDo3G3e4Vue93NSno89Uxv70fq3dDDezGXz+owxPpCu1jMZM8/0SJSA0qlg8HwrPpXSCl1BCrQPB6hyuMpZ3p8PXMVOek1z2q1L8PQ9LrAHmbfj597G3HvGBMtIr1WtTmvnmMtWl6i/KbdWx1Vulx/CbAQnlX/8i2ljkAFunDj5jfCsSNHKIFpeaqoc9YIr1c0qn0ZhpRqKKp9HZA/n6OS8H6wI1pEOujbqnghGjVV2D2kdANxNUanwMB4VlfNp5Q6AhXoRv/goHD0yJ8FhCp11DlrhOZS9iV/zWZ/5UZDNRTNCu8HO/srNwpGnA67sVS5AIS968DoeE79y6eUOgIV6Eoo/JAQqtSz2esXWMz9N6vXKxqxX4yB4P1QnpHfEZ+jktyiTZFjrcHoFJgAz6l/qVLq2X4/AhXoDkKVunYu2YBGowKaS2tR3tiA8H4o5/WKRsO/I0rsGVVvc6GgDZgGz6l/Z0bv0nAsnNX3IlBp1Lo1a1F1LoNUqAqHR9S+FFPauWSDsBubR+atyVFFmw1QrQzmh/ejMKJFpAO+rYLRwxQRkW9xZcGNwy3ulYb/OQGk8Jz6RzRbSj2RRUVUBCoNam1pYbr3klHMhqqjCFUqafSsQqGKPDQ5qmjnkg1oABkc3o/8pApQGHWa37Mki0i7nPmvvXOLNsNOiQRIh+fUv2xLqSNQaUiRJFH7wYOy3+9X+1J0YyqRoKNHjqJxqpI6Z41wwLdVd/vwqKW5tBZhykTqnDXCmzrdx00NPquD3l7abMgCFJkUsneUElMGAfSI59S/bEqpcwtURZJEJU5zfUjmwlu5hNra22RfdbXal6I7U1hLpaoKu4cO+rYKPqtD7UvRtNcrGjHNz4R8jkq8H1nw2730evV2U1a8lCxiXhv9ukWb4deYAaTDe+rfQqXUuQSqIkmitvY22eHAL5R0li+vx+ayoFuuIie9Xr0di/HnYab1IDC/1Pvht3vVvhRNerV8Ne31NRlm0958BPLY2HsLyvSDyfGc+rdQKXXmgSoVphAWAIxNsoi0c8kGTHGaIzWFCWscQLKItNfXJLxe0Uh4P2a5RRv9ammz0OCqN31ng10splwCt2gRqa4EnTQAPKf+ZSqlzjRQeT1ldOjwYYQpABPxOSrp18teMX1vfHNpLb1Z+6IppzBBenXOGuHtpc3celW1qrm0ln65dJfp1ktlsq50WdYBaZezlsw8ogeQwnvqX7pS6swClddTRm3tb2GaH4AJpXrj31yySVBq40q9cIs2OuDbKmC9FKRjF4vpZzU7TDla5bM66FdLm4XNXr+pp/jNp8LuoWyDdr2zGp8vAI/xnPpHNH8pdSaBKhWmJElicXjIEsqJg9p8jkr65dJdwm73CsM3HEWLSLvdK+gf63Zjih9kpc5ZI/x62StCswnWwogWkV6vaKQ3a1/EqFQG/pKFC1M1OaoII98AT/tpVRO3qX/zlVJfpPRJ1q1Ziz2UNOC777rp5EcfogcLVCdZRGr0rBIaXHV0/eEd+dx4r9qXpLgmRxUFPKswvQ9yJllE2uz1C6tdddQVviN3RgfVviRFiY/3WWpw1WFEKgt1zhrBPXpXHk3G035PPgUsAIxOsoj0c2+j8MGDywvuGaWEYCxE9ZF+OVVwStFAhTClDZe/vkynzpzGBy5oytyGY3fkvnw20kvJLHYf1zIEKVCKXSymnUs2CAHPKkMEKwSp/DW7V9CJ4evzfq3e5sLoFEAaPkcl+Se8FIyFuJzv4/Ateru4jOxisXKBavPGjfKevXuVOty8wuERGgmHERTSSCQSdOrT/6QbN7/Bzwg0yy4WPxmx6pnol78a76VMvbFaI1pEChSXI0gBE3ODlR47HnxWB20qXYb9kQrgW1wpiOFb8nz3fYt7JX6uABm8WBkQ7tz7bN73R2mpUupv1r4oKBKoWltaZL/fr8Sh0gqHR+jokaMCNnGdXyKRoKNH/iyEwg/VvhSArEgWkRpc9UKDq57GpiJ0c6xH7poc0WzjMdVQ9C2uRI87MJfqeGj0rKKB6BDdmrgv8+p1zZVoEWmro4rqS6qxPkoB0uPRvTOjd5/6c5/VQVifCZAZ76l/qVLqBQcqHmEqGAzSyY4O9MqkgbAJeucqctLOJRuEnUQ0EB2iofhD+WYspPrIVb3NRSsXV1D14kqMRoFqfI5K8jkqhRdnkjTwaEjufjRMd6bGVO18cIs2WmP3UqWtTPA5KlW7DqNqcNUJZ0bvPtUg3FS6TKWrAdAX3lP/zozezX/KX5EkUeu+n8nLl9creU3PQZjKLBgM0ulTpxCmwDBSjcfN5KdYcpJCkw/lB5MP6UEiSgPTUabnrre5aIm1hCptZUJ5cZkh93n5b6ta8XmqU5JFpDpnjVDnrKG9RDQcC1MoPir3xh9Sf+IR04DlFm1UX+SisqISdDBwIFlEanJUUWotnVu0mXYaJT6zlGeGn+leX5PAdiHS0/IKVEWSRG3tbcw37EWYyuz0qVP09ZUr+PmAYdnFYqpzFgt1zponfzYcC9Pk93H5UTJOoekJiv+QpPHvp7IezfJZHWR9YRG5F9nIIRaT21oiFIs2wlQl0JsKu4cq7B6h8fF/x5KT9CgxSaH4qJz4IUkPpieIiKg7PpbV8USLSDXSYiIiqrWVkWRZRKVSieAqchqyc0HrAp5VQmd0UCYi2mKC0voAepZzoOIVps6fO0dnz59HWJhHIpGgkyc+pG97uvHzAdN5vIYAzz7AM+xiMdnFYqqwe/B+GIBdLCa/3Ut3psaorsSco1MAepFToPJ6ymj/m/8gOxwOVtdDREQdH51Epbo0otEoHf/gryg+AQAAYHDbvWuFTTNJjBACaFzWgcrrKaO29rdkSZJYXg/CVAYD9+/T8ePHsV4KAADABGZHHdW+CgBYSFaBqqaqSt7/D/9ALMMU9lDKDOvJAAAAAAC0Z8FAtW7NWrllXyvTi8AeSplh1A4AAAAAQJsyBiqEKXUlEgk6/te/Uv/gIMIUAAAAAIAGpQ1Uu3bskHc0NzM9OcJUeuHwCH304Yf42QAAAAAAaNi8gaq1pUX2+/1MTxwOj9Dxvx4XIo/YbtSpR999100nP/oQxScAAAAAADTuuUDFK0wdPXIUgWEel7++TKfOnMYUPwAAAAAAHXgSqIokifbv3y/7qquZnhBhKj0UnwAAAAAA0JdFRLNhqq29TfZ4ypmeDPsozQ9ryQAAAAAA9GkRrzCFfZTmhxE7AAAAAAD9WvSbd9+VWW7YS4QwlU4wGKTTp04hTAEAAAAA6NQihCl1nD93js6eP4+fCwAAAACAjmXc2LdQKLLwvEQiQSdPfEjf9nTj5wIAAAAAoHPMAhXC1POi0Sgd/+CvKD4BAAAAAGAQTAIVwtTzUHwCAAAAAMB4FA1UmM42P6wjAwAAAAAwJsUCFfZSmh9G6wAAAAAAjEuRQIUw9bxEIkHH//pX6h8cRJgCAAAAADAoRQLVyRMfEsLUj8LhEfroww8RMAEAAAAADE6RQDU1PaXEYQxh4P59On78OIpPAAAAAACYANN9qMzm8teX6dSZ05jiBwAAAABgEghUCkHxCQAAAAAA80GgUgCm+AEAAAAAmNMLal+AESBMAQAAAACYEwIVAAAAAABAnhCoAAAAAAAA8oRABQAAAAAAkCcEKgAAAAAAgDwhUAEAAAAAAOQJgQoAAAAAACBPCFQAAAAAAAB5QqACAAAAAADIEwIVAAAAAABAnhCoAAAAAAAA8oRABQAAAAAAkCcEKgAAAAAAgDwhUAEAAAAAAOQJgQoAAAAAACBPCFQAAAAAAAB5QqACAAAAAADIEwIVAAAAAABAnhCoAAAAAAAA8rRI7QsAAAD+GlaskG/fvSuofR2sOR0OWt2wWq6sqqKiIistXbr0ydcmIhEaj0ToXncPDQ8N0b37/Yb/eeTCLM+I3jkdDtq+fYf8yad/w70yCNxT/UGgAgBg5L//8z/LSh/zt//zfyryC/bnb7xBf/v4E7nrxnXFfmFn+vcqdd3ZCqxrlDds2kBeb0Xa7ylxOqnE6XwSsiYiEfnWrdt09eoVIRKNcrlOPCM/UvIZUfo8Wnq2n7Vhw0a5YXUDff75ZzSVSKh5KXk9z319fTT0YIiGHgwSzwCPewpKQqACADCpn772KhGRog1mtS2rrpFfbXmNSpzOnP9uidNJW7dtpa3btsrXuq7RhQvnuQUrrTLiM2IkRZJEgQ0BslqtFFgfkC92fqW7+7R06dKnOjUunL9AZn7ejHBPzQhrqAAATOynr71K25q2KD5KooaXX3xJ/q8HD+QVpp61PrCe3jl0SDbKz6YQRnpGjCawPiBbrVYiItq2YzsVSZLKV1SYEqeTfvraq/Rffv5fZL3/W/JltHtqFghUAAAm99IrL9OrP/mpbhvMRZJE77z9K3nrtq2KHtdqtdJLr7xs6sZdit6fEaPatmP7k/9vtVqpYVWDIe7RqlUr6cDBA6Z874x6T40OgQoAAGh9YL0uG8xFkkQHDh6QM62VKtSqVSvJqcCol97p9RkxqsC6xicjGSnb5zTG9c7rraADBw+Y6nkz+j01MgQqAAAgIn02mF99rYVpmCIi+uKzz2l4ZITpOfRCj8+IUc3X0C5xOimwrtEw98frrTDVdFMz3FOjQlEKAAB4Yn1gPRGRLsr1bmvaIq9atXLB75uenqbbt27TvZ5u6u3rE1JVsyrKy2lZ7TJ59drVaasBTkQi1HWtS/M/C5709IwYVWBdo5xureCGTRuo68Z1zlfEzkuvvEy3bt8ioxeIMdM9NSIEKgAAFahdljcTPTSYnQ4HvfTKywt+36WLl+jixQvCfKWHh0dGaHhkRLjY+VXa6oCfnTmjWtliPCOQzuq1a9J+zeutoGXVNbLW9lWb73kukiQKrA/I23Zsp2enus21YcNG+fMvv9DUv0dperyn8CNM+QMAgOdofWrXay0tGa9tenqa/v3Y+/T5l1/MG6aede9+v/Dee+8J17quPfmzvr4+rvvi6I3WnxGjWlZdI8/doHo+23bu4HQ1hZlKJOhi51fC+8eOCdPT02m/b/XqBo5XxZ+R7qlZIVABAMC8tNpgrigvp0yNj+npaXr/2DEh197cqUSCPvn0b8LfPv6EiIg+7uhAmFqAVp8RI8umYb106VKqKC/ncDXKGB4ZoYvnL6T9eonTaejy4Ua8p2aDQAUAAGlpscG8YcPGjNfzSUdHQUUkum5cF/703num39Q3W1p8RozK6XBk7EyYa6H3RGsWWqtY6a3Q1b8nW0a+p2aCQAUAABmtD6ynA7/8pWb2hGnIMP3nzp1vFZmmh6p+udHaM2JU27fvyLpBvT6wnpwOB8vLUZRaaxXVZuR7aiYIVAAAsKClS5dqYqPNhhUrntunZa7PzpzGND2VaOUZMSqnw5EqBpK1XBrralsoKMSnpwz3bhv9npoJAhUAAGQltdGmmg3m0lJX2q/dufOt4Usra50WnhGjyme6V8PqBt2sPVro32fEUWOj31MzQdl0AAAV/Pd//uecfpFqpYR2qsH8/rH3s6qep7Rl9XVpvzY0OMjxStjDM8JGrj9XLSiSJApsCOT896xWKwXWB+SLnV9p4tlIJ7CuUd66bWvar/f19XG8Gj6Mfk/NBoEKAACeEgoNp93olkjdBnNRUfrpfsNDQ1kfZ1vTloIa1bdu3zJ10QotPyNGFFgfSDvVdSISoQvnL9BPX3t13q9v27Gduq51qb5GaVl1zXPvnLO0lFavXbNgUYZb39xkdl1qMcI9hR8hUAEAwFPeP/a+cODgAVmLDeZM15RLmfRsNgVegKl7iLX8jBjRth3b037twvkL1HXjurB9x3b52Y2pibQzovFfDx7I6+9NRCJ0+85tw71rRrin8COsoQIAgKdMJRL0/rH3hVBoOOP3Yb2MeeEZ4SewrjHtSMb09PSTsHH1ytW0x9iwcQOLS+PiszNnDDcSY/Z7akQIVAAA8Bw0mGEheEb42J5hJOPi+QtPwkbXtS5henp63u8rcTopsK5R1bVj6a4tk0sXLymyDYLWGOWewo8QqAAAYF65Nph5XFOmRhn2Z+FPi8+IkQTWNc475Stl7ma4U4kEdV3tSvu9mRrxPHzS0ZHT93/x2ef0+ZdfGC5MGemewo8QqAAAIK1cGsw8DA+nv47Kigo02FWgtWfESFavXZP2a9e6rj03Fe7q1StpA0iJ0zlvYQhebt+9K9y58+2C39fX10f/fux9Mur6ICPdU/gRilIAAKhAKyWus5FqMC9UhICH8bHxtBXBltXV0+27d7lcRy4VBfOFZ4SNfH6uapRaX1ZdI2eqfnfhwvnn/h2RaJSudV1Lu1nstp076N5f+pW7yBx98nGHUFnhTTtCMz09TR93dBi2gqYR7ynMQqACAIAFaaXBPPTgQdqGRcPqBvr888+yWsCeTaM6UyN6LDKum7DDi1aeEaPYtnNH2q9l2sT66tUrwvrA+nmf3aVLl9Ky6ho5l4qYSppKJOiTjo/TVvyzWq30xi/ekN/7078Z8v0y4j2FWZjyBwAAWcl2ahdLmconp0oJK3GeTNNoJiKRtA0fs9PCM2IETocj495MXZcvp/3a8MhIxo1wG9akn3LGw737/cKli5fSft3rrSh4nzgtMvI9BYxQAQBADtQehZhKJOjOnW9p1aqV8379pVdepnu992h4ZKSg82RqoNy711vQsY1O7WfECLZv35ExUDwe4ckrdKwPrKcLF86r2ilw8eIFYfXqhrRT/1565WUaHhoy1KiL0e+p2WGECgAAcqL2KESmnlwiogMHD8qFVPxzOhxppxUSEd3r6c772Gah9jOiZws9f0pYqHHPWmrqXyavtrxGRim1b4Z7anYIVAAAkDM1G8z37vdnPK/VaqV3Dh2SK8rLcz52kSTRG794I+N0PyPui8MCQlV+NmzYyLxhvD6wXvWwstDUvxKnk159rcUQIcEs99TMEKgAACAvajaYPz/9WcavW61Wevudd+RtTVuy3lB2WXWN/M4772Scpnb1ytUcrhIQqnJTJEkU2BDgci6l1hsW4uLFC8JEJJL266tWrdT95rVmu6dmhTVUAAAqyLcMs9ZKaau1XuZx77a8ddvWjN/30isv07Yd2+Xbt27TvZ5uGhoefqokc0V5OS2rXSYvq6/LuGCcaHZ0iufeOHhGzCewPiBbrVYu59q2Yzt1XevKqiomKwtV/SMienn3K3Sv955u1weZ7Z6aFQIVAAAURK0G8+dffiEsq6td8JxWq5XWB9an1jDk3YO70JoPSA+hKjvbdmzndq5UVUy1N9BdqHNE76XUzXhPzQiBCgAACqZWg5nXOb/47HMyUsUxNSBUZRZY15hxJOP/+Zd/EfIZeXj5xZfShpUNGzfQxc6vcj6m0haq+pcqpa63oGDme2o2WEMFAACKUGO9DI9zXuu6xnWqn5FhTVV62zOMZFzrupb3NK6rV6+kfXZLnE5NrFHKpurfS6+8nHF/OC0y8z01GwQqAABQjFqh6r0//VvGimH5+tvHn9Ann/4NYUpBCFXPC6xrTDs6Q0R04cL5vJ/BSDRKd+58m/brmRr9PN273y988dnnGb9HT6XUcU/NBYEKAAAUpVaD+fMvvxD+/dj7lKlqWLb6+vroT++9J3TduI4wxQBC1dM2bNqQ9mt9fX0FF2TItHdbidOpmZGfi51fZXwm9FRKHffUXBYdO3Kk4IOMhMP4hQOqUuI5BgDlqFn971//1/+iwLpGefXaNQtW7ntWX18f3frmJiFIsYc1VbOWVddk/Pdf/Pv5gs/xeO+2tOfZtnMH3ftLf8HnUcLHHR8Lb7/zTtowkCqlruV3FPfUfIT/8dvfqn0NAABgUEWSRAcOHlCtQpfT4aBltcvkyiVLqNRV+lzA6uvro/GxcRofG6Nbt28Jei3NrGdqPyMAAIX6/wEINPXiAf5rowAAAABJRU5ErkJggg==";
@@ -245,6 +246,10 @@ const PERMISSION_GROUPS = [
     { key: "planejamento_visualizar", label: "Acessar o Planejamento Semanal" },
     { key: "planejamento_gerenciar", label: "Criar/editar/excluir planejamentos semanais" },
   ] },
+  { group: "Relatórios de Obra", keys: [
+    { key: "relatorios_obra_visualizar", label: "Acessar Relatórios de Obra (consulta e geração de PDF)" },
+    { key: "relatorios_obra_gerenciar", label: "Criar/editar/excluir relatórios de obra e importar cronogramas" },
+  ] },
   { group: "Administração", keys: [
     { key: "relatorios_acessar", label: "Acessar relatórios e dashboards" },
     { key: "config_alterar", label: "Alterar configurações do sistema" },
@@ -266,6 +271,7 @@ const ASSISTENTE_PERMS = {
   relatorios_acessar: true, socios_acessar: true, cartao_lancar: true, gerenciamento_lancar: true,
   investidores_visualizar: true, investidores_aportar: true, investidores_transferir: true,
   planejamento_visualizar: true, planejamento_gerenciar: true,
+  relatorios_obra_visualizar: true, relatorios_obra_gerenciar: true,
 };
 
 const DEFAULT_USUARIOS = [
@@ -1703,7 +1709,7 @@ export default function App() {
     fornecedores: "relatorios_acessar", contaspagar: null, cartoescredito: "cartao_lancar", custosinternos: "relatorios_acessar",
     dividasinvestimentos: "relatorios_acessar", obrasgerenciamento: "gerenciamento_lancar",
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
-    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar",
+    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar",
   };
   if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
@@ -1844,6 +1850,9 @@ export default function App() {
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
+          {page === "relatoriosobra" && !ehInvestidor && (
+            <RelatoriosObraPage obras={obras} disciplinas={disciplinas} usuarios={usuarios} currentUser={currentUser} logAudit={logAudit} />
+          )}
           {page === "socios" && (
             <SociosPage
               socios={socios} setSocios={setSocios} socioStats={socioStats}
@@ -1889,6 +1898,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "custosinternos", label: "Custos Internos", icon: BarChart3, perm: "relatorios_acessar" },
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
     { id: "planejamentosemanal", label: "Planejamento Semanal", icon: CalendarRange, perm: "planejamento_visualizar" },
+    { id: "relatoriosobra", label: "Relatórios de Obra", icon: FileText, perm: "relatorios_obra_visualizar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
@@ -9458,6 +9468,2343 @@ function AtividadeModal({ diaData, atividade, diasDoPlano, disciplinas, setDisci
   );
 }
 
+/* ===================================================================
+   RELATÓRIOS DE OBRA — LÓGICA PURA (sem React, sem DOM exceto DOMParser injetável)
+   Módulo operacional/técnico. NÃO toca em dados financeiros.
+   (marcador: REL_PURE_BEGIN)
+=================================================================== */
+
+const REL_PREFIXO = "glover:rel:";
+const REL_STATUS_ELAB = "Em elaboração";
+const REL_STATUS_FINAL = "Finalizado";
+
+/* ---------- Datas (strings ISO YYYY-MM-DD; aritmética em UTC) ---------- */
+const relIsoParaDias = (iso) => Math.floor(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86400000);
+const relDiasParaIso = (n) => new Date(n * 86400000).toISOString().slice(0, 10);
+const relSomaDias = (iso, n) => relDiasParaIso(relIsoParaDias(iso) + n);
+const relDiaSemana = (iso) => new Date(relIsoParaDias(iso) * 86400000).getUTCDay(); // 0 = domingo
+const relDataValida = (iso) => typeof iso === "string" && /^\d{4}-\d{2}-\d{2}$/.test(iso) && relDiasParaIso(relIsoParaDias(iso)) === iso;
+const relFmtData = (iso) => (iso && relDataValida(iso) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "—");
+const relFmtDataCurta = (iso) => (iso && relDataValida(iso) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}` : "");
+const REL_MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+function relPeriodoExtenso(ini, fim) {
+  if (!relDataValida(ini) || !relDataValida(fim)) return "";
+  const [ya, ma, da] = ini.split("-"), [yb, mb, db] = fim.split("-");
+  if (ini === fim) return `${db} de ${REL_MESES[+mb - 1]} de ${yb}`;
+  if (ya === yb && ma === mb) return `${da} a ${db} de ${REL_MESES[+mb - 1]} de ${yb}`;
+  return `${da} de ${REL_MESES[+ma - 1]} de ${ya} a ${db} de ${REL_MESES[+mb - 1]} de ${yb}`;
+}
+
+/* ---------- Números ---------- */
+const relRound = (v, dec = 2) => { const f = Math.pow(10, dec); return Math.round((v + Number.EPSILON) * f) / f; };
+// Formata número em pt-BR até `maxDec` casas, sem zeros à direita desnecessários (28 -> "28", 28.5 -> "28,5").
+function relFmtNum(v, maxDec = 1) {
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const s = relRound(v, maxDec).toFixed(maxDec).replace(/0+$/, "").replace(/\.$/, "");
+  return s.replace(".", ",");
+}
+const relFmtPct = (v, maxDec = 1) => (v === null || v === undefined || !isFinite(v) ? "—" : `${relFmtNum(v, maxDec)}%`);
+const relFmtDias = (min, minPorDia) => (minPorDia > 0 ? relFmtNum(min / minPorDia, 2) : "—");
+// Interpreta "55", "55,5", "55.5", "55%" -> número; "" -> null (não aferida); inválido -> NaN
+function relParsePct(texto) {
+  if (texto === null || texto === undefined) return null;
+  const t = String(texto).replace("%", "").replace(",", ".").trim();
+  if (t === "") return null;
+  if (!/^-?\d+(\.\d+)?$/.test(t)) return NaN;
+  return Number(t);
+}
+const relPctValido = (v) => typeof v === "number" && isFinite(v) && v >= 0 && v <= 100;
+
+// Arredonda uma lista de valores (que somam `total`) para `dec` casas pelo método do maior resto,
+// garantindo que a soma dos valores arredondados seja EXATAMENTE `total`. Retorna inteiros em unidades de 10^-dec.
+function relDistribuirArredondado(valores, total = 100, dec = 2) {
+  const f = Math.pow(10, dec);
+  const alvo = Math.round(total * f);
+  const soma = valores.reduce((a, b) => a + b, 0);
+  if (!valores.length || soma <= 0) return valores.map(() => 0);
+  const brutos = valores.map((v) => (v / soma) * alvo);
+  const pisos = brutos.map((b) => Math.floor(b + 1e-9));
+  let resto = alvo - pisos.reduce((a, b) => a + b, 0);
+  const ordem = brutos.map((b, i) => ({ i, r: b - pisos[i] })).sort((a, b) => b.r - a.r || a.i - b.i);
+  for (let k = 0; k < ordem.length && resto > 0; k++, resto--) pisos[ordem[k].i] += 1;
+  return pisos;
+}
+
+function relNomeArquivoPDF(obraNome, numero, dataFinal) {
+  const limpo = String(obraNome || "Obra").normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "Obra";
+  const n = String(numero ?? 0).padStart(2, "0");
+  const d = relDataValida(dataFinal) ? dataFinal : "sem-data";
+  return `Relatorio_Obra_${limpo}_N${n}_${d}.pdf`;
+}
+
+/* ---------- XML do Microsoft Project ---------- */
+function relFilhos(el, nome) {
+  const out = [];
+  if (!el) return out;
+  for (let n = el.firstChild; n; n = n.nextSibling) if (n.nodeType === 1 && n.localName === nome) out.push(n);
+  return out;
+}
+const relFilho = (el, nome) => relFilhos(el, nome)[0] || null;
+function relTxt(el, nome) {
+  const f = relFilho(el, nome);
+  return f && f.textContent != null ? f.textContent.trim() : "";
+}
+const relNumOuNull = (s) => (s === "" || s === null || s === undefined || isNaN(Number(s)) ? null : Number(s));
+const relDataXML = (s) => (s && /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null);
+
+// Duração ISO 8601 do Project ("PT80H0M0S", "P5D"...) -> minutos de trabalho (inteiro). Nunca assume 8h/dia.
+function relDuracaoMin(str, minPorDia) {
+  if (!str) return null;
+  const m = /^P(?:(\d+(?:\.\d+)?)Y)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)W)?(?:(\d+(?:\.\d+)?)D)?(?:T(?:(\d+(?:\.\d+)?)H)?(?:(\d+(?:\.\d+)?)M)?(?:(\d+(?:\.\d+)?)S)?)?$/.exec(str.trim());
+  if (!m) return null;
+  const [, , , w, d, h, mi, s] = m.map((x) => (x === undefined ? 0 : Number(x)));
+  return Math.round((w || 0) * 5 * minPorDia + (d || 0) * minPorDia + (h || 0) * 60 + (mi || 0) + (s || 0) / 60);
+}
+
+function relParseCalendarios(root, avisos) {
+  const cals = {};
+  const bloco = relFilho(root, "Calendars");
+  let recorrentes = 0, workWeeks = 0;
+  for (const c of relFilhos(bloco, "Calendar")) {
+    if (relTxt(c, "IsBaselineCalendar") === "1") continue;
+    const uid = relTxt(c, "UID");
+    if (uid === "") continue;
+    const cal = { uid, nome: relTxt(c, "Name"), baseUid: null, dias: {}, excecoes: [] };
+    const base = relTxt(c, "BaseCalendarUID");
+    if (base !== "" && base !== "-1" && relTxt(c, "IsBaseCalendar") !== "1") cal.baseUid = base;
+    for (const wd of relFilhos(relFilho(c, "WeekDays"), "WeekDay")) {
+      const tipo = Number(relTxt(wd, "DayType"));
+      const trab = relTxt(wd, "DayWorking") === "1";
+      if (tipo >= 1 && tipo <= 7) cal.dias[tipo] = trab;
+      else if (tipo === 0) {
+        const tp = relFilho(wd, "TimePeriod");
+        const de = relDataXML(relTxt(tp, "FromDate")), ate = relDataXML(relTxt(tp, "ToDate"));
+        if (de && ate) cal.excecoes.push({ de, ate, trabalha: trab });
+      }
+    }
+    for (const ex of relFilhos(relFilho(c, "Exceptions"), "Exception")) {
+      const tp = relFilho(ex, "TimePeriod");
+      const de = relDataXML(relTxt(tp, "FromDate")), ate = relDataXML(relTxt(tp, "ToDate"));
+      const ocorr = Number(relTxt(ex, "Occurrences") || 1), tipoRec = Number(relTxt(ex, "Type") || 1);
+      if (ocorr > 1 && tipoRec !== 1 && tipoRec !== 0) recorrentes++;
+      if (de && ate) cal.excecoes.push({ de, ate, trabalha: relTxt(ex, "DayWorking") === "1" });
+    }
+    if (relFilho(c, "WorkWeeks")) workWeeks++;
+    cals[uid] = cal;
+  }
+  if (recorrentes) avisos.push({ nivel: "aviso", msg: `${recorrentes} exceção(ões) de calendário recorrente(s) (semanal/mensal/anual) não foram expandidas; apenas o intervalo informado no XML é considerado.` });
+  if (workWeeks) avisos.push({ nivel: "aviso", msg: "O XML contém semanas de trabalho alternativas (WorkWeeks), que não são interpretadas; vale a semana padrão do calendário." });
+  return cals;
+}
+
+// Dia útil segundo o calendário (exceções próprias > dia da semana próprio > calendário-base). Padrão: segunda a sexta.
+function relDiaUtil(cals, calUid, iso, prof = 0) {
+  const c = cals && cals[calUid];
+  const dow = relDiaSemana(iso);
+  if (!c || prof > 10) return dow !== 0 && dow !== 6;
+  let achou;
+  for (const e of c.excecoes) if (iso >= e.de && iso <= e.ate) achou = e.trabalha; // a última prevalece
+  if (achou !== undefined) return achou;
+  const dt = dow + 1; // 1..7 = domingo..sábado
+  if (c.dias[dt] !== undefined) return c.dias[dt];
+  if (c.baseUid !== null && cals[c.baseUid]) return relDiaUtil(cals, c.baseUid, iso, prof + 1);
+  return dow !== 0 && dow !== 6;
+}
+
+// Lista de dias úteis (inteiros "dias desde 1970") entre ini e fim, inclusive.
+function relDiasUteisEntre(cals, calUid, ini, fim) {
+  const out = [];
+  if (!ini || !fim) return out;
+  const a = relIsoParaDias(ini), b = relIsoParaDias(fim);
+  if (b < a || b - a > 20000) return out;
+  for (let d = a; d <= b; d++) if (relDiaUtil(cals, calUid, relDiasParaIso(d))) out.push(d);
+  return out;
+}
+
+/**
+ * Lê o XML exportado pelo Microsoft Project.
+ * @param {string} texto  conteúdo XML
+ * @param {function} DomParserCtor  construtor de DOMParser (injetável para testes)
+ * @returns {{ok:boolean, erro?:string, projeto?, calendarios?, tarefas?, avisos:Array}}
+ */
+function relParseProjectXML(texto, DomParserCtor) {
+  const avisos = [];
+  const Parser = DomParserCtor || (typeof DOMParser !== "undefined" ? DOMParser : null);
+  if (!Parser) return { ok: false, erro: "Leitor de XML indisponível neste navegador.", avisos };
+  if (!texto || !texto.trim()) return { ok: false, erro: "O arquivo está vazio.", avisos };
+  const doc = new Parser().parseFromString(texto, "application/xml");
+  const erroTag = doc.getElementsByTagName("parsererror")[0];
+  if (erroTag) return { ok: false, erro: "O arquivo não é um XML válido (" + (erroTag.textContent || "").trim().slice(0, 120) + ").", avisos };
+  const root = doc.documentElement;
+  if (!root || root.localName !== "Project") return { ok: false, erro: "O XML não parece ter sido exportado pelo Microsoft Project (elemento raiz \"Project\" não encontrado).", avisos };
+
+  let minPorDia = relNumOuNull(relTxt(root, "MinutesPerDay"));
+  let minPorDiaAssumido = false;
+  if (!minPorDia || minPorDia <= 0) {
+    minPorDia = 480; minPorDiaAssumido = true;
+    avisos.push({ nivel: "aviso", msg: "O XML não informa as horas de trabalho por dia (MinutesPerDay). Foi assumido 8 horas/dia; confira a conversão das durações." });
+  }
+  const projeto = {
+    nome: relTxt(root, "Title") || relTxt(root, "Name") || "",
+    minPorDia, minPorDiaAssumido,
+    minPorSemana: relNumOuNull(relTxt(root, "MinutesPerWeek")),
+    calUid: relTxt(root, "CalendarUID") || null,
+    ini: relDataXML(relTxt(root, "StartDate")), fim: relDataXML(relTxt(root, "FinishDate")),
+  };
+  const calendarios = relParseCalendarios(root, avisos);
+  if (!Object.keys(calendarios).length) avisos.push({ nivel: "aviso", msg: "O XML não contém calendários de trabalho. Será usada a semana padrão (segunda a sexta, sem feriados)." });
+  else if (projeto.calUid && !calendarios[projeto.calUid]) avisos.push({ nivel: "aviso", msg: "O calendário padrão do projeto não foi encontrado no XML; será usada a semana padrão (segunda a sexta)." });
+
+  const blocoTarefas = relFilho(root, "Tasks");
+  const els = relFilhos(blocoTarefas, "Task");
+  if (!els.length) return { ok: false, erro: "O XML não contém tarefas (elemento Tasks vazio ou ausente).", avisos };
+
+  const tarefas = [];
+  const pilha = []; // [{nivel, idx}]
+  let ignoradasNulas = 0;
+  for (const el of els) {
+    const uid = relTxt(el, "UID");
+    const nivel = relNumOuNull(relTxt(el, "OutlineLevel"));
+    if (uid === "") continue;
+    if (relTxt(el, "IsNull") === "1") { ignoradasNulas++; continue; }
+    if (uid === "0" && (nivel === 0 || nivel === null)) continue; // tarefa-resumo do projeto
+    if (nivel === null || nivel < 1) { ignoradasNulas++; continue; }
+    const t = {
+      uid, nome: relTxt(el, "Name") || "(sem nome)",
+      wbs: relTxt(el, "WBS") || relTxt(el, "OutlineNumber") || "",
+      nivel,
+      resumoXml: relTxt(el, "Summary") === "1",
+      marcoXml: relTxt(el, "Milestone") === "1",
+      ativo: relTxt(el, "Active") !== "0",
+      durMin: relDuracaoMin(relTxt(el, "Duration"), minPorDia),
+      ini: relDataXML(relTxt(el, "Start")), fim: relDataXML(relTxt(el, "Finish")),
+      cal: (() => { const c = relTxt(el, "CalendarUID"); return c === "" || c === "-1" ? null : c; })(),
+      pctProj: relNumOuNull(relTxt(el, "PercentComplete")),
+      bIni: null, bFim: null, bDurMin: null,
+      preds: relFilhos(el, "PredecessorLink").map((p) => ({ uid: relTxt(p, "PredecessorUID"), tipo: relNumOuNull(relTxt(p, "Type")), lag: relNumOuNull(relTxt(p, "LinkLag")) })),
+      pai: null, temFilhos: false,
+    };
+    for (const b of relFilhos(el, "Baseline")) {
+      if (relTxt(b, "Number") === "0") {
+        t.bIni = relDataXML(relTxt(b, "Start")); t.bFim = relDataXML(relTxt(b, "Finish"));
+        t.bDurMin = relDuracaoMin(relTxt(b, "Duration"), minPorDia);
+      }
+    }
+    while (pilha.length && pilha[pilha.length - 1].nivel >= nivel) pilha.pop();
+    if (pilha.length) { t.pai = tarefas[pilha[pilha.length - 1].idx].uid; tarefas[pilha[pilha.length - 1].idx].temFilhos = true; }
+    pilha.push({ nivel, idx: tarefas.length });
+    tarefas.push(t);
+  }
+  if (!tarefas.length) return { ok: false, erro: "Nenhuma tarefa válida foi encontrada no XML.", avisos };
+  if (ignoradasNulas) avisos.push({ nivel: "info", msg: `${ignoradasNulas} linha(s) em branco/nula(s) foram ignoradas.` });
+
+  // Macro = raiz da cadeia hierárquica (nível 1)
+  const porUid = new Map(tarefas.map((t) => [t.uid, t]));
+  let semDuracao = 0, inativas = 0, resumosVazios = 0;
+  for (const t of tarefas) {
+    let r = t, g = 0;
+    while (r.pai && porUid.has(r.pai) && g++ < 50) r = porUid.get(r.pai);
+    t.macroUid = r.uid;
+    t.resumo = t.temFilhos;
+    if (t.resumoXml && !t.temFilhos) resumosVazios++;
+    t.marco = !t.resumo && (t.marcoXml || t.durMin === 0);
+    if (!t.resumo && !t.marco && !t.resumoXml && t.durMin === null) semDuracao++;
+    if (!t.ativo && !t.resumo) inativas++;
+    t.executavel = !t.resumo && !t.resumoXml && !t.marco && t.ativo && t.durMin !== null && t.durMin > 0;
+  }
+  if (semDuracao) avisos.push({ nivel: "aviso", msg: `${semDuracao} atividade(s) sem duração válida no XML foram excluídas do cálculo.` });
+  if (inativas) avisos.push({ nivel: "aviso", msg: `${inativas} atividade(s) inativa(s) no Project foram excluídas do cálculo.` });
+  if (resumosVazios) avisos.push({ nivel: "aviso", msg: `${resumosVazios} atividade(s) marcada(s) como resumo, mas sem subatividades, foram excluídas do cálculo.` });
+  const nExec = tarefas.filter((t) => t.executavel).length;
+  if (!nExec) avisos.push({ nivel: "erro", msg: "Nenhuma atividade executável (de menor nível, com duração maior que zero) foi encontrada. Não será possível calcular o avanço físico." });
+  const semDatas = tarefas.filter((t) => t.executavel && (!t.ini || !t.fim)).length;
+  if (semDatas) avisos.push({ nivel: "aviso", msg: `${semDatas} atividade(s) executável(is) sem datas de início/término: o avanço previsto delas será considerado 0%.` });
+  const temBaseline = tarefas.some((t) => t.executavel && t.bIni && t.bFim);
+  if (!temBaseline) avisos.push({ nivel: "info", msg: "O XML não possui linha de base (Baseline 0) salva. O cronograma importado poderá ser usado como referência do avanço previsto." });
+  else if (tarefas.some((t) => t.executavel && !(t.bIni && t.bFim))) avisos.push({ nivel: "aviso", msg: "A linha de base está incompleta: algumas atividades executáveis não possuem Baseline; para elas serão usadas as datas atuais." });
+  return { ok: true, projeto, calendarios, tarefas, avisos, temBaseline };
+}
+
+/* ---------- Versões: chave estável, diff ---------- */
+const relNorm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+
+// Atribui `chave` (identidade estável entre versões): mesma UID; senão WBS + nome.
+function relAtribuirChaves(tarefasNovas, tarefasAnteriores) {
+  const usadas = new Set();
+  const antPorUid = new Map(), antPorWbsNome = new Map();
+  for (const t of tarefasAnteriores || []) {
+    antPorUid.set(t.uid, t);
+    const k = relNorm(t.wbs) + "|" + relNorm(t.nome);
+    if (!antPorWbsNome.has(k)) antPorWbsNome.set(k, t);
+  }
+  const resultado = tarefasNovas.map((t) => ({ ...t, chave: null }));
+  // 1ª passada: UID
+  for (const t of resultado) {
+    const a = antPorUid.get(t.uid);
+    if (a && a.chave && !usadas.has(a.chave)) { t.chave = a.chave; usadas.add(a.chave); }
+  }
+  // 2ª passada: WBS + nome
+  for (const t of resultado) {
+    if (t.chave) continue;
+    const a = antPorWbsNome.get(relNorm(t.wbs) + "|" + relNorm(t.nome));
+    if (a && a.chave && !usadas.has(a.chave)) { t.chave = a.chave; usadas.add(a.chave); }
+  }
+  // novas
+  const todas = new Set([...usadas, ...(tarefasAnteriores || []).map((t) => t.chave)]);
+  for (const t of resultado) {
+    if (t.chave) continue;
+    let c = `t${t.uid}`, n = 2;
+    while (todas.has(c)) c = `t${t.uid}_${n++}`;
+    t.chave = c; todas.add(c);
+  }
+  // pai/macro por chave
+  const porUid = new Map(resultado.map((t) => [t.uid, t.chave]));
+  for (const t of resultado) {
+    t.paiChave = t.pai ? porUid.get(t.pai) || null : null;
+    t.macroChave = porUid.get(t.macroUid) || t.chave;
+  }
+  return resultado;
+}
+
+// Compara duas versões (já com chaves). Retorna adicionadas/removidas/alteradas e totais.
+function relDiffVersoes(antigas, novas) {
+  const A = new Map(antigas.map((t) => [t.chave, t])), N = new Map(novas.map((t) => [t.chave, t]));
+  const adicionadas = [], removidas = [], alteradas = [];
+  for (const t of novas) if (!A.has(t.chave)) adicionadas.push({ chave: t.chave, nome: t.nome, wbs: t.wbs, executavel: t.executavel, durMin: t.durMin });
+  for (const t of antigas) if (!N.has(t.chave)) removidas.push({ chave: t.chave, nome: t.nome, wbs: t.wbs, executavel: t.executavel, durMin: t.durMin });
+  const campos = [["nome", "Nome"], ["wbs", "EAP/WBS"], ["nivel", "Nível"], ["paiChave", "Agrupador (pai)"], ["durMin", "Duração"], ["ini", "Início"], ["fim", "Término"], ["executavel", "Executável"]];
+  for (const t of novas) {
+    const a = A.get(t.chave);
+    if (!a) continue;
+    const mud = [];
+    for (const [k, rot] of campos) {
+      const va = a[k] ?? null, vb = t[k] ?? null;
+      if (va !== vb) mud.push({ campo: rot, de: va, para: vb, chaveCampo: k });
+    }
+    if (mud.length) alteradas.push({ chave: t.chave, nome: t.nome, wbs: t.wbs, mudancas: mud, estrutural: mud.some((m) => ["nome", "wbs", "nivel", "paiChave", "durMin", "executavel"].includes(m.chaveCampo)) });
+  }
+  const soma = (l) => l.filter((t) => t.executavel).reduce((s, t) => s + (t.durMin || 0), 0);
+  const relevante = adicionadas.some((t) => t.executavel) || removidas.some((t) => t.executavel) || alteradas.some((t) => t.mudancas.some((m) => ["durMin", "executavel", "paiChave"].includes(m.chaveCampo)));
+  return { adicionadas, removidas, alteradas, totalMinAntes: soma(antigas), totalMinDepois: soma(novas), relevante };
+}
+
+/* ---------- Metodologia de avanço físico ---------- */
+const relExecutaveis = (tarefas) => (tarefas || []).filter((t) => t.executavel);
+
+// Pesos automáticos (duração / Σ durações), em centésimos de % (inteiros) que somam exatamente 10000.
+function relPesos(atividades) {
+  const bp = relDistribuirArredondado(atividades.map((a) => a.durMin), 100, 2);
+  const total = bp.reduce((a, b) => a + b, 0);
+  return { bp, totalMin: atividades.reduce((s, a) => s + a.durMin, 0), ok: atividades.length === 0 || total === 10000 };
+}
+
+/**
+ * Reconstrói a distribuição planejada de dias úteis de cada atividade executável.
+ * ref: { tipo: "baseline" | "primeira", tarefasRef?: tarefas da 1ª versão (com chaves) }
+ * Premissa: distribuição uniforme do trabalho pelos dias úteis (calendário do Project) entre início e término.
+ */
+function relPlanejamento(versao, ref) {
+  const avisos = [];
+  const cals = versao.calendarios || {};
+  const calProj = versao.projeto?.calUid || null;
+  const refPorChave = new Map(((ref && ref.tarefasRef) || []).map((t) => [t.chave, t]));
+  const itens = new Map();
+  let usouBaseline = 0, usouPrimeira = 0, usouAtual = 0, semDatas = 0, incoerentes = 0;
+  const execs = relExecutaveis(versao.tarefas);
+  for (const t of execs) {
+    let ini = null, fim = null, fonte = "atual";
+    if (ref && ref.tipo === "baseline" && t.bIni && t.bFim) { ini = t.bIni; fim = t.bFim; fonte = "baseline"; usouBaseline++; }
+    else if (ref && ref.tipo === "primeira" && refPorChave.get(t.chave)?.ini && refPorChave.get(t.chave)?.fim) {
+      const r = refPorChave.get(t.chave); ini = r.ini; fim = r.fim; fonte = "primeira"; usouPrimeira++;
+    } else { ini = t.ini; fim = t.fim; fonte = "atual"; usouAtual++; }
+    const calUid = t.cal || calProj;
+    const dias = ini && fim ? relDiasUteisEntre(cals, calUid, ini, fim) : [];
+    if (!ini || !fim) semDatas++;
+    else if (versao.projeto?.minPorDia && t.durMin) {
+      const dd = t.durMin / versao.projeto.minPorDia;
+      if (dias.length && Math.abs(dias.length - dd) > Math.max(1, dd * 0.25)) incoerentes++;
+    }
+    itens.set(t.chave, { chave: t.chave, dias, ini, fim, fonte });
+  }
+  if (ref && ref.tipo === "baseline" && usouAtual) avisos.push({ nivel: "aviso", msg: `${usouAtual} atividade(s) sem Baseline: o previsto delas usa as datas atuais do cronograma.` });
+  if (ref && ref.tipo === "primeira" && usouAtual) avisos.push({ nivel: "aviso", msg: `${usouAtual} atividade(s) não existem na primeira versão importada: o previsto delas usa as datas da versão atual.` });
+  if (!ref) avisos.push({ nivel: "aviso", msg: "Nenhuma referência de linha de base definida; o previsto usa as datas da versão atual." });
+  if (semDatas) avisos.push({ nivel: "aviso", msg: `${semDatas} atividade(s) sem datas de início/término: previsto considerado 0%.` });
+  if (incoerentes) avisos.push({ nivel: "aviso", msg: `${incoerentes} atividade(s) com duração incompatível com os dias úteis entre início e término. O previsto usa a contagem de dias úteis entre as datas; a duração (peso) vem do campo Duração do XML.` });
+  const premissas = ["Distribuição uniforme do trabalho pelos dias úteis de cada atividade (calendários do Project; fins de semana, feriados e exceções respeitados)."];
+  premissas.push(ref && ref.tipo === "baseline" ? "Referência do previsto: linha de base (Baseline 0) do Microsoft Project." : "Referência do previsto: primeira versão do cronograma importada (o XML não possui linha de base).");
+  return { itens, avisos, premissas, fonteTipo: ref ? ref.tipo : null };
+}
+
+// Fração planejada concluída (0..1) de uma atividade até a data (inclusive), contando dias úteis.
+function relFracaoPrevista(plan, chave, iso) {
+  const it = plan.itens.get(chave);
+  if (!it || !it.dias.length) return 0;
+  const alvo = relIsoParaDias(iso);
+  let lo = 0, hi = it.dias.length; // quantidade de dias <= alvo
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (it.dias[mid] <= alvo) lo = mid + 1; else hi = mid; }
+  return lo / it.dias.length;
+}
+
+const relStatusAfer = (a) => (a === undefined || a === null || a.pct === null || a.pct === undefined ? "nao" : a.pct === 0 ? "zero" : a.pct >= 100 ? "completa" : "parcial");
+
+/**
+ * Cálculo completo do avanço em uma data de referência.
+ * afer: { [chave]: { pct, origem } }  (ausente = não aferida; considerada 0% no somatório, com sinalização)
+ */
+function relCalcularAvanco(versao, plan, afer, dataRef) {
+  const atividades = relExecutaveis(versao.tarefas);
+  const minPorDia = versao.projeto?.minPorDia || 480;
+  const pesos = relPesos(atividades);
+  const linhas = [];
+  let totalMin = 0, realCent = 0, prevNum = 0; // realCent: Σ durMin × pct(centésimos) ; prevNum: Σ durMin × fração
+  let nNao = 0, nZero = 0, nParcial = 0, nCompleta = 0;
+  const macros = new Map();
+  const nomePorChave = new Map(versao.tarefas.map((t) => [t.chave, t]));
+  atividades.forEach((t, i) => {
+    const a = afer ? afer[t.chave] : undefined;
+    const st = relStatusAfer(a);
+    if (st === "nao") nNao++; else if (st === "zero") nZero++; else if (st === "completa") nCompleta++; else nParcial++;
+    const pctReal = st === "nao" ? 0 : Math.min(100, Math.max(0, a.pct));
+    const frac = dataRef ? relFracaoPrevista(plan, t.chave, dataRef) : 0;
+    const pctCent = Math.round(pctReal * 100);
+    totalMin += t.durMin; realCent += t.durMin * pctCent; prevNum += t.durMin * frac;
+    const linha = {
+      chave: t.chave, nome: t.nome, wbs: t.wbs, nivel: t.nivel, macroChave: t.macroChave, durMin: t.durMin,
+      pesoBp: pesos.bp[i], pctReal, aferida: st !== "nao", status: st, pctPrev: frac * 100,
+      equivRealMin: (t.durMin * pctCent) / 10000, equivPrevMin: t.durMin * frac,
+    };
+    linhas.push(linha);
+    let m = macros.get(t.macroChave);
+    if (!m) {
+      const mt = nomePorChave.get(t.macroChave);
+      m = { chave: t.macroChave, nome: mt ? mt.nome : "(sem agrupador)", wbs: mt ? mt.wbs : "", durMin: 0, realCent: 0, prevNum: 0, n: 0, nNao: 0 };
+      macros.set(t.macroChave, m);
+    }
+    m.durMin += t.durMin; m.realCent += t.durMin * pctCent; m.prevNum += t.durMin * frac; m.n++; if (st === "nao") m.nNao++;
+  });
+  const macrosLista = [...macros.values()].map((m) => ({
+    chave: m.chave, nome: m.nome, wbs: m.wbs, durMin: m.durMin, n: m.n, nNao: m.nNao,
+    pctReal: m.durMin ? m.realCent / m.durMin / 100 : 0, pctPrev: m.durMin ? (m.prevNum / m.durMin) * 100 : 0,
+    equivRealMin: m.realCent / 10000,
+  }));
+  const ordemMacro = new Map(versao.tarefas.map((t, i) => [t.chave, i]));
+  macrosLista.sort((a, b) => (ordemMacro.get(a.chave) ?? 0) - (ordemMacro.get(b.chave) ?? 0));
+  const real = totalMin ? realCent / totalMin / 100 : 0;
+  const prev = totalMin ? (prevNum / totalMin) * 100 : 0;
+  return {
+    linhas, macros: macrosLista, totalMin, minPorDia, pesosOk: pesos.ok, nAtividades: atividades.length,
+    real: relRound(real, 4), prev: relRound(prev, 4), equivRealMin: realCent / 10000, equivPrevMin: prevNum,
+    contagem: { nao: nNao, zero: nZero, parcial: nParcial, completa: nCompleta },
+  };
+}
+
+function relIndicadores(prev, real) {
+  const dev = relRound(real - prev, 1);
+  const situacao = dev > 0 ? "ADIANTADA" : dev < 0 ? "ATRASADA" : "CONFORME O PREVISTO";
+  const sinal = dev > 0 ? "+" : dev < 0 ? "−" : "";
+  return {
+    prev: relRound(prev, 1), real: relRound(real, 1), desvio: dev, situacao,
+    desvioTexto: `${sinal}${relFmtNum(Math.abs(dev), 1)} ${Math.abs(dev) === 1 ? "PONTO PERCENTUAL" : "PONTOS PERCENTUAIS"}`,
+  };
+}
+
+// Curva S prevista: amostras semanais do primeiro ao último dia útil planejado.
+function relCurvaPrevista(versao, plan) {
+  const atividades = relExecutaveis(versao.tarefas).filter((t) => plan.itens.get(t.chave)?.dias.length);
+  if (!atividades.length) return [];
+  let min = Infinity, max = -Infinity;
+  for (const t of atividades) { const d = plan.itens.get(t.chave).dias; min = Math.min(min, d[0]); max = Math.max(max, d[d.length - 1]); }
+  const totalMin = relExecutaveis(versao.tarefas).reduce((s, t) => s + t.durMin, 0);
+  const pontos = [];
+  const pontoEm = (dia) => {
+    let acc = 0;
+    for (const t of atividades) {
+      const dias = plan.itens.get(t.chave).dias;
+      let lo = 0, hi = dias.length;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (dias[m] <= dia) lo = m + 1; else hi = m; }
+      acc += t.durMin * (lo / dias.length);
+    }
+    return { d: relDiasParaIso(dia), v: totalMin ? (acc / totalMin) * 100 : 0 };
+  };
+  pontos.push({ d: relDiasParaIso(min - 1), v: 0 });
+  for (let d = min + 6; d < max; d += 7) pontos.push(pontoEm(d));
+  pontos.push(pontoEm(max));
+  return pontos;
+}
+
+// Série realizada: apenas datas com aferição registrada (sem interpolar/inventar).
+function relCurvaRealizada(historico) {
+  const mapa = new Map();
+  for (const h of historico) if (relDataValida(h.dataRef) && isFinite(h.real)) mapa.set(h.dataRef, h.real);
+  return [...mapa.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([d, v]) => ({ d, v }));
+}
+
+// Sugestão de aferição: último percentual registrado para cada atividade em relatórios anteriores.
+function relSugestoes(relatoriosAnteriores) {
+  const ord = [...relatoriosAnteriores].sort((a, b) => (a.dataRef < b.dataRef ? -1 : a.dataRef > b.dataRef ? 1 : (a.numero || 0) - (b.numero || 0)));
+  const sug = {};
+  for (const r of ord) for (const [k, v] of Object.entries(r.afer || {})) if (v && relPctValido(v.pct)) sug[k] = { pct: v.pct, dataRef: r.dataRef, numero: r.numero };
+  return sug;
+}
+
+/* ---------- Texto automático ---------- */
+function relTextoIntroducao(obraNome, ini, fim) {
+  const per = relPeriodoExtenso(ini, fim);
+  return `O presente relatório tem como objetivo apresentar o acompanhamento das atividades executadas na obra ${obraNome || "—"}${per ? `, compreendendo o período de ${per}` : ""}.`;
+}
+
+function relListaTexto(itens, max = 4) {
+  const l = itens.slice(0, max);
+  const resto = itens.length - l.length;
+  let s = l.join("; ");
+  if (resto > 0) s += `; e outras ${resto}`;
+  return s;
+}
+
+/**
+ * Análise técnica por regras (sem IA, sem inventar causas).
+ * dados: { obraNome, ind:{prev,real,desvio}, dataRef, macros, linhas, principais:[string], anterior:{real,dataRef}|null, nNao }
+ */
+function relGerarAnaliseTexto(d) {
+  const p = [];
+  const { ind } = d;
+  const dd = relFmtNum(Math.abs(ind.desvio), 1);
+  let s1 = `O avanço físico aferido da obra atingiu ${relFmtPct(ind.real)}, enquanto o cronograma de referência previa ${relFmtPct(ind.prev)} até ${relFmtData(d.dataRef)}`;
+  if (ind.desvio > 0) s1 += `, representando um adiantamento de ${dd} ponto${Math.abs(ind.desvio) === 1 ? "" : "s"} percentua${Math.abs(ind.desvio) === 1 ? "l" : "is"}.`;
+  else if (ind.desvio < 0) s1 += `, representando um atraso de ${dd} ponto${Math.abs(ind.desvio) === 1 ? "" : "s"} percentua${Math.abs(ind.desvio) === 1 ? "l" : "is"} em relação ao cronograma.`;
+  else s1 += ", o que indica andamento conforme o previsto.";
+  p.push(s1);
+  if (d.anterior && isFinite(d.anterior.real)) {
+    const delta = relRound(ind.real - d.anterior.real, 1);
+    const pl = Math.abs(delta) === 1 ? "ponto percentual" : "pontos percentuais";
+    p.push(`Em relação à aferição anterior (${relFmtData(d.anterior.dataRef)}), o avanço físico aferido passou de ${relFmtPct(d.anterior.real)} para ${relFmtPct(ind.real)} (${delta >= 0 ? "+" : "−"}${relFmtNum(Math.abs(delta), 1)} ${pl} no intervalo).`);
+  }
+  if (d.principais && d.principais.length) p.push(`Entre as principais atividades registradas no período, destacam-se: ${relListaTexto(d.principais.map((x) => x.replace(/[.;\s]+$/, "")), 6)}.`);
+  const LIM = 5;
+  const macros = (d.macros || []).filter((m) => m.nNao < m.n); // só macros com ao menos uma aferição
+  const acima = macros.filter((m) => m.pctReal - m.pctPrev >= LIM).sort((a, b) => (b.pctReal - b.pctPrev) - (a.pctReal - a.pctPrev));
+  const abaixo = macros.filter((m) => m.pctPrev - m.pctReal >= LIM).sort((a, b) => (b.pctPrev - b.pctReal) - (a.pctPrev - a.pctReal));
+  const fm = (m) => `${m.nome} (realizado ${relFmtPct(m.pctReal)} x previsto ${relFmtPct(m.pctPrev)})`;
+  if (acima.length) p.push(`Apresentaram avanço superior ao previsto as atividades macro: ${relListaTexto(acima.map(fm), 3)}.`);
+  if (abaixo.length) p.push(`Apresentaram avanço inferior ao previsto as atividades macro: ${relListaTexto(abaixo.map(fm), 3)}.`);
+  if (!acima.length && !abaixo.length && macros.length) p.push("Não foram identificadas atividades macro com desvio relevante (igual ou superior a 5 pontos percentuais) em relação ao previsto.");
+  // Atividades com término previsto até a data e ainda não concluídas (fato objetivo)
+  const vencidas = (d.linhas || []).filter((l) => l.aferida && l.pctPrev >= 99.999 && l.pctReal < 100).sort((a, b) => (100 - a.pctReal) * a.durMin < (100 - b.pctReal) * b.durMin ? 1 : -1);
+  if (vencidas.length) p.push(`Atividades com término previsto até a data de referência e ainda não concluídas (${vencidas.length}): ${relListaTexto(vencidas.map((l) => `${l.nome} (${relFmtPct(l.pctReal)})`), 4)}. Recomenda-se priorizar a conclusão dessas atividades no próximo período.`);
+  if (d.nNao > 0) p.push(`Ressalva: ${d.nNao} atividade(s) executável(is) ainda não possuem aferição neste relatório e foram consideradas com 0% no cálculo do avanço realizado.`);
+  if (ind.desvio < 0 && !abaixo.length && !vencidas.length) p.push("Recomenda-se acompanhar a evolução das atividades no próximo período para recuperação do desvio apontado.");
+  return p.join("\n\n");
+}
+
+/* ---------- Integridade ---------- */
+// Verificações de integridade do cronograma para exibição (regras 1, 2, 13, 15)
+function relVerificarIntegridade(versao) {
+  const ex = relExecutaveis(versao.tarefas);
+  const pesos = relPesos(ex);
+  const problemas = [];
+  if (!ex.length) problemas.push("Sem atividades executáveis.");
+  if (ex.some((t) => t.resumo || t.marco)) problemas.push("Há resumo/marco entre as executáveis.");
+  if (!pesos.ok) problemas.push("Pesos não somam 100%.");
+  return { ok: problemas.length === 0, problemas, totalMin: pesos.totalMin, somaPesosBp: pesos.bp.reduce((a, b) => a + b, 0), n: ex.length };
+}
+
+
+/* ---------- Consolidação (usada pela tela, pelo snapshot e pelo PDF) ---------- */
+// historico: [{id, dataRef, real}] de TODOS os relatórios (resumos) da obra, exceto o atual.
+function relConsolidar({ rel, versao, plan, historico, refTipo, versaoNome }) {
+  if (!versao || !plan) return null;
+  const av = relCalcularAvanco(versao, plan, rel.afer || {}, rel.dataRef);
+  const ind = relIndicadores(av.prev, av.real);
+  const hist = (historico || []).filter((h) => h.id !== rel.id && h.dataRef && h.dataRef <= rel.dataRef && isFinite(h.real));
+  const real = relCurvaRealizada([...hist, { dataRef: rel.dataRef, real: relRound(av.real, 2) }]);
+  const premissas = [...plan.premissas];
+  if (versaoNome) premissas.push(`Versão do cronograma utilizada: ${versaoNome}.`);
+  premissas.push(`Duração das atividades convertida em dias de trabalho com ${relFmtNum(av.minPorDia / 60, 2)} h/dia.`);
+  return {
+    geral: { ...ind, nAtividades: av.nAtividades, totalDias: av.totalMin / av.minPorDia },
+    macros: av.macros.map((m) => ({ chave: m.chave, wbs: m.wbs, nome: m.nome, durDias: m.durMin / av.minPorDia, pctReal: m.pctReal, pctPrev: m.pctPrev, n: m.n, nNao: m.nNao })),
+    linhas: av.linhas.map((l) => ({ chave: l.chave, nome: l.nome, wbs: l.wbs, nivel: l.nivel, macroChave: l.macroChave, durMin: l.durMin, pesoBp: l.pesoBp, pctReal: l.pctReal, aferida: l.aferida, status: l.status, pctPrev: l.pctPrev })),
+    curva: { prev: relCurvaPrevista(versao, plan), real },
+    premissas, contagem: av.contagem, nNao: av.contagem.nao, minPorDia: av.minPorDia, totalMin: av.totalMin,
+    pesosOk: av.pesosOk, refTipo: refTipo || plan.fonteTipo, versaoNome: versaoNome || "", avisos: plan.avisos,
+  };
+}
+
+/* (marcador: REL_PURE_END) */
+
+/* ===================================================================
+   RELATÓRIOS DE OBRA — RENDERIZAÇÃO DE PÁGINAS (canvas) E ESCRITA DE PDF
+   Páginas A4 retrato desenhadas em canvas 1680 x 2376 px (~203 dpi), exportadas em JPEG
+   e empacotadas em um PDF mínimo escrito à mão (sem bibliotecas externas).
+   (marcador: REL_RENDER_BEGIN)
+=================================================================== */
+
+const REL_W = 1680, REL_H = 2376, REL_M = 140;
+const REL_COR = {
+  verde: "#0E3B2E", verdeMed: "#1D5A45", accent: "#2F8F5B", accentClaro: "#BFE0CC", cinza: "#F0F1EE", cinzaMed: "#D9DCD7",
+  texto: "#1F2A25", muted: "#5D6B64", vermelho: "#B23A34", branco: "#FFFFFF",
+};
+const REL_FONTE_CORPO = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const REL_FONTE_TITULO = '"Space Grotesk", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
+const relFonte = (px, peso = 400, titulo = false) => `${peso} ${px}px ${titulo ? REL_FONTE_TITULO : REL_FONTE_CORPO}`;
+const REL_TOPO_CONTEUDO = 380, REL_BASE_CONTEUDO = REL_H - 270;
+
+function relCriarCanvas(w, h) {
+  const c = (globalThis.__relCriarCanvas ? globalThis.__relCriarCanvas() : document.createElement("canvas"));
+  c.width = w; c.height = h;
+  return c;
+}
+function relCarregarImagem(src) {
+  if (globalThis.__relCarregarImagem) return globalThis.__relCarregarImagem(src);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Não foi possível carregar a imagem."));
+    img.src = src;
+  });
+}
+async function relCanvasParaJpeg(canvas, qualidade) {
+  if (typeof canvas.toBuffer === "function") return new Uint8Array(canvas.toBuffer("image/jpeg", Math.round(qualidade * 100)));
+  const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", qualidade));
+  if (!blob) throw new Error("Falha ao gerar a imagem da página.");
+  return new Uint8Array(await blob.arrayBuffer());
+}
+
+/* ---------- primitivas de desenho ---------- */
+function relCaminhoArredondado(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r); ctx.closePath();
+}
+function relRetangulo(ctx, x, y, w, h, cor, r = 0) {
+  ctx.fillStyle = cor;
+  if (r > 0) { relCaminhoArredondado(ctx, x, y, w, h, r); ctx.fill(); } else ctx.fillRect(x, y, w, h);
+}
+function relTexto(ctx, texto, x, y, { fonte, cor = REL_COR.texto, align = "left", espaco = 0 } = {}) {
+  if (fonte) ctx.font = fonte;
+  ctx.fillStyle = cor; ctx.textAlign = align; ctx.textBaseline = "alphabetic";
+  if ("letterSpacing" in ctx) ctx.letterSpacing = espaco ? `${espaco}px` : "0px";
+  ctx.fillText(texto, x, y);
+  if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+}
+// Quebra de linha por palavras usando a fonte atual do contexto. Palavras maiores que a largura são partidas.
+function relQuebrar(ctx, texto, larg) {
+  const out = [];
+  for (const par of String(texto ?? "").split(/\r?\n/)) {
+    if (par.trim() === "") { out.push(""); continue; }
+    let linha = "";
+    for (const palavra of par.split(/\s+/).filter(Boolean)) {
+      let p = palavra;
+      while (ctx.measureText(p).width > larg) { // palavra gigante
+        let k = p.length;
+        while (k > 1 && ctx.measureText(p.slice(0, k)).width > larg) k--;
+        if (linha) { out.push(linha); linha = ""; }
+        out.push(p.slice(0, k)); p = p.slice(k);
+      }
+      const teste = linha ? linha + " " + p : p;
+      if (ctx.measureText(teste).width <= larg) linha = teste;
+      else { out.push(linha); linha = p; }
+    }
+    if (linha) out.push(linha);
+  }
+  return out;
+}
+function relElipse(ctx, texto, larg) {
+  if (ctx.measureText(texto).width <= larg) return texto;
+  let t = texto;
+  while (t.length > 1 && ctx.measureText(t + "…").width > larg) t = t.slice(0, -1);
+  return t + "…";
+}
+function relAjustarFonte(ctx, texto, larg, pxMax, pxMin, peso, titulo) {
+  let px = pxMax;
+  ctx.font = relFonte(px, peso, titulo);
+  while (px > pxMin && ctx.measureText(texto).width > larg) { px -= 2; ctx.font = relFonte(px, peso, titulo); }
+  return px;
+}
+function relLimitarLinhas(ctx, linhas, max, larg) {
+  if (linhas.length <= max) return linhas;
+  const l = linhas.slice(0, max);
+  l[max - 1] = relElipse(ctx, l[max - 1] + "…", larg);
+  return l;
+}
+
+/* ---------- fluxo de texto com paginação ---------- */
+// blocos: {k:'h2'|'p'|'li'|'gap'|'kpis'|'nota', texto|h|itens}. Retorna lista de páginas, cada uma com ops já quebrados.
+function relFluxo(ctx, blocos, yIni, yFim, larg) {
+  const paginas = [[]];
+  let y = yIni;
+  const LH = 46;
+  const nova = () => { paginas.push([]); y = yIni; };
+  for (const b of blocos) {
+    if (b.k === "gap") { if (y + b.h <= yFim) { y += b.h; } else nova(); continue; }
+    if (b.k === "kpis") {
+      const h = 200;
+      if (y + h > yFim) nova();
+      paginas[paginas.length - 1].push({ k: "kpis", y, h, itens: b.itens });
+      y += h + 30; continue;
+    }
+    if (b.k === "h2") {
+      ctx.font = relFonte(36, 700, true);
+      const linhas = relQuebrar(ctx, b.texto, larg);
+      const h = linhas.length * 52 + 30;
+      if (y + h + 2 * LH > yFim) nova();
+      paginas[paginas.length - 1].push({ k: "h2", y: y + 30, linhas, h });
+      y += h + 6; continue;
+    }
+    const nota = b.k === "nota";
+    const fpx = nota ? 26 : 30, lh = nota ? 38 : LH;
+    const indent = b.k === "li" ? 56 : 0;
+    ctx.font = relFonte(fpx, 400);
+    const linhas = relQuebrar(ctx, b.texto, larg - indent);
+    let i = 0;
+    while (i < linhas.length) {
+      let cabem = Math.floor((yFim - y) / lh);
+      if (cabem < 2 && linhas.length - i > 1) { nova(); cabem = Math.floor((yFim - y) / lh); }
+      if (cabem < 1) { nova(); cabem = Math.floor((yFim - y) / lh); }
+      const fatia = linhas.slice(i, i + cabem);
+      const h = fatia.length * lh;
+      paginas[paginas.length - 1].push({ k: b.k, y, linhas: fatia, h, lh, fpx, indent, bullet: b.k === "li" && i === 0, vazio: false });
+      y += h; i += fatia.length;
+    }
+    y += b.k === "li" ? 12 : 22;
+  }
+  return paginas;
+}
+
+/* ---------- paginação do relatório ---------- */
+function relPaginar(ctx, d) {
+  const larg = REL_W - 2 * REL_M;
+  const paginas = [{ tipo: "capa" }, { tipo: "indice" }];
+  const secoes = {};
+  // 1. Introdução
+  const blocosIntro = [{ k: "p", texto: d.introTexto || "" }, { k: "h2", texto: "Principais atividades realizadas no período" }];
+  if (d.principais && d.principais.length) for (const a of d.principais) blocosIntro.push({ k: "li", texto: a });
+  else blocosIntro.push({ k: "nota", texto: "Nenhuma atividade foi informada para o período." });
+  if (d.geral) blocosIntro.push({ k: "gap", h: 30 }, { k: "h2", texto: "Situação do avanço físico na data de referência" }, { k: "kpis", itens: [
+    { rot: "AVANÇO PREVISTO", val: relFmtPct(d.geral.prev) }, { rot: "AVANÇO REALIZADO", val: relFmtPct(d.geral.real) }, { rot: "SITUAÇÃO", val: d.geral.situacao, pequeno: true },
+  ] });
+  const fi = relFluxo(ctx, blocosIntro, REL_TOPO_CONTEUDO, REL_BASE_CONTEUDO, larg);
+  secoes.intro = paginas.length + 1;
+  fi.forEach((ops, i) => paginas.push({ tipo: "texto", sec: 1, titulo: "1. INTRODUÇÃO", cont: i > 0, ops }));
+  // 2. Avanço físico
+  secoes.avanco = paginas.length + 1;
+  const macros = d.macros || [];
+  const LINHA_H = 100;
+  const capPrim = Math.max(1, Math.floor((REL_BASE_CONTEUDO - 840) / LINHA_H));
+  const capOutras = Math.max(1, Math.floor((REL_BASE_CONTEUDO - REL_TOPO_CONTEUDO - 80) / LINHA_H));
+  let pos = 0, primeira = true;
+  do {
+    const cap = primeira ? capPrim : capOutras;
+    paginas.push({ tipo: "avanco", sec: 2, titulo: "2. AVANÇO FÍSICO", cont: !primeira, primeira, macros: macros.slice(pos, pos + cap), todas: macros.length });
+    pos += cap; primeira = false;
+  } while (pos < macros.length);
+  // 3. Previsto x realizado
+  secoes.curva = paginas.length + 1;
+  paginas.push({ tipo: "curva", sec: 3, titulo: "3. ANDAMENTO — PREVISTO X REALIZADO" });
+  // 4. Registro fotográfico
+  secoes.fotos = paginas.length + 1;
+  const fotos = (d.fotos || []).map((f, i) => ({ ...f, n: i + 1 }));
+  if (!fotos.length) paginas.push({ tipo: "fotos", sec: 4, titulo: "4. REGISTRO FOTOGRÁFICO", cont: false, fotos: [] });
+  else {
+    let i = 0, primeiraF = true;
+    while (i < fotos.length) {
+      const restantes = fotos.length - i;
+      let n = Math.min(3, restantes);
+      if (n === 3 && fotos.slice(i, i + 3).some((f) => f.w && f.h && f.w / f.h < 1.15)) n = 2; // retrato/quadrada: 2 por página
+      paginas.push({ tipo: "fotos", sec: 4, titulo: "4. REGISTRO FOTOGRÁFICO", cont: !primeiraF, fotos: fotos.slice(i, i + n) });
+      i += n; primeiraF = false;
+    }
+  }
+  // 5. Análise técnica
+  secoes.analise = paginas.length + 1;
+  const blocosAn = [];
+  const paragrafos = String(d.analise || "").split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
+  if (paragrafos.length) paragrafos.forEach((p) => blocosAn.push({ k: "p", texto: p }));
+  else blocosAn.push({ k: "nota", texto: "Análise técnica não informada." });
+  relFluxo(ctx, blocosAn, REL_TOPO_CONTEUDO, REL_BASE_CONTEUDO, larg).forEach((ops, i) => paginas.push({ tipo: "texto", sec: 5, titulo: "5. ANÁLISE TÉCNICA", cont: i > 0, ops }));
+  return { paginas, secoes };
+}
+
+/* ---------- desenho das páginas ---------- */
+function relRodape(ctx, d, n, total, logo) {
+  const y = REL_H - 215;
+  ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, y, REL_W - 2 * REL_M, 3);
+  const yTxt = REL_H - 118;
+  relTexto(ctx, "GLOVER ENGENHARIA | RELATÓRIO DE OBRA", REL_M, yTxt, { fonte: relFonte(23, 700), cor: REL_COR.verde, espaco: 1 });
+  relTexto(ctx, `Página ${n} de ${total}`, REL_W / 2, yTxt, { fonte: relFonte(24, 500), cor: REL_COR.muted, align: "center" });
+  // logo oficial (o arquivo tem partes brancas: aplicado sobre placa verde institucional)
+  const pw = 303, ph = 110, px = REL_W - REL_M - pw, py = REL_H - 185;
+  relRetangulo(ctx, px, py, pw, ph, REL_COR.verde, 14);
+  if (logo) {
+    const lw = 267, lh = lw * (logo.height / logo.width);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(logo, px + (pw - lw) / 2, py + (ph - lh) / 2, lw, lh);
+  }
+}
+function relCabecalho(ctx, d, pg) {
+  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 118, { fonte: relFonte(24, 700), cor: REL_COR.verde, espaco: 4 });
+  ctx.font = relFonte(23, 400);
+  const dir = relElipse(ctx, `Relatório de Obra nº ${String(d.numero).padStart(2, "0")}  |  ${d.obraNome}`, 1000);
+  relTexto(ctx, dir, REL_W - REL_M, 118, { fonte: relFonte(23, 400), cor: REL_COR.muted, align: "right" });
+  ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, 148, REL_W - 2 * REL_M, 3);
+  const t = pg.titulo + (pg.cont ? " (continuação)" : "");
+  const px = relAjustarFonte(ctx, t, REL_W - 2 * REL_M, 60, 34, 700, true);
+  relTexto(ctx, t, REL_M, 262, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
+  relRetangulo(ctx, REL_M, 296, 130, 9, REL_COR.accent, 4);
+}
+function relCapa(ctx, d) {
+  relRetangulo(ctx, 0, 0, REL_W, 1500, REL_COR.verde);
+  // elementos geométricos discretos
+  ctx.save(); ctx.globalAlpha = 0.07; ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath(); ctx.moveTo(REL_W, 0); ctx.lineTo(REL_W, 760); ctx.lineTo(REL_W - 760, 0); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 0.05;
+  ctx.beginPath(); ctx.moveTo(REL_W, 330); ctx.lineTo(REL_W, 1130); ctx.lineTo(REL_W - 800, 330); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  relRetangulo(ctx, 0, 0, 22, 1500, REL_COR.accent);
+  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 220, { fonte: relFonte(46, 700, true), cor: "#FFFFFF", espaco: 10 });
+  relRetangulo(ctx, REL_M, 262, 220, 8, REL_COR.accent, 4);
+  const titulo = `RELATÓRIO DE OBRA Nº ${String(d.numero).padStart(2, "0")}`;
+  const pxT = relAjustarFonte(ctx, titulo, REL_W - 2 * REL_M, 104, 56, 700, true);
+  relTexto(ctx, titulo, REL_M, 640, { fonte: relFonte(pxT, 700, true), cor: "#FFFFFF" });
+  relTexto(ctx, "OBRA", REL_M, 800, { fonte: relFonte(30, 600), cor: REL_COR.accentClaro, espaco: 8 });
+  ctx.font = relFonte(76, 700, true);
+  const linhasObra = relLimitarLinhas(ctx, relQuebrar(ctx, String(d.obraNome || "").toUpperCase(), REL_W - 2 * REL_M), 3, REL_W - 2 * REL_M);
+  linhasObra.forEach((l, i) => relTexto(ctx, l, REL_M, 890 + i * 94, { fonte: relFonte(76, 700, true), cor: "#FFFFFF" }));
+  const yP = 890 + linhasObra.length * 94 + 90;
+  relTexto(ctx, "PERÍODO", REL_M, yP, { fonte: relFonte(30, 600), cor: REL_COR.accentClaro, espaco: 8 });
+  relTexto(ctx, `${relFmtData(d.periodoIni)} A ${relFmtData(d.periodoFim)}`, REL_M, yP + 78, { fonte: relFonte(64, 600, true), cor: "#FFFFFF" });
+  // faixa cinza com dados complementares
+  relRetangulo(ctx, 0, 1500, REL_W, REL_H - 1500 - 250, REL_COR.cinza);
+  const linhas = [["CLIENTE", d.cliente || "—"], ["RESPONSÁVEL PELO RELATÓRIO", d.responsavel || "—"], ["DATA DE REFERÊNCIA DA AFERIÇÃO", relFmtData(d.dataRef)]];
+  linhas.forEach(([r, v], i) => {
+    const y = 1640 + i * 150;
+    relTexto(ctx, r, REL_M, y, { fonte: relFonte(24, 700), cor: REL_COR.accent, espaco: 3 });
+    ctx.font = relFonte(38, 500);
+    relTexto(ctx, relElipse(ctx, v, REL_W - 2 * REL_M), REL_M, y + 56, { fonte: relFonte(38, 500), cor: REL_COR.texto });
+  });
+}
+function relIndice(ctx, d, secoes) {
+  relCabecalho(ctx, d, { titulo: "ÍNDICE" });
+  const itens = [["1.", "Introdução", secoes.intro], ["2.", "Avanço Físico", secoes.avanco], ["3.", "Andamento — Previsto x Realizado", secoes.curva], ["4.", "Registro Fotográfico", secoes.fotos], ["5.", "Análise Técnica", secoes.analise]];
+  let y = 480;
+  for (const [n, t, p] of itens) {
+    relTexto(ctx, n, REL_M, y, { fonte: relFonte(40, 700, true), cor: REL_COR.accent });
+    relTexto(ctx, t, REL_M + 70, y, { fonte: relFonte(40, 500), cor: REL_COR.texto });
+    const wTxt = ctx.measureText(t).width;
+    ctx.font = relFonte(40, 700);
+    const sp = String(p), wP = ctx.measureText(sp).width;
+    relTexto(ctx, sp, REL_W - REL_M, y, { fonte: relFonte(40, 700), cor: REL_COR.verde, align: "right" });
+    ctx.fillStyle = REL_COR.cinzaMed;
+    for (let x = REL_M + 70 + wTxt + 24; x < REL_W - REL_M - wP - 24; x += 14) ctx.fillRect(x, y - 6, 4, 4);
+    ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, y + 40, REL_W - 2 * REL_M, 2);
+    y += 120;
+  }
+}
+function relPaginaTexto(ctx, d, pg) {
+  relCabecalho(ctx, d, pg);
+  for (const op of pg.ops) {
+    if (op.k === "h2") {
+      op.linhas.forEach((l, i) => relTexto(ctx, l, REL_M, op.y + 36 + i * 52, { fonte: relFonte(36, 700, true), cor: REL_COR.verde }));
+      relRetangulo(ctx, REL_M, op.y + 36 + (op.linhas.length - 1) * 52 + 16, 90, 5, REL_COR.accent, 2);
+    } else if (op.k === "kpis") {
+      const n = op.itens.length, gap = 24, w = (REL_W - 2 * REL_M - gap * (n - 1)) / n;
+      op.itens.forEach((it, i) => {
+        const x = REL_M + i * (w + gap);
+        relRetangulo(ctx, x, op.y, w, op.h, REL_COR.cinza, 16);
+        relRetangulo(ctx, x, op.y, 10, op.h, REL_COR.accent, 4);
+        relTexto(ctx, it.rot, x + 36, op.y + 62, { fonte: relFonte(22, 700), cor: REL_COR.muted, espaco: 2 });
+        const cor = it.val === "ATRASADA" ? REL_COR.vermelho : REL_COR.verde;
+        const px = it.pequeno ? relAjustarFonte(ctx, it.val, w - 70, 40, 24, 700, true) : 74;
+        relTexto(ctx, it.val, x + 36, op.y + 150, { fonte: relFonte(px, 700, true), cor });
+      });
+    } else {
+      const cor = op.k === "nota" ? REL_COR.muted : REL_COR.texto;
+      op.linhas.forEach((l, i) => {
+        const yy = op.y + op.lh * (i + 1) - 12;
+        if (l !== "") relTexto(ctx, l, REL_M + op.indent, yy, { fonte: relFonte(op.fpx, 400), cor });
+      });
+      if (op.bullet) { ctx.fillStyle = REL_COR.accent; ctx.beginPath(); ctx.arc(REL_M + 18, op.y + op.lh - 22, 7, 0, Math.PI * 2); ctx.fill(); }
+    }
+  }
+}
+function relPaginaAvanco(ctx, d, pg) {
+  relCabecalho(ctx, d, pg);
+  let y = REL_TOPO_CONTEUDO - 20;
+  const wTot = REL_W - 2 * REL_M;
+  if (pg.primeira) {
+    const g = d.geral;
+    const caixas = g ? [
+      ["AVANÇO FÍSICO REALIZADO", relFmtPct(g.real)], ["AVANÇO PREVISTO NA DATA DE REFERÊNCIA", relFmtPct(g.prev)],
+      ["ATIVIDADES EXECUTÁVEIS", `${g.nAtividades} | ${relFmtNum(g.totalDias, 2)} dias`],
+    ] : [];
+    const gap = 24, w = (wTot - gap * 2) / 3;
+    caixas.forEach(([r, v], i) => {
+      const x = REL_M + i * (w + gap);
+      relRetangulo(ctx, x, y, w, 190, REL_COR.cinza, 16); relRetangulo(ctx, x, y, 10, 190, REL_COR.accent, 4);
+      ctx.font = relFonte(20, 700);
+      relTexto(ctx, relElipse(ctx, r, w - 60), x + 34, y + 54, { fonte: relFonte(20, 700), cor: REL_COR.muted, espaco: 1 });
+      const px = relAjustarFonte(ctx, v, w - 60, i === 2 ? 40 : 70, 26, 700, true);
+      relTexto(ctx, v, x + 34, y + 138, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
+    });
+    y += 190 + 40;
+    ctx.font = relFonte(22, 400);
+    const nota = "Percentual de cada atividade macro = Σ (duração × % realizado) ÷ Σ duração das suas atividades executáveis (dias de trabalho do cronograma). Não se utiliza média simples. Atividades-resumo e marcos não entram no cálculo.";
+    relQuebrar(ctx, nota, wTot).forEach((l, i) => relTexto(ctx, l, REL_M, y + 24 + i * 32, { fonte: relFonte(22, 400), cor: REL_COR.muted }));
+    y += 24 + relQuebrar(ctx, nota, wTot).length * 32 + 20;
+  }
+  // legenda e eixo
+  const barW = 1100, barX = REL_M;
+  relTexto(ctx, "Realizado (barra)", barX, y + 20, { fonte: relFonte(22, 600), cor: REL_COR.verde });
+  relRetangulo(ctx, barX + 250, y + 4, 36, 18, REL_COR.accent, 4);
+  relTexto(ctx, "Previsto na data de referência (marcador)", barX + 320, y + 20, { fonte: relFonte(22, 600), cor: REL_COR.muted });
+  relRetangulo(ctx, barX + 780, y + 2, 5, 24, REL_COR.texto);
+  y += 56;
+  [0, 25, 50, 75, 100].forEach((v) => {
+    const x = barX + (barW * v) / 100;
+    relTexto(ctx, `${v}%`, x, y + 14, { fonte: relFonte(20, 500), cor: REL_COR.muted, align: v === 0 ? "left" : v === 100 ? "right" : "center" });
+  });
+  y += 30;
+  const topoLinhas = y;
+  if (!pg.macros.length) {
+    relTexto(ctx, "Nenhum cronograma disponível: o avanço físico por atividade macro não pôde ser calculado.", REL_M, y + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
+    return;
+  }
+  pg.macros.forEach((m, i) => {
+    const yy = topoLinhas + i * 100;
+    ctx.font = relFonte(27, 600);
+    const rot = `${m.wbs ? m.wbs + "  " : ""}${m.nome}`;
+    relTexto(ctx, relElipse(ctx, rot, 900), barX, yy + 26, { fonte: relFonte(27, 600), cor: REL_COR.texto });
+    relTexto(ctx, `${relFmtNum(m.durDias, 2)} dias`, barX + barW, yy + 26, { fonte: relFonte(21, 400), cor: REL_COR.muted, align: "right" });
+    relRetangulo(ctx, barX, yy + 40, barW, 34, REL_COR.cinza, 8);
+    const w = Math.max(0, Math.min(100, m.pctReal)) / 100 * barW;
+    if (w > 0) relRetangulo(ctx, barX, yy + 40, Math.max(w, 10), 34, REL_COR.accent, 8);
+    const xp = barX + Math.max(0, Math.min(100, m.pctPrev)) / 100 * barW;
+    relRetangulo(ctx, Math.min(xp, barX + barW - 4) - 2, yy + 34, 5, 46, REL_COR.texto);
+    relTexto(ctx, relFmtPct(m.pctReal), barX + barW + 28, yy + 70, { fonte: relFonte(34, 700, true), cor: REL_COR.verde });
+    relTexto(ctx, `prev. ${relFmtPct(m.pctPrev)}`, REL_W - REL_M, yy + 70, { fonte: relFonte(22, 400), cor: REL_COR.muted, align: "right" });
+  });
+}
+function relPaginaCurva(ctx, d, pg) {
+  relCabecalho(ctx, d, pg);
+  relTexto(ctx, "CURVA S DE AVANÇO FÍSICO", REL_M, 372, { fonte: relFonte(32, 700, true), cor: REL_COR.muted, espaco: 3 });
+  const x0 = REL_M + 110, x1 = REL_W - REL_M - 30, yT = 450, yB = 1280;
+  const prev = (d.curva && d.curva.prev) || [], real = (d.curva && d.curva.real) || [];
+  // fundo e grade
+  relRetangulo(ctx, x0, yT, x1 - x0, yB - yT, "#FAFAF8");
+  for (let v = 0; v <= 100; v += 10) {
+    const y = yB - ((yB - yT) * v) / 100;
+    ctx.fillStyle = v % 50 === 0 ? REL_COR.cinzaMed : "#E8EAE6"; ctx.fillRect(x0, y, x1 - x0, v % 50 === 0 ? 3 : 2);
+    relTexto(ctx, `${v}%`, x0 - 20, y + 8, { fonte: relFonte(22, 500), cor: REL_COR.muted, align: "right" });
+  }
+  const todas = [...prev, ...real].map((p) => relIsoParaDias(p.d));
+  if (d.dataRef) todas.push(relIsoParaDias(d.dataRef));
+  if (!todas.length) {
+    relTexto(ctx, "Cronograma indisponível: a curva S não pôde ser calculada.", (x0 + x1) / 2, (yT + yB) / 2, { fonte: relFonte(30, 500), cor: REL_COR.muted, align: "center" });
+  } else {
+    const dmin = Math.min(...todas), dmax = Math.max(Math.max(...todas), dmin + 1);
+    const X = (iso) => x0 + ((relIsoParaDias(iso) - dmin) / (dmax - dmin)) * (x1 - x0);
+    const Y = (v) => yB - ((yB - yT) * Math.max(0, Math.min(100, v))) / 100;
+    // eixo X
+    const nTicks = 7;
+    for (let i = 0; i <= nTicks; i++) {
+      const dia = Math.round(dmin + ((dmax - dmin) * i) / nTicks), x = x0 + ((x1 - x0) * i) / nTicks;
+      ctx.fillStyle = "#E8EAE6"; ctx.fillRect(x, yT, 2, yB - yT);
+      relTexto(ctx, relFmtDataCurta(relDiasParaIso(dia)), x, yB + 42, { fonte: relFonte(22, 500), cor: REL_COR.muted, align: "center" });
+    }
+    relTexto(ctx, "Data", (x0 + x1) / 2, yB + 86, { fonte: relFonte(22, 600), cor: REL_COR.muted, align: "center" });
+    // linha da data de referência
+    if (d.dataRef) {
+      ctx.save(); ctx.strokeStyle = REL_COR.muted; ctx.lineWidth = 3; ctx.setLineDash([14, 10]);
+      ctx.beginPath(); ctx.moveTo(X(d.dataRef), yT); ctx.lineTo(X(d.dataRef), yB); ctx.stroke(); ctx.restore();
+      relTexto(ctx, `Ref. ${relFmtDataCurta(d.dataRef)}`, Math.min(X(d.dataRef) + 8, x1 - 130), yT + 30, { fonte: relFonte(21, 600), cor: REL_COR.muted });
+    }
+    // previsto
+    if (prev.length) {
+      ctx.save(); ctx.strokeStyle = REL_COR.muted; ctx.lineWidth = 7; ctx.lineJoin = "round"; ctx.setLineDash([22, 12]);
+      ctx.beginPath(); prev.forEach((p, i) => (i ? ctx.lineTo(X(p.d), Y(p.v)) : ctx.moveTo(X(p.d), Y(p.v)))); ctx.stroke(); ctx.restore();
+    }
+    // realizado (apenas datas aferidas)
+    if (real.length) {
+      ctx.save(); ctx.strokeStyle = REL_COR.verde; ctx.lineWidth = 9; ctx.lineJoin = "round";
+      if (real.length > 1) { ctx.beginPath(); real.forEach((p, i) => (i ? ctx.lineTo(X(p.d), Y(p.v)) : ctx.moveTo(X(p.d), Y(p.v)))); ctx.stroke(); }
+      ctx.restore();
+      real.forEach((p) => { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(X(p.d), Y(p.v), 17, 0, 7); ctx.fill(); ctx.fillStyle = REL_COR.verde; ctx.beginPath(); ctx.arc(X(p.d), Y(p.v), 12, 0, 7); ctx.fill(); });
+    }
+    if (!real.length) relTexto(ctx, "Sem aferições registradas.", (x0 + x1) / 2, yT + 120, { fonte: relFonte(26, 500), cor: REL_COR.muted, align: "center" });
+  }
+  // legenda
+  const yl = yB + 150;
+  ctx.save(); ctx.strokeStyle = REL_COR.muted; ctx.lineWidth = 7; ctx.setLineDash([22, 12]); ctx.beginPath(); ctx.moveTo(x0, yl); ctx.lineTo(x0 + 90, yl); ctx.stroke(); ctx.restore();
+  relTexto(ctx, "Previsto (cronograma)", x0 + 110, yl + 9, { fonte: relFonte(25, 600), cor: REL_COR.texto });
+  ctx.save(); ctx.strokeStyle = REL_COR.verde; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x0 + 520, yl); ctx.lineTo(x0 + 610, yl); ctx.stroke(); ctx.restore();
+  ctx.fillStyle = REL_COR.verde; ctx.beginPath(); ctx.arc(x0 + 565, yl, 12, 0, 7); ctx.fill();
+  relTexto(ctx, "Realizado (aferições)", x0 + 630, yl + 9, { fonte: relFonte(25, 600), cor: REL_COR.texto });
+  // indicadores
+  const g = d.geral;
+  if (g) {
+    const caixas = [["AVANÇO PREVISTO", relFmtPct(g.prev)], ["AVANÇO REALIZADO", relFmtPct(g.real)], ["DESVIO", g.desvioTexto.replace(/^([+−])/, "$1")], ["SITUAÇÃO", g.situacao]];
+    const gap = 24, w = (REL_W - 2 * REL_M - gap) / 2, h = 140;
+    caixas.forEach(([r, v], i) => {
+      const x = REL_M + (i % 2) * (w + gap), y = 1530 + Math.floor(i / 2) * (h + 24);
+      relRetangulo(ctx, x, y, w, h, REL_COR.cinza, 14); relRetangulo(ctx, x, y, 10, h, REL_COR.accent, 4);
+      relTexto(ctx, r, x + 34, y + 48, { fonte: relFonte(22, 700), cor: REL_COR.muted, espaco: 2 });
+      const cor = (r === "SITUAÇÃO" && g.situacao === "ATRASADA") || (r === "DESVIO" && g.desvio < 0) ? REL_COR.vermelho : REL_COR.verde;
+      const px = relAjustarFonte(ctx, v, w - 70, 50, 26, 700, true);
+      relTexto(ctx, v, x + 34, y + 110, { fonte: relFonte(px, 700, true), cor });
+    });
+  }
+  // notas
+  let yn = 1530 + 2 * 164 + 30;
+  const notas = [];
+  if (d.premissas && d.premissas.length) notas.push(...d.premissas);
+  notas.push("Realizado: somente datas com aferição registrada em relatório (sem interpolação ou estimativa). Atividade sem aferição é considerada 0%.");
+  if (relResumoReal(d)) notas.push(relResumoReal(d));
+  ctx.font = relFonte(21, 400);
+  for (const n of notas) {
+    const ls = relQuebrar(ctx, "• " + n, REL_W - 2 * REL_M);
+    for (const l of ls) { if (yn > REL_BASE_CONTEUDO + 10) break; relTexto(ctx, l, REL_M, yn, { fonte: relFonte(21, 400), cor: REL_COR.muted }); yn += 30; }
+    yn += 6;
+  }
+}
+function relResumoReal(d) {
+  const r = (d.curva && d.curva.real) || [];
+  if (!r.length) return "";
+  return "Aferições: " + r.map((p) => `${relFmtDataCurta(p.d)} = ${relFmtPct(p.v)}`).join("; ") + ".";
+}
+function relPaginaFotos(ctx, d, pg) {
+  relCabecalho(ctx, d, pg);
+  const fotos = pg.fotos;
+  if (!fotos.length) {
+    relTexto(ctx, "Nenhuma fotografia foi registrada neste relatório.", REL_M, REL_TOPO_CONTEUDO + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
+    return;
+  }
+  const yIni = REL_TOPO_CONTEUDO - 10, yFim = REL_BASE_CONTEUDO + 10, gap = 36;
+  const slotH = (yFim - yIni - gap * (fotos.length - 1)) / fotos.length;
+  const capH = 128, wTot = REL_W - 2 * REL_M;
+  fotos.forEach((f, i) => {
+    const y = yIni + i * (slotH + gap);
+    const boxH = slotH - capH;
+    relRetangulo(ctx, REL_M, y, wTot, boxH, REL_COR.cinza, 10);
+    if (f.img) {
+      const iw = f.img.naturalWidth || f.img.width, ih = f.img.naturalHeight || f.img.height;
+      const esc = Math.min((wTot - 16) / iw, (boxH - 16) / ih);
+      const w = iw * esc, h = ih * esc;
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(f.img, REL_M + (wTot - w) / 2, y + (boxH - h) / 2, w, h);
+    } else relTexto(ctx, "Imagem indisponível", REL_M + wTot / 2, y + boxH / 2, { fonte: relFonte(28, 500), cor: REL_COR.muted, align: "center" });
+    const rotulo = `Foto ${String(f.n).padStart(2, "0")} — `;
+    ctx.font = relFonte(27, 700);
+    const wr = ctx.measureText(rotulo).width;
+    ctx.font = relFonte(27, 400);
+    const leg = relLimitarLinhas(ctx, relQuebrar(ctx, " ".repeat(0) + (f.legenda || "(sem legenda)"), wTot - wr), 2, wTot - wr);
+    relTexto(ctx, rotulo, REL_M, y + boxH + 42, { fonte: relFonte(27, 700), cor: REL_COR.verde });
+    leg.forEach((l, k) => relTexto(ctx, l, REL_M + wr, y + boxH + 42 + k * 36, { fonte: relFonte(27, 400), cor: REL_COR.texto }));
+    const meta = [f.disciplina, f.data ? relFmtData(f.data) : ""].filter(Boolean).join("  |  ");
+    if (meta) relTexto(ctx, meta, REL_M, y + boxH + 42 + 2 * 36 + 4, { fonte: relFonte(22, 500), cor: REL_COR.muted });
+  });
+}
+
+function relDesenharPagina(ctx, d, pg, n, total, secoes, logo) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, REL_W, REL_H);
+  if (pg.tipo === "capa") relCapa(ctx, d);
+  else if (pg.tipo === "indice") relIndice(ctx, d, secoes);
+  else if (pg.tipo === "texto") relPaginaTexto(ctx, d, pg);
+  else if (pg.tipo === "avanco") relPaginaAvanco(ctx, d, pg);
+  else if (pg.tipo === "curva") relPaginaCurva(ctx, d, pg);
+  else if (pg.tipo === "fotos") relPaginaFotos(ctx, d, pg);
+  relRodape(ctx, d, n, total, logo);
+}
+
+// Renderiza todas as páginas (duas passagens: paginar -> desenhar com nº real de páginas). Retorna JPEGs.
+async function relRenderizarRelatorio(d, { qualidade = 0.9, onProgresso } = {}) {
+  try {
+    if (typeof document !== "undefined" && document.fonts && document.fonts.load) {
+      await Promise.all(["400 24px Inter", "500 24px Inter", "600 24px Inter", "700 24px Inter", "700 24px \"Space Grotesk\""].map((f) => document.fonts.load(f).catch(() => null)));
+    }
+  } catch (e) { /* fontes opcionais */ }
+  let logo = null;
+  try { if (d.logoSrc) logo = await relCarregarImagem(d.logoSrc); } catch (e) { logo = null; }
+  const canvas = relCriarCanvas(REL_W, REL_H);
+  const ctx = canvas.getContext("2d");
+  const { paginas, secoes } = relPaginar(ctx, d);
+  const total = paginas.length;
+  const saida = [];
+  for (let i = 0; i < total; i++) {
+    relDesenharPagina(ctx, d, paginas[i], i + 1, total, secoes, logo);
+    saida.push({ jpeg: await relCanvasParaJpeg(canvas, qualidade), w: REL_W, h: REL_H });
+    if (onProgresso) onProgresso(i + 1, total);
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  return { paginas: saida, total, secoes };
+}
+
+/* ---------- escrita do PDF (A4 retrato, uma imagem JPEG por página) ---------- */
+function relMontarPDF(paginas, { titulo = "Relatório de Obra", autor = "Glover Engenharia" } = {}) {
+  const enc = new TextEncoder();
+  const partes = []; let pos = 0;
+  const offs = [];
+  const put = (u8) => { partes.push(u8); pos += u8.length; };
+  const putS = (s) => put(enc.encode(s));
+  const hexUtf16 = (s) => { let h = "FEFF"; for (let i = 0; i < s.length; i++) h += s.charCodeAt(i).toString(16).padStart(4, "0").toUpperCase(); return `<${h}>`; };
+  const n = paginas.length;
+  const idPagina = (i) => 4 + 3 * i, idConteudo = (i) => 5 + 3 * i, idImagem = (i) => 6 + 3 * i;
+  const total = 3 + 3 * n;
+  put(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a, 0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a])); // %PDF-1.4 + comentário binário
+  const obj = (id, corpo) => { offs[id] = pos; putS(`${id} 0 obj\n`); if (typeof corpo === "string") putS(corpo); else corpo(); putS("\nendobj\n"); };
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, `<< /Type /Pages /Kids [${paginas.map((_, i) => `${idPagina(i)} 0 R`).join(" ")}] /Count ${n} >>`);
+  const agora = new Date();
+  const dataPdf = `D:${agora.getUTCFullYear()}${String(agora.getUTCMonth() + 1).padStart(2, "0")}${String(agora.getUTCDate()).padStart(2, "0")}${String(agora.getUTCHours()).padStart(2, "0")}${String(agora.getUTCMinutes()).padStart(2, "0")}${String(agora.getUTCSeconds()).padStart(2, "0")}Z`;
+  obj(3, `<< /Title ${hexUtf16(titulo)} /Author ${hexUtf16(autor)} /Creator ${hexUtf16("Glover Engenharia - Relatórios de Obra")} /Producer ${hexUtf16("Glover Engenharia")} /CreationDate (${dataPdf}) >>`);
+  const PW = 595.28, PH = 841.89;
+  paginas.forEach((p, i) => {
+    obj(idPagina(i), `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${idImagem(i)} 0 R >> /ProcSet [/PDF /ImageC] >> /Contents ${idConteudo(i)} 0 R >>`);
+    const cont = `q\n${PW} 0 0 ${PH} 0 0 cm\n/Im0 Do\nQ\n`;
+    obj(idConteudo(i), `<< /Length ${cont.length} >>\nstream\n${cont}endstream`);
+    obj(idImagem(i), () => {
+      putS(`<< /Type /XObject /Subtype /Image /Width ${p.w} /Height ${p.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.jpeg.length} >>\nstream\n`);
+      put(p.jpeg);
+      putS("\nendstream");
+    });
+  });
+  const xrefPos = pos;
+  putS(`xref\n0 ${total + 1}\n0000000000 65535 f \n`);
+  for (let id = 1; id <= total; id++) putS(`${String(offs[id]).padStart(10, "0")} 00000 n \n`);
+  putS(`trailer\n<< /Size ${total + 1} /Root 1 0 R /Info 3 0 R >>\nstartxref\n${xrefPos}\n%%EOF\n`);
+  const out = new Uint8Array(pos); let o = 0;
+  for (const p of partes) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+/* (marcador: REL_RENDER_END) */
+
+/* ===================================================================
+   RELATÓRIOS DE OBRA — PERSISTÊNCIA (chaves separadas, fora do blob principal)
+   Usa window.storage (shared = true), igual ao restante do sistema. Nunca grava para perfil Investidor.
+   Não depende de window.storage.list nem de delete: exclusão = "tombstone" no resumo do relatório.
+   (marcador: REL_STORAGE_BEGIN)
+=================================================================== */
+
+const relChave = {
+  claim: (o, n) => `${REL_PREFIXO}num:${o}:${n}`,
+  rel: (o, r) => `${REL_PREFIXO}r:${o}:${r}`,
+  sum: (o, r) => `${REL_PREFIXO}s:${o}:${r}`,
+  foto: (r, f) => `${REL_PREFIXO}foto:${r}:${f}`,
+  cron: (o) => `${REL_PREFIXO}cron:${o}`,
+  cronv: (o, v) => `${REL_PREFIXO}cronv:${o}:${v}`,
+  xml: (o, v) => `${REL_PREFIXO}xml:${o}:${v}`,
+};
+const relDormir = (ms) => new Promise((r) => setTimeout(r, ms));
+const relEhAusente = (e) => /n[ãa]o encontrada|not found|PGRST116/i.test((e && e.message) || "");
+
+async function relLerTexto(key) {
+  try {
+    const res = await window.storage.get(key, true);
+    return res && res.value ? res.value : null;
+  } catch (e) {
+    if (relEhAusente(e)) return null; // chave inexistente; qualquer outro erro (rede etc.) é propagado
+    throw e;
+  }
+}
+async function relLer(key) {
+  const t = await relLerTexto(key);
+  if (!t) return null;
+  try { return JSON.parse(t); } catch (e) { return null; }
+}
+async function relGravar(key, obj) { await window.storage.set(key, JSON.stringify(obj), true); }
+async function relGravarTexto(key, txt) { await window.storage.set(key, txt, true); }
+
+/* ---------- relatórios ---------- */
+// Lista todos os relatórios da obra (inclusive os marcados como excluídos, para o chamador filtrar).
+// A lista é reconstruída a partir das "reservas de número" sequenciais (1, 2, 3...), que nunca são removidas.
+async function relListarRelatorios(obraId) {
+  const claims = [];
+  let n = 1, fim = false;
+  while (!fim && n < 2000) {
+    const lote = await Promise.all(Array.from({ length: 8 }, (_, i) => relLer(relChave.claim(obraId, n + i))));
+    for (let i = 0; i < lote.length && !fim; i++) { if (lote[i]) claims.push({ n: n + i, ...lote[i] }); else fim = true; }
+    n += 8;
+  }
+  const resumos = await Promise.all(claims.map((c) => relLer(relChave.sum(obraId, c.relId))));
+  return resumos.filter(Boolean).sort((a, b) => (a.numero < b.numero ? 1 : -1));
+}
+
+// Reserva o próximo número livre da obra. Verificação por leitura após gravação + nova conferência;
+// em colisão, tenta o número seguinte. Números de relatórios excluídos nunca são reaproveitados.
+async function relReservarNumero(obraId, relId, usuario) {
+  const nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  let n = 1;
+  // descobre o primeiro número livre (varredura em lotes)
+  for (let achou = false; !achou && n < 5000;) {
+    const lote = await Promise.all(Array.from({ length: 8 }, (_, i) => relLer(relChave.claim(obraId, n + i))));
+    const livre = lote.findIndex((c) => !c);
+    if (livre >= 0) { n += livre; achou = true; } else n += 8;
+  }
+  for (let tent = 0; tent < 40; tent++) {
+    const atual = await relLer(relChave.claim(obraId, n));
+    if (atual && atual.nonce !== nonce) { n++; continue; }
+    await relGravar(relChave.claim(obraId, n), { relId, nonce, em: Date.now(), por: usuario || "—" });
+    await relDormir(180 + Math.random() * 220);
+    let v = await relLer(relChave.claim(obraId, n));
+    if (!v || v.nonce !== nonce) { n++; continue; }
+    await relDormir(300);
+    v = await relLer(relChave.claim(obraId, n));
+    if (v && v.nonce === nonce) return n;
+    n++;
+  }
+  throw new Error("Não foi possível reservar um número de relatório. Tente novamente.");
+}
+
+function relResumo(rel) {
+  return {
+    id: rel.id, obraId: rel.obraId, numero: rel.numero, periodoIni: rel.periodoIni, periodoFim: rel.periodoFim, dataRef: rel.dataRef,
+    responsavel: rel.responsavel, status: rel.status, criadoEm: rel.criadoEm, criadoPor: rel.criadoPor, editadoEm: rel.editadoEm, editadoPor: rel.editadoPor,
+    cronVersaoId: rel.cronVersaoId || null, ind: rel.ind || null, nFotos: (rel.fotos || []).length, rev: rel.rev || 0, excluido: !!rel.excluido,
+  };
+}
+// Grava relatório + resumo. Detecta edição simultânea por outro usuário (campo rev).
+async function relSalvarRelatorio(rel, usuario, { forcar = false } = {}) {
+  const atual = await relLer(relChave.sum(rel.obraId, rel.id));
+  if (atual && !forcar && (atual.rev || 0) !== (rel.rev || 0)) return { conflito: true, atual };
+  const novo = { ...rel, rev: (rel.rev || 0) + 1, editadoEm: Date.now(), editadoPor: usuario || "—" };
+  await relGravar(relChave.rel(rel.obraId, rel.id), novo);
+  await relGravar(relChave.sum(rel.obraId, rel.id), relResumo(novo));
+  return { ok: true, rel: novo };
+}
+const relLerRelatorio = (obraId, relId) => relLer(relChave.rel(obraId, relId));
+
+async function relExcluirRelatorio(rel, usuario) {
+  const r = { ...rel, excluido: true, excluidoEm: Date.now(), excluidoPor: usuario || "—", rev: (rel.rev || 0) + 1 };
+  await relGravar(relChave.sum(rel.obraId, rel.id), relResumo(r));
+  await relGravar(relChave.rel(rel.obraId, rel.id), { ...r, afer: {}, fotos: [], snapshot: null });
+  for (const f of rel.fotos || []) { try { await relGravarTexto(relChave.foto(rel.id, f.id), ""); } catch (e) { /* melhor esforço */ } }
+}
+
+/* ---------- fotos ---------- */
+async function relProcessarFoto(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await relCarregarImagem(url);
+    const w0 = img.naturalWidth || img.width, h0 = img.naturalHeight || img.height;
+    const esc = Math.min(1, 1600 / Math.max(w0, h0));
+    const w = Math.max(1, Math.round(w0 * esc)), h = Math.max(1, Math.round(h0 * esc));
+    const c = relCriarCanvas(w, h), x = c.getContext("2d");
+    x.fillStyle = "#fff"; x.fillRect(0, 0, w, h);
+    x.imageSmoothingQuality = "high"; x.drawImage(img, 0, 0, w, h);
+    return { dataUri: c.toDataURL("image/jpeg", 0.82), w, h };
+  } finally { URL.revokeObjectURL(url); }
+}
+const relGravarFoto = (relId, fotoId, obj) => relGravar(relChave.foto(relId, fotoId), obj);
+const relLerFoto = (relId, fotoId) => relLer(relChave.foto(relId, fotoId));
+
+/* ---------- cronograma (versões) ---------- */
+const relCacheVersoes = new Map();
+const relMetaVazia = () => ({ versoes: [], atualId: null, ref: null, rev: 0 });
+async function relCronLerMeta(obraId) { return (await relLer(relChave.cron(obraId))) || relMetaVazia(); }
+async function relCarregarVersao(obraId, versaoId) {
+  if (!versaoId) return null;
+  const k = `${obraId}:${versaoId}`;
+  if (relCacheVersoes.has(k)) return relCacheVersoes.get(k);
+  const v = await relLer(relChave.cronv(obraId, versaoId));
+  if (v) relCacheVersoes.set(k, v);
+  return v;
+}
+// Referência do previsto: { tipo: "baseline" | "primeira", tarefasRef } (nunca trocada silenciosamente)
+async function relResolverRef(obraId, meta) {
+  if (!meta || !meta.ref) return null;
+  if (meta.ref.tipo === "baseline") return { tipo: "baseline", tarefasRef: null };
+  const v = await relCarregarVersao(obraId, meta.ref.versaoId);
+  return { tipo: "primeira", tarefasRef: v ? v.tarefas : [] };
+}
+// Prepara uma importação (sem gravar): parse + chaves + diff contra a versão atual.
+async function relCronPreparar(obraId, texto, meta) {
+  const parsed = relParseProjectXML(texto);
+  if (!parsed.ok) return { ok: false, erro: parsed.erro, avisos: parsed.avisos };
+  const atual = meta.atualId ? await relCarregarVersao(obraId, meta.atualId) : null;
+  const tarefas = relAtribuirChaves(parsed.tarefas, atual ? atual.tarefas : []);
+  const diff = atual ? relDiffVersoes(atual.tarefas, tarefas) : null;
+  return { ok: true, parsed: { ...parsed, tarefas }, diff, avisos: parsed.avisos, atual };
+}
+async function relCronConfirmarImportacao(obraId, prep, nomeArquivo, xmlTexto, usuario) {
+  const meta = await relCronLerMeta(obraId); // leitura fresca antes de gravar
+  const id = uid("cv");
+  const { parsed } = prep;
+  const dados = { id, projeto: parsed.projeto, calendarios: parsed.calendarios, tarefas: parsed.tarefas, avisos: parsed.avisos, temBaseline: parsed.temBaseline };
+  await relGravar(relChave.cronv(obraId, id), dados);
+  let xmlSalvo = true;
+  try { await relGravarTexto(relChave.xml(obraId, id), xmlTexto); } catch (e) { xmlSalvo = false; }
+  const exec = relExecutaveis(parsed.tarefas);
+  const versao = {
+    id, numero: meta.versoes.length + 1, arquivo: nomeArquivo, importadoEm: Date.now(), importadoPor: usuario || "—",
+    projetoNome: parsed.projeto.nome, nTarefas: parsed.tarefas.length, nExec: exec.length,
+    totalMin: exec.reduce((s, t) => s + t.durMin, 0), minPorDia: parsed.projeto.minPorDia, temBaseline: !!parsed.temBaseline, xmlSalvo,
+    diff: prep.diff ? { add: prep.diff.adicionadas.length, rem: prep.diff.removidas.length, alt: prep.diff.alteradas.length } : null,
+  };
+  const novo = { ...meta, versoes: [...meta.versoes, versao], atualId: id, rev: (meta.rev || 0) + 1 };
+  if (!novo.ref) novo.ref = { tipo: parsed.temBaseline ? "baseline" : "primeira", versaoId: id, definidoEm: Date.now(), definidoPor: usuario || "—" };
+  await relGravar(relChave.cron(obraId), novo);
+  relCacheVersoes.set(`${obraId}:${id}`, dados);
+  return novo;
+}
+async function relCronDefinirRef(obraId, ref, usuario) {
+  const meta = await relCronLerMeta(obraId);
+  const novo = { ...meta, ref: { ...ref, definidoEm: Date.now(), definidoPor: usuario || "—", anterior: meta.ref || null }, rev: (meta.rev || 0) + 1 };
+  await relGravar(relChave.cron(obraId), novo);
+  return novo;
+}
+
+/* ---------- montagem dos dados do PDF ---------- */
+async function relPrepararDadosPDF(rel, obra, usuarioLista, { usarSnapshot = true } = {}) {
+  let cons = null;
+  if (usarSnapshot && rel.status === REL_STATUS_FINAL && rel.snapshot && rel.snapshot.cons) cons = rel.snapshot.cons;
+  else if (rel.cronVersaoId) {
+    const [meta, lista] = await Promise.all([relCronLerMeta(obra.id), relListarRelatorios(obra.id)]);
+    const versao = await relCarregarVersao(obra.id, rel.cronVersaoId);
+    if (versao) {
+      const ref = await relResolverRef(obra.id, meta);
+      const plan = relPlanejamento(versao, ref);
+      const vInfo = meta.versoes.find((v) => v.id === rel.cronVersaoId);
+      cons = relConsolidar({
+        rel, versao, plan, refTipo: ref && ref.tipo,
+        versaoNome: vInfo ? `v${vInfo.numero} (${vInfo.arquivo})` : "",
+        historico: lista.filter((s) => !s.excluido && s.ind).map((s) => ({ id: s.id, dataRef: s.dataRef, real: s.ind.real })),
+      });
+    }
+  }
+  const fotos = [];
+  for (const f of rel.fotos || []) {
+    let img = null;
+    try { const fd = await relLerFoto(rel.id, f.id); if (fd && fd.dataUri) img = await relCarregarImagem(fd.dataUri); } catch (e) { img = null; }
+    fotos.push({ legenda: f.legenda, disciplina: f.disciplina, data: f.data, w: f.w, h: f.h, img });
+  }
+  return {
+    obraNome: obra.nome, cliente: obra.cliente || "", numero: rel.numero, periodoIni: rel.periodoIni, periodoFim: rel.periodoFim,
+    dataRef: rel.dataRef, responsavel: rel.responsavel, introTexto: rel.introTexto, principais: relLinhasLista(rel.principais),
+    geral: cons ? cons.geral : null, macros: cons ? cons.macros : [], curva: cons ? cons.curva : { prev: [], real: [] },
+    premissas: cons ? cons.premissas : ["Cronograma do Microsoft Project não importado: avanço previsto e realizado indisponíveis."],
+    fotos, analise: rel.analise, logoSrc: GLOVER_LOGO_DATA_URI,
+  };
+}
+const relLinhasLista = (txt) => String(txt || "").split(/\r?\n/).map((s) => s.replace(/^\s*[-•*]\s*/, "").trim()).filter(Boolean);
+
+function relBaixarBytes(bytes, nome, tipo = "application/pdf") {
+  const blob = new Blob([bytes], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+/* (marcador: REL_STORAGE_END) */
+
+/* ===================================================================
+   RELATÓRIOS DE OBRA — INTERFACE
+   Módulo técnico/operacional, independente do financeiro (não cria lançamentos, não mexe em saldos,
+   Contas Investidores, custos, verbas, apropriações ou contas a pagar).
+=================================================================== */
+
+const relCompararRel = (a, b) => (a.periodoIni < b.periodoIni ? 1 : a.periodoIni > b.periodoIni ? -1 : (b.numero || 0) - (a.numero || 0));
+
+function RelatoriosObraPage({ obras, currentUser, logAudit, disciplinas, usuarios }) {
+  const [obraId, setObraId] = useState(null);
+  const [mostrarArquivadas, setMostrarArquivadas] = useState(false);
+  const podeGerenciar = can(currentUser, "relatorios_obra_gerenciar");
+  const ordenar = (l) => [...l].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { numeric: true, sensitivity: "base" }));
+  const ativas = useMemo(() => ordenar(obras.filter((o) => !o.arquivada)), [obras]);
+  const arquivadas = useMemo(() => ordenar(obras.filter((o) => o.arquivada)), [obras]);
+  const obra = obras.find((o) => o.id === obraId);
+  if (isInvestidor(currentUser)) return null;
+  if (obra) {
+    return <RelObraPage obra={obra} onBack={() => setObraId(null)} podeGerenciar={podeGerenciar} currentUser={currentUser} logAudit={logAudit} disciplinas={disciplinas} usuarios={usuarios} />;
+  }
+  const card = (o) => (
+    <button className="gf-card gf-obra-card" key={o.id} onClick={() => setObraId(o.id)}>
+      <div className="gf-card-head">
+        <div><div className="gf-eyebrow">{o.cliente || "—"}</div><h3>{o.nome}</h3></div>
+        {o.status && <Badge tone={o.status === "Concluída" ? "gray" : o.status === "Cancelada" ? "red" : "green"}>{o.status}</Badge>}
+      </div>
+      <div className="gf-rel-card-icon"><FileText size={22} strokeWidth={1.6} /></div>
+      <span className="gf-card-cta">Abrir relatórios de obra <ChevronRight size={14} /></span>
+    </button>
+  );
+  return (
+    <div className="gf-stack">
+      <div className="gf-toolbar"><h2>Relatórios de Obra</h2></div>
+      <p className="gf-field-hint">
+        Selecione uma obra para importar o cronograma do Microsoft Project, aferir o avanço físico e elaborar os relatórios técnicos.
+        Esta área é exclusivamente técnica — nenhuma informação financeira é exibida ou alterada aqui.
+      </p>
+      {ativas.length === 0 && arquivadas.length === 0 ? (
+        <div className="gf-card"><EmptyState icon={FileText} title="Nenhuma obra cadastrada" body="Cadastre uma obra no Painel de Obras para começar a elaborar relatórios." /></div>
+      ) : (
+        <div className="gf-grid-cards">{ativas.map(card)}</div>
+      )}
+      {arquivadas.length > 0 && (
+        <>
+          <button className="gf-btn gf-btn-ghost" style={{ alignSelf: "flex-start" }} onClick={() => setMostrarArquivadas((v) => !v)}>
+            <Archive size={14} /> {mostrarArquivadas ? "Ocultar" : "Mostrar"} obras concluídas/arquivadas ({arquivadas.length})
+          </button>
+          {mostrarArquivadas && <div className="gf-grid-cards">{arquivadas.map(card)}</div>}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Página da obra ---------- */
+function RelObraPage({ obra, onBack, podeGerenciar, currentUser, logAudit, disciplinas, usuarios }) {
+  const [lista, setLista] = useState(null);
+  const [erro, setErro] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
+  const [novoAberto, setNovoAberto] = useState(false);
+  const [previaId, setPreviaId] = useState(null);
+  const [ocupado, setOcupado] = useState("");
+  const usuarioNome = currentUser?.nome || "—";
+
+  const carregar = useCallback(async () => {
+    setErro(null);
+    try {
+      const [l, m] = await Promise.all([relListarRelatorios(obra.id), relCronLerMeta(obra.id)]);
+      setLista(l.filter((r) => !r.excluido).sort(relCompararRel));
+      setMeta(m);
+    } catch (e) { setErro((e && e.message) || "Falha ao carregar os relatórios."); }
+  }, [obra.id]);
+  useEffect(() => { carregar(); }, [carregar]);
+
+  if (editandoId) {
+    return (
+      <RelEditor
+        obra={obra} relId={editandoId} podeGerenciar={podeGerenciar} currentUser={currentUser} logAudit={logAudit}
+        disciplinas={disciplinas} usuarios={usuarios}
+        onBack={() => { setEditandoId(null); carregar(); }}
+      />
+    );
+  }
+
+  const gerarPDF = async (r) => {
+    try {
+      setOcupado(`Gerando PDF do relatório ${String(r.numero).padStart(2, "0")}…`);
+      const rel = await relLerRelatorio(obra.id, r.id);
+      if (!rel) throw new Error("Relatório não encontrado.");
+      const dados = await relPrepararDadosPDF(rel, obra, usuarios);
+      const out = await relRenderizarRelatorio(dados, { qualidade: 0.9, onProgresso: (i, t) => setOcupado(`Gerando PDF… página ${i} de ${t}`) });
+      relBaixarBytes(relMontarPDF(out.paginas, { titulo: `Relatório de Obra nº ${rel.numero} — ${obra.nome}` }), relNomeArquivoPDF(obra.nome, rel.numero, rel.periodoFim));
+    } catch (e) { window.alert("Não foi possível gerar o PDF: " + ((e && e.message) || e)); }
+    setOcupado("");
+  };
+
+  const duplicar = async (r) => {
+    if (!podeGerenciar) return;
+    if (!window.confirm(`Duplicar o relatório nº ${String(r.numero).padStart(2, "0")}? Será criado um novo relatório (Em elaboração) com o mesmo conteúdo, inclusive fotografias.`)) return;
+    try {
+      setOcupado("Duplicando relatório…");
+      const orig = await relLerRelatorio(obra.id, r.id);
+      if (!orig) throw new Error("Relatório não encontrado.");
+      const novoId = uid("rel");
+      const numero = await relReservarNumero(obra.id, novoId, usuarioNome);
+      const fotos = [];
+      for (const f of orig.fotos || []) {
+        const nf = uid("foto");
+        const dados = await relLerFoto(orig.id, f.id);
+        if (dados) { await relGravarFoto(novoId, nf, dados); fotos.push({ ...f, id: nf }); }
+      }
+      const agora = Date.now();
+      const novo = {
+        ...orig, id: novoId, numero, status: REL_STATUS_ELAB, snapshot: null, log: [], excluido: false, rev: 0,
+        fotos, criadoEm: agora, criadoPor: usuarioNome, editadoEm: agora, editadoPor: usuarioNome, finalizadoEm: null, finalizadoPor: null,
+      };
+      const res = await relSalvarRelatorio(novo, usuarioNome, { forcar: true });
+      logAudit?.({ tipoOperacao: "Duplicação de Relatório de Obra", registroAlterado: `${obra.nome} — Relatório ${String(numero).padStart(2, "0")}`, valorAnterior: `Relatório ${String(orig.numero).padStart(2, "0")}`, valorNovo: "Duplicado" });
+      await carregar();
+      if (res.ok) setEditandoId(novoId);
+    } catch (e) { window.alert("Não foi possível duplicar: " + ((e && e.message) || e)); }
+    setOcupado("");
+  };
+
+  const excluir = async (r) => {
+    if (!podeGerenciar) return;
+    if (!window.confirm(`Excluir o Relatório ${String(r.numero).padStart(2, "0")} (${fmtDate(r.periodoIni)} a ${fmtDate(r.periodoFim)})? Esta ação não pode ser desfeita; as fotografias serão removidas.`)) return;
+    try {
+      setOcupado("Excluindo relatório…");
+      const rel = await relLerRelatorio(obra.id, r.id);
+      await relExcluirRelatorio(rel || { ...r, fotos: [] }, usuarioNome);
+      logAudit?.({ tipoOperacao: "Exclusão de Relatório de Obra", registroAlterado: `${obra.nome} — Relatório ${String(r.numero).padStart(2, "0")}`, valorAnterior: r.status, valorNovo: "Excluído" });
+      await carregar();
+    } catch (e) { window.alert("Não foi possível excluir: " + ((e && e.message) || e)); }
+    setOcupado("");
+  };
+
+  return (
+    <div className="gf-stack">
+      <button className="gf-btn gf-btn-ghost" onClick={onBack} style={{ alignSelf: "flex-start" }}>← Voltar para as obras</button>
+      <div className="gf-toolbar">
+        <div>
+          <h2>RELATÓRIOS DE OBRA — {obra.nome}</h2>
+          <div className="gf-field-hint">{obra.cliente ? `Cliente: ${obra.cliente}` : ""}</div>
+        </div>
+        {podeGerenciar && (
+          <button className="gf-btn gf-btn-primary gf-rel-novo" onClick={() => setNovoAberto(true)} disabled={!lista}>
+            <Plus size={15} /> Novo Relatório de Obra
+          </button>
+        )}
+      </div>
+      {!podeGerenciar && <p className="gf-field-hint">Modo de consulta — seu usuário não tem permissão para criar ou editar relatórios de obra.</p>}
+      {ocupado && <div className="gf-rel-aviso gf-rel-aviso-info">{ocupado}</div>}
+
+      <RelCronogramaSecao obra={obra} meta={meta} setMeta={setMeta} podeGerenciar={podeGerenciar} currentUser={currentUser} logAudit={logAudit} />
+
+      <div className="gf-card">
+        <div className="gf-card-head"><h2>Histórico de relatórios</h2></div>
+        {erro ? (
+          <div className="gf-rel-aviso gf-rel-aviso-erro">{erro} <button className="gf-btn gf-btn-ghost" onClick={carregar}>Tentar novamente</button></div>
+        ) : !lista ? (
+          <p className="gf-field-hint">Carregando relatórios…</p>
+        ) : lista.length === 0 ? (
+          <EmptyState icon={FileText} title="Nenhum relatório criado" body={podeGerenciar ? "Clique em “Novo Relatório de Obra” para começar." : "Ainda não há relatórios para esta obra."} />
+        ) : (
+          <div className="gf-rel-lista">
+            {lista.map((r) => (
+              <div className="gf-rel-item" key={r.id}>
+                <div className="gf-rel-item-info">
+                  <div className="gf-rel-item-titulo">Relatório {String(r.numero).padStart(2, "0")} — {fmtDate(r.periodoIni)} a {fmtDate(r.periodoFim)}</div>
+                  <div className="gf-plano-atividade-meta">
+                    <Badge tone={r.status === REL_STATUS_FINAL ? "green" : "orange"}>{r.status}</Badge>
+                    <span>Ref.: {fmtDate(r.dataRef)}</span>
+                    {r.ind && <span>Realizado {relFmtPct(r.ind.real)} | Previsto {relFmtPct(r.ind.prev)}</span>}
+                    <span>Resp.: {r.responsavel || "—"}</span>
+                    <span>{r.nFotos} foto(s)</span>
+                    <span>Editado {r.editadoEm ? new Date(r.editadoEm).toLocaleDateString("pt-BR") : "—"} por {r.editadoPor || "—"}</span>
+                  </div>
+                </div>
+                <div className="gf-row-actions gf-rel-item-acoes">
+                  <button className="gf-icon-btn" title="Visualizar (pré-visualização)" onClick={() => setPreviaId(r.id)}><Eye size={14} /></button>
+                  <button className="gf-icon-btn" title={podeGerenciar ? "Editar" : "Abrir"} onClick={() => setEditandoId(r.id)}><Pencil size={14} /></button>
+                  {podeGerenciar && <button className="gf-icon-btn" title="Duplicar" onClick={() => duplicar(r)}><Copy size={14} /></button>}
+                  <button className="gf-icon-btn" title="Gerar PDF" onClick={() => gerarPDF(r)} disabled={!!ocupado}><FileDown size={14} /></button>
+                  {podeGerenciar && <button className="gf-icon-btn danger" title="Excluir" onClick={() => excluir(r)}><Trash2 size={14} /></button>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {novoAberto && (
+        <RelNovoModal
+          obra={obra} meta={meta} lista={lista || []} usuarios={usuarios} currentUser={currentUser} logAudit={logAudit}
+          onClose={() => setNovoAberto(false)}
+          onCriado={async (id) => { setNovoAberto(false); await carregar(); setEditandoId(id); }}
+        />
+      )}
+      {previaId && (
+        <RelPreviewModal obra={obra} relId={previaId} usuarios={usuarios} onClose={() => setPreviaId(null)} />
+      )}
+    </div>
+  );
+}
+
+/* ---------- Novo relatório ---------- */
+function RelNovoModal({ obra, meta, lista, usuarios, currentUser, logAudit, onClose, onCriado }) {
+  const ultimo = lista.length ? [...lista].sort((a, b) => (a.periodoFim < b.periodoFim ? 1 : -1))[0] : null;
+  const iniSug = ultimo ? relSomaDias(ultimo.periodoFim, 1) : todayISO();
+  const [ini, setIni] = useState(iniSug);
+  const [fim, setFim] = useState(ultimo ? relSomaDias(ultimo.periodoFim, 7) : relSomaDias(todayISO(), 6));
+  const [ref, setRef] = useState(ultimo ? relSomaDias(ultimo.periodoFim, 7) : todayISO());
+  const [refEditada, setRefEditada] = useState(false);
+  const nomes = (usuarios || []).filter((u) => u.ativo && !isInvestidor(u)).map((u) => u.nome);
+  const [resp, setResp] = useState(currentUser?.nome || nomes[0] || "");
+  const [salvando, setSalvando] = useState(false);
+  const [erro, setErro] = useState("");
+  const usuarioNome = currentUser?.nome || "—";
+
+  const criar = async (e) => {
+    e.preventDefault();
+    if (![ini, fim, ref].every(relDataValida)) return setErro("Informe datas válidas.");
+    if (fim < ini) return setErro("A data final do período não pode ser anterior à data inicial.");
+    if (!resp.trim()) return setErro("Informe o responsável pelo relatório.");
+    setSalvando(true); setErro("");
+    try {
+      const relId = uid("rel");
+      const numero = await relReservarNumero(obra.id, relId, usuarioNome);
+      const agora = Date.now();
+      const rel = {
+        id: relId, obraId: obra.id, numero, periodoIni: ini, periodoFim: fim, dataRef: ref, responsavel: resp.trim(),
+        status: REL_STATUS_ELAB, cronVersaoId: meta?.atualId || null, afer: {},
+        introTexto: relTextoIntroducao(obra.nome, ini, fim), introEditada: false, principais: "",
+        fotos: [], analise: "", ind: null, snapshot: null, log: [], rev: 0,
+        criadoEm: agora, criadoPor: usuarioNome, editadoEm: agora, editadoPor: usuarioNome, excluido: false,
+      };
+      const r = await relSalvarRelatorio(rel, usuarioNome, { forcar: true });
+      if (!r.ok) throw new Error("Falha ao salvar o relatório.");
+      logAudit?.({ tipoOperacao: "Criação de Relatório de Obra", registroAlterado: `${obra.nome} — Relatório ${String(numero).padStart(2, "0")}`, valorAnterior: "—", valorNovo: `${fmtDate(ini)} a ${fmtDate(fim)}` });
+      onCriado(relId);
+    } catch (err) { setErro((err && err.message) || "Falha ao criar o relatório."); setSalvando(false); }
+  };
+
+  return (
+    <Modal title="Novo Relatório de Obra" onClose={onClose} width={560}>
+      <form onSubmit={criar} className="gf-form-grid gf-modal-form">
+        <Field label="Data inicial do período"><input type="date" value={ini} onChange={(e) => { setIni(e.target.value); }} required /></Field>
+        <Field label="Data final do período"><input type="date" value={fim} onChange={(e) => { setFim(e.target.value); if (!refEditada) setRef(e.target.value); }} required /></Field>
+        <Field label="Data de referência da aferição" hint="Data até a qual o avanço previsto é calculado."><input type="date" value={ref} onChange={(e) => { setRef(e.target.value); setRefEditada(true); }} required /></Field>
+        <Field label="Responsável pelo relatório">
+          <input list="rel-resp" value={resp} onChange={(e) => setResp(e.target.value)} required />
+          <datalist id="rel-resp">{nomes.map((n) => <option key={n} value={n} />)}</datalist>
+        </Field>
+        <p className="gf-field-hint" style={{ gridColumn: "1 / -1" }}>
+          O número do relatório é atribuído automaticamente (sequencial por obra).{" "}
+          {meta?.atualId ? "Será usada a versão mais recente do cronograma importado." : "Atenção: nenhum cronograma foi importado para esta obra; o avanço físico e a Curva S ficarão indisponíveis até a importação do XML."}
+        </p>
+        {erro && <div className="gf-rel-aviso gf-rel-aviso-erro" style={{ gridColumn: "1 / -1" }}>{erro}</div>}
+        <div className="gf-row-actions" style={{ gridColumn: "1 / -1" }}>
+          <button type="button" className="gf-btn gf-btn-ghost" onClick={onClose}>Cancelar</button>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={salvando}>{salvando ? "Criando…" : "Criar e abrir editor"}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+/* ---------- Cronograma Microsoft Project ---------- */
+function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, logAudit }) {
+  const [prep, setPrep] = useState(null); // { prep, arquivo, texto }
+  const [lendo, setLendo] = useState(false);
+  const [erro, setErro] = useState("");
+  const [verAtividades, setVerAtividades] = useState(false);
+  const inputRef = useRef(null);
+  const usuarioNome = currentUser?.nome || "—";
+
+  const escolher = async (e) => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!f) return;
+    setErro(""); setLendo(true);
+    try {
+      if (!/\.xml$/i.test(f.name)) throw new Error("Selecione um arquivo .xml exportado do Microsoft Project (formato .mpp não é suportado).");
+      const texto = await f.text();
+      const m = await relCronLerMeta(obra.id);
+      const p = await relCronPreparar(obra.id, texto, m);
+      if (!p.ok) throw new Error(p.erro);
+      setPrep({ prep: p, arquivo: f.name, texto });
+    } catch (err) { setErro((err && err.message) || "Falha ao ler o XML."); }
+    setLendo(false);
+  };
+
+  const confirmar = async () => {
+    setLendo(true);
+    try {
+      const novo = await relCronConfirmarImportacao(obra.id, prep.prep, prep.arquivo, prep.texto, usuarioNome);
+      setMeta(novo);
+      logAudit?.({ tipoOperacao: "Importação de cronograma (Relatórios de Obra)", registroAlterado: `${obra.nome} — ${prep.arquivo}`, valorAnterior: "—", valorNovo: `Versão ${novo.versoes.length}` });
+      setPrep(null);
+    } catch (err) { setErro((err && err.message) || "Falha ao salvar o cronograma."); }
+    setLendo(false);
+  };
+
+  const adotarBaseline = async () => {
+    const atual = meta.versoes.find((v) => v.id === meta.atualId);
+    if (!atual || !atual.temBaseline) return;
+    if (!window.confirm("Adotar a linha de base do Microsoft Project como referência do avanço previsto? Isso altera o avanço previsto dos relatórios em elaboração. Relatórios finalizados não são afetados.")) return;
+    try {
+      const novo = await relCronDefinirRef(obra.id, { tipo: "baseline", versaoId: atual.id }, usuarioNome);
+      setMeta(novo);
+      logAudit?.({ tipoOperacao: "Referência do cronograma alterada (Relatórios de Obra)", registroAlterado: obra.nome, valorAnterior: "Primeira importação", valorNovo: "Linha de base do Project" });
+    } catch (err) { setErro((err && err.message) || "Falha ao salvar."); }
+  };
+
+  const versoes = meta ? meta.versoes : [];
+  const atual = versoes.find((v) => v.id === meta?.atualId);
+  return (
+    <div className="gf-card">
+      <div className="gf-card-head">
+        <h2>CRONOGRAMA MICROSOFT PROJECT</h2>
+        <div className="gf-row-actions">
+          {atual && <button className="gf-btn gf-btn-ghost" onClick={() => setVerAtividades(true)}><Layers size={14} /> Atividades e pesos</button>}
+          {podeGerenciar && (
+            <>
+              <input ref={inputRef} type="file" accept=".xml,text/xml,application/xml" style={{ display: "none" }} onChange={escolher} />
+              <button className="gf-btn gf-btn-primary" onClick={() => inputRef.current && inputRef.current.click()} disabled={lendo}>
+                <Upload size={14} /> {versoes.length ? "Atualizar cronograma (XML)" : "Importar cronograma (XML)"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      {erro && <div className="gf-rel-aviso gf-rel-aviso-erro">{erro}</div>}
+      {lendo && <div className="gf-rel-aviso gf-rel-aviso-info">Processando arquivo…</div>}
+      {!meta ? <p className="gf-field-hint">Carregando…</p> : versoes.length === 0 ? (
+        <EmptyState icon={CalendarRange} title="Nenhum cronograma importado" body="Exporte o cronograma do Microsoft Project em XML (Arquivo > Salvar como > XML) e importe aqui para calcular o avanço previsto e realizado." />
+      ) : (
+        <>
+          <div className="gf-rel-ref">
+            <b>Referência do avanço previsto:</b>{" "}
+            {meta.ref?.tipo === "baseline" ? "linha de base (Baseline 0) do Microsoft Project" : `primeira versão importada (v${versoes.find((v) => v.id === meta.ref?.versaoId)?.numero ?? 1}) — o XML não possui linha de base`}
+            {meta.ref?.definidoEm ? ` — definida em ${new Date(meta.ref.definidoEm).toLocaleDateString("pt-BR")} por ${meta.ref.definidoPor}` : ""}.
+            {" "}A referência não é substituída automaticamente por novas importações.
+            {podeGerenciar && meta.ref?.tipo === "primeira" && atual?.temBaseline && (
+              <div style={{ marginTop: 6 }}><button className="gf-btn gf-btn-ghost" onClick={adotarBaseline}>A versão atual possui linha de base: adotar como referência</button></div>
+            )}
+          </div>
+          <div className="gf-table-wrap">
+            <table className="gf-table">
+              <thead><tr><th>Versão</th><th>Arquivo</th><th>Importado em</th><th className="num">Atividades exec.</th><th className="num">Dias de trabalho acum.</th><th>Linha de base</th><th>Mudanças vs. anterior</th></tr></thead>
+              <tbody>
+                {[...versoes].reverse().map((v) => (
+                  <tr key={v.id}>
+                    <td>v{v.numero} {v.id === meta.atualId && <Badge tone="green">Atual</Badge>}</td>
+                    <td className="gf-td-desc" title={v.arquivo}>{v.arquivo}</td>
+                    <td>{new Date(v.importadoEm).toLocaleString("pt-BR")} <span className="gf-field-hint">({v.importadoPor})</span></td>
+                    <td className="num mono">{v.nExec}</td>
+                    <td className="num mono">{relFmtDias(v.totalMin, v.minPorDia)}</td>
+                    <td>{v.temBaseline ? "Sim" : "Não"}</td>
+                    <td>{v.diff ? `+${v.diff.add} / −${v.diff.rem} / ~${v.diff.alt}` : "Versão inicial"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+      {prep && <RelImportModal prep={prep} meta={meta} onCancel={() => setPrep(null)} onConfirm={confirmar} salvando={lendo} />}
+      {verAtividades && atual && <RelAtividadesModal obraId={obra.id} versaoInfo={atual} onClose={() => setVerAtividades(false)} />}
+    </div>
+  );
+}
+
+function RelAvisosLista({ avisos }) {
+  if (!avisos || !avisos.length) return null;
+  return (
+    <div className="gf-rel-avisos">
+      {avisos.map((a, i) => <div key={i} className={`gf-rel-aviso gf-rel-aviso-${a.nivel === "erro" ? "erro" : a.nivel === "aviso" ? "atencao" : "info"}`}>{a.msg}</div>)}
+    </div>
+  );
+}
+
+function RelImportModal({ prep, meta, onCancel, onConfirm, salvando }) {
+  const p = prep.prep;
+  const exec = relExecutaveis(p.parsed.tarefas);
+  const total = exec.reduce((s, t) => s + t.durMin, 0);
+  const d = p.diff;
+  const bloqueado = p.avisos.some((a) => a.nivel === "erro");
+  const lista = (itens, f) => (itens.length ? <ul className="gf-rel-ul">{itens.slice(0, 40).map((x, i) => <li key={i}>{f(x)}</li>)}{itens.length > 40 && <li>… e mais {itens.length - 40}</li>}</ul> : null);
+  const fmtV = (c, v) => (v === null || v === undefined ? "—" : c === "Duração" ? relFmtDias(v, p.parsed.projeto.minPorDia) + " dias" : c === "Início" || c === "Término" ? relFmtData(v) : String(v));
+  return (
+    <Modal title="Importar cronograma — conferência" onClose={onCancel} width={820}>
+      <div className="gf-stack" style={{ gap: 12 }}>
+        <div className="gf-rel-resumo-grid">
+          <div><span>Arquivo</span><b>{prep.arquivo}</b></div>
+          <div><span>Projeto</span><b>{p.parsed.projeto.nome || "—"}</b></div>
+          <div><span>Horas de trabalho por dia</span><b>{relFmtNum(p.parsed.projeto.minPorDia / 60, 2)} h{p.parsed.projeto.minPorDiaAssumido ? " (assumido)" : ""}</b></div>
+          <div><span>Atividades executáveis</span><b>{exec.length}</b></div>
+          <div><span>Dias de trabalho acumulados</span><b>{relFmtDias(total, p.parsed.projeto.minPorDia)}</b></div>
+          <div><span>Linha de base</span><b>{p.parsed.temBaseline ? "Presente" : "Ausente"}</b></div>
+        </div>
+        <RelAvisosLista avisos={p.avisos} />
+        {!d ? (
+          <div className="gf-rel-aviso gf-rel-aviso-info">
+            Primeira importação para esta obra. {p.parsed.temBaseline ? "A linha de base do Project será usada como referência do avanço previsto." : "Como o XML não possui linha de base, esta versão será registrada como referência do avanço previsto (condição registrada)."}
+          </div>
+        ) : (
+          <>
+            <div className={`gf-rel-aviso ${d.relevante ? "gf-rel-aviso-atencao" : "gf-rel-aviso-info"}`}>
+              Diferenças em relação à versão atual: <b>{d.adicionadas.length}</b> adicionada(s), <b>{d.removidas.length}</b> removida(s), <b>{d.alteradas.length}</b> alterada(s).
+              {" "}Dias de trabalho acumulados: {relFmtDias(d.totalMinAntes, p.atual?.projeto?.minPorDia || p.parsed.projeto.minPorDia)} → {relFmtDias(d.totalMinDepois, p.parsed.projeto.minPorDia)}.
+              {d.relevante && " Há mudanças relevantes na estrutura/duração: confira abaixo antes de confirmar."}
+              {" "}As aferições existentes são mantidas (atividades identificadas por ID e estrutura). Relatórios finalizados não serão alterados; relatórios em elaboração continuam na versão anterior até serem atualizados manualmente.
+            </div>
+            {d.adicionadas.length > 0 && <details open={d.adicionadas.length <= 15}><summary><b>Adicionadas ({d.adicionadas.length})</b></summary>{lista(d.adicionadas, (x) => `${x.wbs} ${x.nome}${x.executavel ? ` — ${relFmtDias(x.durMin, p.parsed.projeto.minPorDia)} dias` : " (resumo/marco)"}`)}</details>}
+            {d.removidas.length > 0 && <details open={d.removidas.length <= 15}><summary><b>Removidas ({d.removidas.length})</b></summary>{lista(d.removidas, (x) => `${x.wbs} ${x.nome}`)}</details>}
+            {d.alteradas.length > 0 && <details><summary><b>Alteradas ({d.alteradas.length})</b></summary>{lista(d.alteradas, (x) => `${x.wbs} ${x.nome}: ` + x.mudancas.filter((m) => m.chaveCampo !== "paiChave").map((m) => `${m.campo} ${fmtV(m.campo, m.de)} → ${fmtV(m.campo, m.para)}`).join("; "))}</details>}
+          </>
+        )}
+        <div className="gf-row-actions">
+          <button className="gf-btn gf-btn-ghost" onClick={onCancel}>Cancelar</button>
+          <button className="gf-btn gf-btn-primary" onClick={onConfirm} disabled={bloqueado || salvando}>{salvando ? "Salvando…" : d ? "Confirmar e salvar como nova versão" : "Confirmar importação"}</button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function RelAtividadesModal({ obraId, versaoInfo, onClose }) {
+  const [versao, setVersao] = useState(null);
+  const [erro, setErro] = useState("");
+  useEffect(() => { relCarregarVersao(obraId, versaoInfo.id).then(setVersao).catch((e) => setErro(e.message)); }, [obraId, versaoInfo.id]);
+  const dados = useMemo(() => {
+    if (!versao) return null;
+    const ex = relExecutaveis(versao.tarefas);
+    const pesos = relPesos(ex);
+    const idx = new Map(ex.map((t, i) => [t.chave, i]));
+    return { pesos, idx, integr: relVerificarIntegridade(versao) };
+  }, [versao]);
+  return (
+    <Modal title={`Atividades e pesos — versão v${versaoInfo.numero}`} onClose={onClose} width={900}>
+      {erro && <div className="gf-rel-aviso gf-rel-aviso-erro">{erro}</div>}
+      {!versao ? <p className="gf-field-hint">Carregando…</p> : (
+        <>
+          <p className="gf-field-hint">
+            Peso automático = duração ÷ soma das durações das atividades executáveis (menor nível da EAP). Resumos e marcos não entram na soma.
+            Soma dos pesos: <b>{relFmtNum(dados.integr.somaPesosBp / 100, 2)}%</b> {dados.integr.ok ? "(OK)" : "(ATENÇÃO)"} | {dados.integr.n} atividades | {relFmtDias(dados.integr.totalMin, versao.projeto.minPorDia)} dias de trabalho acumulados ({relFmtNum(versao.projeto.minPorDia / 60, 2)} h/dia).
+          </p>
+          <div className="gf-table-wrap" style={{ maxHeight: "60vh" }}>
+            <table className="gf-table">
+              <thead><tr><th>EAP</th><th>Atividade</th><th>Tipo</th><th className="num">Duração (dias)</th><th className="num">Peso</th></tr></thead>
+              <tbody>
+                {versao.tarefas.map((t) => {
+                  const i = dados.idx.get(t.chave);
+                  return (
+                    <tr key={t.chave} className={t.resumo ? "gf-rel-tr-resumo" : ""}>
+                      <td className="mono">{t.wbs}</td>
+                      <td style={{ paddingLeft: 10 + (t.nivel - 1) * 16, fontWeight: t.resumo ? 700 : 400 }}>{t.nome}</td>
+                      <td>{t.resumo ? "Resumo (não soma)" : t.marco ? "Marco (não soma)" : t.executavel ? "Executável" : "Excluída"}</td>
+                      <td className="num mono">{t.durMin != null ? relFmtDias(t.durMin, versao.projeto.minPorDia) : "—"}</td>
+                      <td className="num mono">{i !== undefined ? `${relFmtNum(dados.pesos.bp[i] / 100, 2)}%` : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+    </Modal>
+  );
+}
+
+/* ---------- Pré-visualização ---------- */
+function RelPreviewModal({ obra, relId, relObj, usuarios, onClose, onPdf }) {
+  const [paginas, setPaginas] = useState(null); // [{url}]
+  const [prog, setProg] = useState("Preparando…");
+  const [erro, setErro] = useState("");
+  const [saida, setSaida] = useState(null);
+  const [rel, setRel] = useState(relObj || null);
+  useEffect(() => {
+    let vivo = true; const urls = [];
+    (async () => {
+      try {
+        const r = relObj || (await relLerRelatorio(obra.id, relId));
+        if (!r) throw new Error("Relatório não encontrado.");
+        if (vivo) setRel(r);
+        const dados = await relPrepararDadosPDF(r, obra, usuarios, { usarSnapshot: !relObj || !relObj.__editandoFinal });
+        const out = await relRenderizarRelatorio(dados, { qualidade: 0.88, onProgresso: (i, t) => vivo && setProg(`Renderizando página ${i} de ${t}…`) });
+        if (!vivo) return;
+        const ps = out.paginas.map((p) => { const u = URL.createObjectURL(new Blob([p.jpeg], { type: "image/jpeg" })); urls.push(u); return { url: u }; });
+        setSaida(out); setPaginas(ps);
+      } catch (e) { if (vivo) setErro((e && e.message) || "Falha ao gerar a pré-visualização."); }
+    })();
+    return () => { vivo = false; urls.forEach((u) => URL.revokeObjectURL(u)); };
+  }, []);
+  const baixar = () => {
+    if (!saida || !rel) return;
+    relBaixarBytes(relMontarPDF(saida.paginas, { titulo: `Relatório de Obra nº ${rel.numero} — ${obra.nome}` }), relNomeArquivoPDF(obra.nome, rel.numero, rel.periodoFim));
+    onPdf && onPdf();
+  };
+  return (
+    <Modal title="Pré-visualização do relatório" onClose={onClose} width={900}>
+      {erro && <div className="gf-rel-aviso gf-rel-aviso-erro">{erro}</div>}
+      {!paginas && !erro && <p className="gf-field-hint">{prog}</p>}
+      {paginas && (
+        <>
+          <div className="gf-row-actions" style={{ justifyContent: "space-between", marginBottom: 12 }}>
+            <span className="gf-field-hint">{paginas.length} página(s) — A4 retrato. Esta é exatamente a imagem das páginas do PDF.</span>
+            <div className="gf-row-actions">
+              <button className="gf-btn gf-btn-ghost" onClick={onClose}>Voltar à edição</button>
+              <button className="gf-btn gf-btn-primary" onClick={baixar}><FileDown size={14} /> Gerar PDF</button>
+            </div>
+          </div>
+          <div className="gf-rel-previa">
+            {paginas.map((p, i) => <img key={i} src={p.url} alt={`Página ${i + 1}`} />)}
+          </div>
+        </>
+      )}
+    </Modal>
+  );
+}
+
+/* ---------- Gráfico da Curva S (tela) ---------- */
+function RelCurvaSVG({ curva, dataRef }) {
+  const prev = (curva && curva.prev) || [], real = (curva && curva.real) || [];
+  const todas = [...prev, ...real].map((p) => relIsoParaDias(p.d));
+  if (dataRef) todas.push(relIsoParaDias(dataRef));
+  if (!todas.length) return <p className="gf-field-hint">Cronograma indisponível — a curva S não pôde ser calculada.</p>;
+  const W = 860, H = 380, x0 = 50, x1 = W - 16, yT = 14, yB = H - 44;
+  const dmin = Math.min(...todas), dmax = Math.max(Math.max(...todas), dmin + 1);
+  const X = (iso) => x0 + ((relIsoParaDias(iso) - dmin) / (dmax - dmin)) * (x1 - x0);
+  const Y = (v) => yB - ((yB - yT) * Math.max(0, Math.min(100, v))) / 100;
+  const path = (pts) => pts.map((p, i) => `${i ? "L" : "M"}${X(p.d).toFixed(1)},${Y(p.v).toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="gf-rel-svg" role="img" aria-label="Curva S de avanço físico">
+      {[0, 20, 40, 60, 80, 100].map((v) => (<g key={v}><line x1={x0} x2={x1} y1={Y(v)} y2={Y(v)} stroke="#E3E6E1" /><text x={x0 - 8} y={Y(v) + 4} fontSize="11" textAnchor="end" fill="#5D6B64">{v}%</text></g>))}
+      {Array.from({ length: 8 }, (_, i) => { const dia = Math.round(dmin + ((dmax - dmin) * i) / 7); return <text key={i} x={x0 + ((x1 - x0) * i) / 7} y={H - 20} fontSize="11" textAnchor="middle" fill="#5D6B64">{relFmtDataCurta(relDiasParaIso(dia))}</text>; })}
+      {dataRef && <line x1={X(dataRef)} x2={X(dataRef)} y1={yT} y2={yB} stroke="#5D6B64" strokeDasharray="5 4" />}
+      {prev.length > 0 && <path d={path(prev)} fill="none" stroke="#5D6B64" strokeWidth="3" strokeDasharray="8 5" />}
+      {real.length > 1 && <path d={path(real)} fill="none" stroke="#0E3B2E" strokeWidth="3.5" />}
+      {real.map((p, i) => <circle key={i} cx={X(p.d)} cy={Y(p.v)} r="5" fill="#0E3B2E" stroke="#fff" strokeWidth="2" />)}
+    </svg>
+  );
+}
+
+/* ---------- Campo de aferição ---------- */
+function RelAferInput({ valor, onCommit, disabled, placeholder }) {
+  const fmt = (v) => (v === null || v === undefined ? "" : relFmtNum(v, 2));
+  const [txt, setTxt] = useState(fmt(valor));
+  const [erro, setErro] = useState(false);
+  useEffect(() => { setTxt(fmt(valor)); setErro(false); }, [valor]);
+  const commit = () => {
+    const v = relParsePct(txt);
+    if (v === null) { setErro(false); if (valor !== null && valor !== undefined) onCommit(null); return; }
+    if (Number.isNaN(v) || !relPctValido(v)) { setErro(true); return; }
+    setErro(false);
+    if (relRound(v, 2) !== valor) onCommit(relRound(v, 2));
+  };
+  return (
+    <input
+      className={`gf-rel-afer-input${erro ? " gf-input-error" : ""}`} inputMode="decimal" value={txt} disabled={disabled}
+      placeholder={placeholder} title={erro ? "Informe um valor entre 0 e 100" : "Percentual realizado (0 a 100)"}
+      onChange={(e) => setTxt(e.target.value)} onBlur={commit}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.target.blur(); } }}
+    />
+  );
+}
+
+const REL_ST_ROTULO = { nao: ["Não aferida", "gray"], zero: ["0%", "yellow"], parcial: ["Em andamento", "blue"], completa: ["Concluída", "green"] };
+
+/* ---------- Editor do relatório ---------- */
+function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, disciplinas, usuarios, onBack }) {
+  const [rel, setRelRaw] = useState(null);
+  const [ctx, setCtx] = useState(null); // { versao, plan, meta, resumos, anteriores, ref }
+  const [erro, setErro] = useState("");
+  const [aba, setAba] = useState("dados");
+  const [dirty, setDirty] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [editandoFinal, setEditandoFinal] = useState(false);
+  const [previa, setPrevia] = useState(false);
+  const [fotoCache, setFotoCache] = useState({});
+  const [filtro, setFiltro] = useState({ busca: "", status: "todas", aberto: {} });
+  const usuarioNome = currentUser?.nome || "—";
+
+  const setRel = (fn) => { setRelRaw((r) => (typeof fn === "function" ? fn(r) : fn)); setDirty(true); };
+
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const r = await relLerRelatorio(obra.id, relId);
+        if (!r || r.excluido) throw new Error("Relatório não encontrado (pode ter sido excluído).");
+        const [meta, resumos] = await Promise.all([relCronLerMeta(obra.id), relListarRelatorios(obra.id)]);
+        const versao = await relCarregarVersao(obra.id, r.cronVersaoId);
+        const ref = await relResolverRef(obra.id, meta);
+        const plan = versao ? relPlanejamento(versao, ref) : null;
+        const ativos = resumos.filter((s) => !s.excluido && s.id !== relId && s.dataRef <= r.dataRef).sort((a, b) => (a.dataRef < b.dataRef ? 1 : -1)).slice(0, 40);
+        const anteriores = (await Promise.all(ativos.map((s) => relLerRelatorio(obra.id, s.id)))).filter(Boolean);
+        if (!vivo) return;
+        setRelRaw(r); setCtx({ versao, plan, meta, resumos: resumos.filter((s) => !s.excluido), anteriores, ref });
+      } catch (e) { if (vivo) setErro((e && e.message) || "Falha ao carregar o relatório."); }
+    })();
+    return () => { vivo = false; };
+  }, [obra.id, relId]);
+
+  const finalizadoTrava = rel && rel.status === REL_STATUS_FINAL && !editandoFinal;
+  const somenteLeitura = !podeGerenciar || finalizadoTrava;
+
+  const vInfo = ctx && rel ? ctx.meta.versoes.find((v) => v.id === rel.cronVersaoId) : null;
+  const cons = useMemo(() => {
+    if (!rel || !ctx) return null;
+    if (finalizadoTrava && rel.snapshot && rel.snapshot.cons) return rel.snapshot.cons;
+    if (!ctx.versao) return null;
+    return relConsolidar({
+      rel, versao: ctx.versao, plan: ctx.plan, refTipo: ctx.ref && ctx.ref.tipo,
+      versaoNome: vInfo ? `v${vInfo.numero} (${vInfo.arquivo})` : "",
+      historico: ctx.resumos.filter((s) => s.ind).map((s) => ({ id: s.id, dataRef: s.dataRef, real: s.ind.real })),
+    });
+  }, [rel, ctx, finalizadoTrava, vInfo]);
+  const sugestoes = useMemo(() => (ctx ? relSugestoes(ctx.anteriores) : {}), [ctx]);
+
+  // carrega miniaturas ao abrir a aba de fotos
+  useEffect(() => {
+    if (aba !== "fotos" || !rel) return;
+    let vivo = true;
+    (async () => {
+      for (const f of rel.fotos || []) {
+        if (fotoCache[f.id]) continue;
+        try { const d = await relLerFoto(rel.id, f.id); if (vivo && d) setFotoCache((c) => ({ ...c, [f.id]: d.dataUri })); } catch (e) { /* ignora */ }
+      }
+    })();
+    return () => { vivo = false; };
+  }, [aba, rel && rel.fotos && rel.fotos.length]);
+
+  if (erro) return (<div className="gf-stack"><button className="gf-btn gf-btn-ghost" onClick={onBack} style={{ alignSelf: "flex-start" }}>← Voltar</button><div className="gf-rel-aviso gf-rel-aviso-erro">{erro}</div></div>);
+  if (!rel || !ctx) return (<div className="gf-stack"><p className="gf-field-hint">Carregando relatório…</p></div>);
+
+  const voltar = () => { if (dirty && !window.confirm("Há alterações não salvas. Sair mesmo assim?")) return; onBack(); };
+
+  const salvar = async (extra = {}, opcoes = {}) => {
+    setSalvando(true); setMsg("");
+    try {
+      let novo = { ...rel, ...extra };
+      novo.ind = cons ? { prev: cons.geral.prev, real: cons.geral.real } : null;
+      if (rel.status === REL_STATUS_FINAL && editandoFinal && cons) {
+        novo.snapshot = { geradoEm: Date.now(), geradoPor: usuarioNome, versaoId: rel.cronVersaoId, cons };
+        novo.log = [...(rel.log || []), { em: Date.now(), por: usuarioNome, acao: "Edição de relatório finalizado", motivo: rel.__motivo || "", antes: rel.ind || null, depois: novo.ind }];
+      }
+      delete novo.__motivo;
+      let r = await relSalvarRelatorio(novo, usuarioNome);
+      if (r.conflito) {
+        if (!window.confirm(`Este relatório foi alterado por ${r.atual.editadoPor || "outro usuário"} em ${new Date(r.atual.editadoEm).toLocaleString("pt-BR")} depois que você o abriu. Sobrescrever com a sua versão?`)) { setSalvando(false); return false; }
+        r = await relSalvarRelatorio(novo, usuarioNome, { forcar: true });
+      }
+      setRelRaw(r.rel); setDirty(false); setMsg("Salvo às " + new Date().toLocaleTimeString("pt-BR"));
+      if (opcoes.encerrarEdicaoFinal) setEditandoFinal(false);
+      setSalvando(false);
+      return r.rel;
+    } catch (e) { setMsg(""); window.alert("Não foi possível salvar: " + ((e && e.message) || e)); setSalvando(false); return false; }
+  };
+
+  const finalizar = async () => {
+    if (!cons) { if (!window.confirm("Não há cronograma associado: o relatório será finalizado sem indicadores de avanço. Continuar?")) return; }
+    else if (cons.nNao > 0 && !window.confirm(`${cons.nNao} atividade(s) ainda não foram aferidas e serão consideradas com 0%. Finalizar mesmo assim?`)) return;
+    else if (!window.confirm("Finalizar este relatório? Uma versão consolidada (snapshot) será armazenada e novas importações de cronograma não o alterarão.")) return;
+    const agora = Date.now();
+    const r = await salvar({ status: REL_STATUS_FINAL, finalizadoEm: agora, finalizadoPor: usuarioNome, snapshot: cons ? { geradoEm: agora, geradoPor: usuarioNome, versaoId: rel.cronVersaoId, cons } : null }, { encerrarEdicaoFinal: true });
+    if (r) logAudit?.({ tipoOperacao: "Finalização de Relatório de Obra", registroAlterado: `${obra.nome} — Relatório ${String(rel.numero).padStart(2, "0")}`, valorAnterior: REL_STATUS_ELAB, valorNovo: REL_STATUS_FINAL });
+  };
+  const reabrir = () => {
+    const motivo = window.prompt("Este relatório está finalizado. Informe o motivo da alteração (ficará registrado no histórico):");
+    if (motivo === null) return;
+    setRelRaw((r) => ({ ...r, __motivo: motivo.trim() || "(não informado)" }));
+    setEditandoFinal(true);
+    logAudit?.({ tipoOperacao: "Edição de Relatório de Obra finalizado", registroAlterado: `${obra.nome} — Relatório ${String(rel.numero).padStart(2, "0")}`, valorAnterior: REL_STATUS_FINAL, valorNovo: `Reaberto: ${motivo}` });
+  };
+
+  const upd = (campos) => setRel((r) => ({ ...r, ...campos }));
+  const setAfer = (chave, pct, origem = "manual") => setRel((r) => {
+    const afer = { ...(r.afer || {}) };
+    if (pct === null) delete afer[chave]; else afer[chave] = { pct, origem, em: Date.now() };
+    return { ...r, afer };
+  });
+  const aplicarSugestoes = () => setRel((r) => {
+    const afer = { ...(r.afer || {}) };
+    let n = 0;
+    for (const l of cons ? cons.linhas : []) if (!afer[l.chave] && sugestoes[l.chave]) { afer[l.chave] = { pct: sugestoes[l.chave].pct, origem: "sugestao", em: Date.now() }; n++; }
+    setMsg(`${n} sugestão(ões) aplicada(s).`);
+    return { ...r, afer };
+  });
+  const aplicarPctProject = () => {
+    if (!ctx.versao) return;
+    if (!window.confirm("Preencher as atividades ainda não aferidas com o % de conclusão registrado no Project?")) return;
+    setRel((r) => {
+      const afer = { ...(r.afer || {}) };
+      for (const t of relExecutaveis(ctx.versao.tarefas)) if (!afer[t.chave] && t.pctProj != null && relPctValido(t.pctProj)) afer[t.chave] = { pct: t.pctProj, origem: "project", em: Date.now() };
+      return { ...r, afer };
+    });
+  };
+  const atualizarVersao = async () => {
+    const atualId = ctx.meta.atualId;
+    if (!atualId || atualId === rel.cronVersaoId) return;
+    if (!window.confirm("Atualizar este relatório para a versão mais recente do cronograma? As aferições são mantidas pelas atividades correspondentes; o avanço previsto e o realizado serão recalculados.")) return;
+    const versao = await relCarregarVersao(obra.id, atualId);
+    const plan = relPlanejamento(versao, ctx.ref);
+    setCtx({ ...ctx, versao, plan });
+    upd({ cronVersaoId: atualId });
+  };
+
+  const gerarAnalise = () => {
+    if (!cons) return window.alert("É necessário um cronograma importado para gerar a análise.");
+    if (rel.analise && rel.analise.trim() && !window.confirm("Substituir o texto atual da análise técnica pela sugestão automática?")) return;
+    const ant = ctx.anteriores.filter((a) => a.ind && a.dataRef < rel.dataRef)[0];
+    const texto = relGerarAnaliseTexto({
+      obraNome: obra.nome, ind: cons.geral, dataRef: rel.dataRef, macros: cons.macros, linhas: cons.linhas, nNao: cons.nNao,
+      principais: relLinhasLista(rel.principais), anterior: ant ? { real: ant.ind.real, dataRef: ant.dataRef } : null,
+    });
+    upd({ analise: texto });
+  };
+
+  /* fotos */
+  const adicionarFotos = async (files) => {
+    const arr = Array.from(files || []);
+    if (!arr.length) return;
+    let falhas = 0;
+    for (let i = 0; i < arr.length; i++) {
+      setMsg(`Processando foto ${i + 1} de ${arr.length}…`);
+      try {
+        const p = await relProcessarFoto(arr[i]);
+        const id = uid("foto");
+        await relGravarFoto(rel.id, id, { id, dataUri: p.dataUri, w: p.w, h: p.h });
+        setFotoCache((c) => ({ ...c, [id]: p.dataUri }));
+        setRel((r) => ({ ...r, fotos: [...(r.fotos || []), { id, legenda: "", disciplina: "", data: "", w: p.w, h: p.h }] }));
+      } catch (e) { falhas++; }
+    }
+    setMsg(falhas ? `${falhas} arquivo(s) não puderam ser adicionados (formato não suportado ou falha ao salvar).` : "Fotos adicionadas. Lembre-se de salvar o relatório.");
+  };
+  const moverFoto = (i, d) => setRel((r) => { const f = [...r.fotos]; const j = i + d; if (j < 0 || j >= f.length) return r; [f[i], f[j]] = [f[j], f[i]]; return { ...r, fotos: f }; });
+  const atualizarFoto = (id, campos) => setRel((r) => ({ ...r, fotos: r.fotos.map((f) => (f.id === id ? { ...f, ...campos } : f)) }));
+  const removerFoto = (id) => { if (!window.confirm("Remover esta fotografia do relatório?")) return; setRel((r) => ({ ...r, fotos: r.fotos.filter((f) => f.id !== id) })); };
+
+  const abas = [["dados", "Dados"], ["intro", "Introdução"], ["afericao", "Avanço Físico"], ["curva", "Previsto x Realizado"], ["fotos", "Fotos"], ["analise", "Análise Técnica"]];
+  const periodoOk = rel.periodoIni && rel.periodoFim && rel.periodoFim >= rel.periodoIni;
+  const nomesResp = (usuarios || []).filter((u) => u.ativo && !isInvestidor(u)).map((u) => u.nome);
+
+  const linhasPorMacro = (() => {
+    if (!cons) return [];
+    const q = filtro.busca.trim().toLowerCase();
+    const g = new Map();
+    for (const l of cons.linhas) {
+      if (filtro.status !== "todas" && l.status !== filtro.status) continue;
+      if (q && !(`${l.wbs} ${l.nome}`.toLowerCase().includes(q))) continue;
+      if (!g.has(l.macroChave)) g.set(l.macroChave, []);
+      g.get(l.macroChave).push(l);
+    }
+    return cons.macros.filter((m) => g.has(m.chave)).map((m) => ({ macro: m, linhas: g.get(m.chave) }));
+  })();
+  const ordemAfer = Object.keys(rel.afer || {}).length;
+  const aferOrfas = ctx.versao ? Object.keys(rel.afer || {}).filter((k) => !ctx.versao.tarefas.some((t) => t.chave === k && t.executavel)).length : 0;
+
+  return (
+    <div className="gf-stack">
+      <button className="gf-btn gf-btn-ghost" onClick={voltar} style={{ alignSelf: "flex-start" }}>← Voltar para os relatórios</button>
+      <div className="gf-toolbar">
+        <div>
+          <h2>Relatório {String(rel.numero).padStart(2, "0")} — {obra.nome}</h2>
+          <div className="gf-field-hint">Período: {fmtDate(rel.periodoIni)} a {fmtDate(rel.periodoFim)} | Referência: {fmtDate(rel.dataRef)} {dirty && <b style={{ color: "#B0530E" }}>— alterações não salvas</b>} {msg && <span>— {msg}</span>}</div>
+        </div>
+        <div className="gf-row-actions gf-rel-editor-acoes">
+          <Badge tone={rel.status === REL_STATUS_FINAL ? "green" : "orange"}>{editandoFinal ? "Finalizado (em edição)" : rel.status}</Badge>
+          <button className="gf-btn gf-btn-ghost" onClick={() => setPrevia(true)}><Eye size={14} /> Pré-visualizar Relatório</button>
+          {!somenteLeitura && <button className="gf-btn gf-btn-ghost" onClick={() => salvar()} disabled={salvando || !dirty}><Check size={14} /> {salvando ? "Salvando…" : "Salvar"}</button>}
+          {podeGerenciar && rel.status !== REL_STATUS_FINAL && <button className="gf-btn gf-btn-primary" onClick={finalizar} disabled={salvando || !periodoOk}><Check size={14} /> Finalizar</button>}
+          {podeGerenciar && rel.status === REL_STATUS_FINAL && !editandoFinal && <button className="gf-btn gf-btn-ghost" onClick={reabrir}><Pencil size={14} /> Editar relatório finalizado</button>}
+          {podeGerenciar && rel.status === REL_STATUS_FINAL && editandoFinal && <button className="gf-btn gf-btn-primary" onClick={finalizar} disabled={salvando}><Check size={14} /> Salvar e finalizar novamente</button>}
+        </div>
+      </div>
+      {rel.status === REL_STATUS_FINAL && !editandoFinal && <div className="gf-rel-aviso gf-rel-aviso-info">Relatório finalizado em {rel.finalizadoEm ? new Date(rel.finalizadoEm).toLocaleString("pt-BR") : "—"} por {rel.finalizadoPor || "—"}. Os valores exibidos vêm do snapshot consolidado e não mudam com novas importações do cronograma.</div>}
+      {editandoFinal && <div className="gf-rel-aviso gf-rel-aviso-atencao">Você está editando um relatório finalizado. A alteração será registrada no histórico do relatório.</div>}
+      {!podeGerenciar && <div className="gf-rel-aviso gf-rel-aviso-info">Modo de consulta — seu usuário não pode editar relatórios de obra.</div>}
+
+      <div className="gf-segmented gf-rel-abas">
+        {abas.map(([k, r]) => <button key={k} className={aba === k ? "is-active" : ""} style={aba === k ? { background: "var(--gf-gray-100)", color: "var(--gf-primary)" } : null} onClick={() => setAba(k)}>{r}</button>)}
+      </div>
+
+      {aba === "dados" && (
+        <div className="gf-card">
+          <div className="gf-form-grid gf-modal-form">
+            <Field label="Data inicial do período"><input type="date" value={rel.periodoIni} disabled={somenteLeitura} onChange={(e) => { const v = e.target.value; upd({ periodoIni: v, ...(rel.introEditada ? {} : { introTexto: relTextoIntroducao(obra.nome, v, rel.periodoFim) }) }); }} /></Field>
+            <Field label="Data final do período"><input type="date" value={rel.periodoFim} disabled={somenteLeitura} onChange={(e) => { const v = e.target.value; upd({ periodoFim: v, ...(rel.introEditada ? {} : { introTexto: relTextoIntroducao(obra.nome, rel.periodoIni, v) }) }); }} /></Field>
+            <Field label="Data de referência da aferição"><input type="date" value={rel.dataRef} disabled={somenteLeitura} onChange={(e) => upd({ dataRef: e.target.value })} /></Field>
+            <Field label="Responsável">
+              <input list="rel-resp2" value={rel.responsavel || ""} disabled={somenteLeitura} onChange={(e) => upd({ responsavel: e.target.value })} />
+              <datalist id="rel-resp2">{nomesResp.map((n) => <option key={n} value={n} />)}</datalist>
+            </Field>
+          </div>
+          {!periodoOk && <div className="gf-rel-aviso gf-rel-aviso-erro">A data final do período não pode ser anterior à data inicial.</div>}
+          <div className="gf-rel-resumo-grid" style={{ marginTop: 14 }}>
+            <div><span>Número</span><b>{String(rel.numero).padStart(2, "0")}</b></div>
+            <div><span>Criado</span><b>{new Date(rel.criadoEm).toLocaleString("pt-BR")} — {rel.criadoPor}</b></div>
+            <div><span>Última edição</span><b>{new Date(rel.editadoEm).toLocaleString("pt-BR")} — {rel.editadoPor}</b></div>
+            <div><span>Versão do cronograma</span><b>{vInfo ? `v${vInfo.numero} — ${vInfo.arquivo}` : "Nenhum cronograma associado"}</b></div>
+          </div>
+          {ctx.meta.atualId && ctx.meta.atualId !== rel.cronVersaoId && !somenteLeitura && (
+            <div className="gf-rel-aviso gf-rel-aviso-atencao" style={{ marginTop: 12 }}>
+              Existe uma versão mais recente do cronograma (v{ctx.meta.versoes.find((v) => v.id === ctx.meta.atualId)?.numero}). Este relatório continua usando a versão anterior até que você atualize.
+              {" "}<button className="gf-btn gf-btn-ghost" onClick={atualizarVersao}>Atualizar para a versão mais recente</button>
+            </div>
+          )}
+          {!rel.cronVersaoId && ctx.meta.atualId && !somenteLeitura && (
+            <div className="gf-rel-aviso gf-rel-aviso-atencao" style={{ marginTop: 12 }}>Há um cronograma importado, mas este relatório ainda não está vinculado a ele. <button className="gf-btn gf-btn-ghost" onClick={atualizarVersao}>Vincular à versão atual</button></div>
+          )}
+          {(rel.log || []).length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              <div className="gf-eyebrow">Histórico de edições após finalização</div>
+              <ul className="gf-rel-ul">{rel.log.map((l, i) => <li key={i}>{new Date(l.em).toLocaleString("pt-BR")} — {l.por}: {l.acao}. Motivo: {l.motivo || "—"}. {l.antes && l.depois ? `Realizado ${relFmtPct(l.antes.real)} → ${relFmtPct(l.depois.real)}.` : ""}</li>)}</ul>
+            </div>
+          )}
+        </div>
+      )}
+
+      {aba === "intro" && (
+        <div className="gf-card gf-stack" style={{ gap: 14 }}>
+          <Field label="Texto introdutório" hint="Gerado automaticamente a partir da obra e do período; pode ser editado livremente.">
+            <textarea rows={4} value={rel.introTexto || ""} disabled={somenteLeitura} onChange={(e) => upd({ introTexto: e.target.value, introEditada: true })} />
+          </Field>
+          {!somenteLeitura && <button className="gf-btn gf-btn-ghost" style={{ alignSelf: "flex-start" }} onClick={() => upd({ introTexto: relTextoIntroducao(obra.nome, rel.periodoIni, rel.periodoFim), introEditada: false })}>Restaurar texto automático</button>}
+          <Field label="Principais atividades realizadas no período" hint="Uma atividade por linha. Serão apresentadas como lista no PDF.">
+            <textarea rows={7} value={rel.principais || ""} disabled={somenteLeitura} onChange={(e) => upd({ principais: e.target.value })} placeholder={"Execução da infraestrutura elétrica do pavimento térreo\nInstalação de divisórias drywall\nExecução de contrapiso"} />
+          </Field>
+        </div>
+      )}
+
+      {aba === "afericao" && (
+        <div className="gf-stack" style={{ gap: 14 }}>
+          {!cons ? (
+            <div className="gf-card"><EmptyState icon={CalendarRange} title="Cronograma não disponível" body="Importe o cronograma XML do Microsoft Project na página da obra e vincule-o a este relatório para aferir o avanço físico." /></div>
+          ) : (
+            <>
+              <div className="gf-rel-kpis">
+                <div><span>Avanço realizado</span><b>{relFmtPct(cons.geral.real, 2)}</b></div>
+                <div><span>Avanço previsto (em {relFmtData(rel.dataRef)})</span><b>{relFmtPct(cons.geral.prev, 2)}</b></div>
+                <div><span>Dias de trabalho acumulados</span><b>{relFmtNum(cons.geral.totalDias, 2)}</b></div>
+                <div><span>Não aferidas / 0% / parciais / concluídas</span><b>{cons.contagem.nao} / {cons.contagem.zero} / {cons.contagem.parcial} / {cons.contagem.completa}</b></div>
+              </div>
+              {cons.nNao > 0 && <div className="gf-rel-aviso gf-rel-aviso-atencao">{cons.nNao} atividade(s) ainda não aferida(s): entram no cálculo como 0%, mas não são tratadas como executadas nem como concluídas.</div>}
+              {aferOrfas > 0 && <div className="gf-rel-aviso gf-rel-aviso-info">{aferOrfas} aferição(ões) pertencem a atividades que não constam mais na versão do cronograma vinculada; foram preservadas, mas não entram no cálculo.</div>}
+              {!cons.pesosOk && <div className="gf-rel-aviso gf-rel-aviso-erro">Os pesos das atividades não somam 100%. Verifique o cronograma.</div>}
+              <RelAvisosLista avisos={cons.avisos} />
+              <div className="gf-card">
+                <div className="gf-card-head"><h2>Avanço físico por atividade macro</h2></div>
+                <div className="gf-rel-macros">
+                  {cons.macros.map((m) => (
+                    <div className="gf-rel-macro-row" key={m.chave}>
+                      <div className="gf-rel-macro-nome" title={m.nome}>{m.wbs} {m.nome}</div>
+                      <div className="gf-rel-barra"><div className="gf-rel-barra-fill" style={{ width: `${Math.min(100, m.pctReal)}%` }} /><div className="gf-rel-barra-prev" style={{ left: `${Math.min(100, m.pctPrev)}%` }} title={`Previsto ${relFmtPct(m.pctPrev)}`} /></div>
+                      <div className="gf-rel-macro-val"><b>{relFmtPct(m.pctReal)}</b><span>prev. {relFmtPct(m.pctPrev)}</span></div>
+                    </div>
+                  ))}
+                </div>
+                <p className="gf-field-hint">Barra = realizado; marcador = previsto. Percentual da macro = Σ (duração × % realizado) ÷ Σ duração (sem média simples).</p>
+              </div>
+              <div className="gf-card">
+                <div className="gf-card-head">
+                  <h2>Aferição das atividades</h2>
+                  <div className="gf-row-actions" style={{ flexWrap: "wrap" }}>
+                    <input placeholder="Buscar atividade…" value={filtro.busca} onChange={(e) => setFiltro((f) => ({ ...f, busca: e.target.value }))} style={{ maxWidth: 200 }} />
+                    <select value={filtro.status} onChange={(e) => setFiltro((f) => ({ ...f, status: e.target.value }))}>
+                      <option value="todas">Todas</option><option value="nao">Não aferidas</option><option value="zero">Aferidas com 0%</option><option value="parcial">Em andamento</option><option value="completa">Concluídas</option>
+                    </select>
+                    {!somenteLeitura && Object.keys(sugestoes).length > 0 && <button className="gf-btn gf-btn-ghost" onClick={aplicarSugestoes}>Aplicar sugestões da aferição anterior</button>}
+                    {!somenteLeitura && <button className="gf-btn gf-btn-ghost" onClick={aplicarPctProject}>Usar % do Project nas não aferidas</button>}
+                  </div>
+                </div>
+                <p className="gf-field-hint">Informe apenas as atividades que evoluíram. Campo vazio = não aferida. {Object.keys(sugestoes).length > 0 ? "A aferição anterior aparece como sugestão (botão “usar”) e só vale depois de aplicada." : ""} Valores entre 0 e 100.</p>
+                {linhasPorMacro.length === 0 && <p className="gf-field-hint">Nenhuma atividade encontrada com o filtro atual.</p>}
+                {linhasPorMacro.map(({ macro, linhas }) => {
+                  const aberto = filtro.aberto[macro.chave] !== false && (filtro.aberto[macro.chave] || linhasPorMacro.length <= 3 || filtro.busca || filtro.status !== "todas" || false);
+                  return (
+                    <div className="gf-rel-grupo" key={macro.chave}>
+                      <button className="gf-rel-grupo-cab" onClick={() => setFiltro((f) => ({ ...f, aberto: { ...f.aberto, [macro.chave]: !aberto } }))}>
+                        <ChevronRight size={14} className={aberto ? "gf-rot90" : ""} />
+                        <span className="gf-rel-grupo-nome">{macro.wbs} {macro.nome}</span>
+                        <span className="gf-rel-grupo-info">{relFmtNum(macro.durDias, 2)} dias | realizado {relFmtPct(macro.pctReal)} | previsto {relFmtPct(macro.pctPrev)}</span>
+                      </button>
+                      {aberto && (
+                        <div className="gf-table-wrap">
+                          <table className="gf-table gf-rel-tabela-afer">
+                            <thead><tr><th>Atividade</th><th className="num">Duração (dias)</th><th className="num">Peso</th><th className="num">Previsto</th><th>Realizado (%)</th><th>Sugestão anterior</th><th>Situação</th><th className="num">Dias equiv.</th></tr></thead>
+                            <tbody>
+                              {linhas.map((l) => {
+                                const a = (rel.afer || {})[l.chave];
+                                const sg = sugestoes[l.chave];
+                                const [rot, tom] = REL_ST_ROTULO[l.status];
+                                return (
+                                  <tr key={l.chave} className={`gf-rel-st-${l.status}`}>
+                                    <td style={{ paddingLeft: 10 + Math.max(0, l.nivel - 2) * 14 }}><span className="mono gf-field-hint">{l.wbs}</span> {l.nome}</td>
+                                    <td className="num mono">{relFmtDias(l.durMin, cons.minPorDia)}</td>
+                                    <td className="num mono">{relFmtNum(l.pesoBp / 100, 2)}%</td>
+                                    <td className="num mono">{relFmtPct(l.pctPrev, 0)}</td>
+                                    <td>
+                                      <div className="gf-rel-afer-cel">
+                                        <RelAferInput valor={a ? a.pct : null} disabled={somenteLeitura} placeholder="—" onCommit={(v) => setAfer(l.chave, v)} />
+                                        {!somenteLeitura && <button className="gf-icon-btn" title="Marcar 100%" onClick={() => setAfer(l.chave, 100)}><Check size={12} /></button>}
+                                      </div>
+                                    </td>
+                                    <td>{sg ? <>{!somenteLeitura && !a ? <button className="gf-btn gf-btn-ghost gf-rel-btn-mini" onClick={() => setAfer(l.chave, sg.pct, "sugestao")}>usar {relFmtPct(sg.pct)}</button> : <span className="gf-field-hint">{relFmtPct(sg.pct)}</span>} <span className="gf-field-hint">({relFmtDataCurta(sg.dataRef)})</span></> : <span className="gf-field-hint">—</span>}</td>
+                                    <td><Badge tone={tom}>{rot}</Badge></td>
+                                    <td className="num mono">{relFmtNum(l.equivRealMin !== undefined ? l.equivRealMin / cons.minPorDia : (l.durMin * l.pctReal / 100) / cons.minPorDia, 2)}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {aba === "curva" && (
+        <div className="gf-card gf-stack" style={{ gap: 14 }}>
+          {!cons ? <EmptyState icon={CalendarRange} title="Cronograma não disponível" body="A Curva S depende do cronograma importado." /> : (
+            <>
+              <div className="gf-rel-kpis">
+                <div><span>Avanço previsto</span><b>{relFmtPct(cons.geral.prev)}</b></div>
+                <div><span>Avanço realizado</span><b>{relFmtPct(cons.geral.real)}</b></div>
+                <div><span>Desvio</span><b className={cons.geral.desvio < 0 ? "neg" : ""}>{cons.geral.desvioTexto}</b></div>
+                <div><span>Situação</span><b className={cons.geral.situacao === "ATRASADA" ? "neg" : ""}>{cons.geral.situacao}</b></div>
+              </div>
+              <RelCurvaSVG curva={cons.curva} dataRef={rel.dataRef} />
+              <div className="gf-rel-legenda"><span><i className="prev" /> Previsto (cronograma)</span><span><i className="real" /> Realizado (aferições registradas)</span></div>
+              <ul className="gf-rel-ul">{cons.premissas.map((p, i) => <li key={i}>{p}</li>)}<li>Realizado: apenas datas com aferição registrada em relatório; nenhum valor é inventado ou interpolado.</li></ul>
+            </>
+          )}
+        </div>
+      )}
+
+      {aba === "fotos" && (
+        <div className="gf-card gf-stack" style={{ gap: 14 }}>
+          {!somenteLeitura && (
+            <div>
+              <label className="gf-btn gf-btn-primary" style={{ cursor: "pointer" }}>
+                <ImagePlus size={14} /> Adicionar fotografias
+                <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={(e) => { adicionarFotos(e.target.files); e.target.value = ""; }} />
+              </label>
+              <p className="gf-field-hint">As imagens são redimensionadas (até 1600 px) e comprimidas antes de salvar. Salve o relatório após organizar as fotos.</p>
+            </div>
+          )}
+          {(rel.fotos || []).length === 0 ? <EmptyState icon={ImagePlus} title="Nenhuma fotografia" body="Adicione fotografias das atividades executadas no período." /> : (
+            <div className="gf-rel-fotos">
+              {rel.fotos.map((f, i) => (
+                <div className="gf-rel-foto" key={f.id}>
+                  <div className="gf-rel-foto-img">{fotoCache[f.id] ? <img src={fotoCache[f.id]} alt={`Foto ${i + 1}`} /> : <span className="gf-field-hint">Carregando…</span>}</div>
+                  <div className="gf-rel-foto-campos">
+                    <div className="gf-rel-foto-topo"><b>Foto {String(i + 1).padStart(2, "0")}</b>
+                      {!somenteLeitura && <div className="gf-row-actions">
+                        <button className="gf-icon-btn" title="Mover para cima" onClick={() => moverFoto(i, -1)} disabled={i === 0}><ArrowUp size={13} /></button>
+                        <button className="gf-icon-btn" title="Mover para baixo" onClick={() => moverFoto(i, 1)} disabled={i === rel.fotos.length - 1}><ArrowDown size={13} /></button>
+                        <button className="gf-icon-btn danger" title="Remover" onClick={() => removerFoto(f.id)}><Trash2 size={13} /></button>
+                      </div>}
+                    </div>
+                    <Field label="Legenda / descrição"><textarea rows={2} value={f.legenda} disabled={somenteLeitura} onChange={(e) => atualizarFoto(f.id, { legenda: e.target.value })} /></Field>
+                    <div className="gf-form-grid gf-modal-form">
+                      <Field label="Disciplina / atividade">
+                        <input list="rel-disc" value={f.disciplina} disabled={somenteLeitura} onChange={(e) => atualizarFoto(f.id, { disciplina: e.target.value })} />
+                      </Field>
+                      <Field label="Data (opcional)"><input type="date" value={f.data || ""} disabled={somenteLeitura} onChange={(e) => atualizarFoto(f.id, { data: e.target.value })} /></Field>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <datalist id="rel-disc">{(disciplinas || []).map((d) => <option key={d} value={d} />)}</datalist>
+            </div>
+          )}
+        </div>
+      )}
+
+      {aba === "analise" && (
+        <div className="gf-card gf-stack" style={{ gap: 12 }}>
+          {!somenteLeitura && <button className="gf-btn gf-btn-ghost" style={{ alignSelf: "flex-start" }} onClick={gerarAnalise}><Sparkles size={14} /> Gerar Análise Automaticamente</button>}
+          <Field label="Análise técnica" hint="A sugestão automática usa apenas indicadores e fatos do relatório (sem atribuir causas). Edite livremente. Separe parágrafos com uma linha em branco.">
+            <textarea rows={16} value={rel.analise || ""} disabled={somenteLeitura} onChange={(e) => upd({ analise: e.target.value })} />
+          </Field>
+        </div>
+      )}
+
+      {previa && <RelPreviewModal obra={obra} relObj={{ ...rel, __editandoFinal: editandoFinal, ind: cons ? { prev: cons.geral.prev, real: cons.geral.real } : rel.ind }} usuarios={usuarios} onClose={() => setPrevia(false)} />}
+    </div>
+  );
+}
+
+
 /* ---------------------------------------------------------------
    CSS
 --------------------------------------------------------------- */
@@ -9829,6 +12176,76 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
 .gf-archive-trigger-dragover{ background-color:var(--gf-blue-50, #eff6ff); box-shadow:inset 0 0 0 2px var(--gf-primary); color:var(--gf-primary); }
 .gf-plano-dia-dragover{ background-color:var(--gf-blue-50, #eff6ff); box-shadow:inset 0 0 0 2px var(--gf-primary); }
 .gf-plano-atividade-row[draggable="true"]{ cursor:grab; }
+
+/* ===== Relatórios de Obra ===== */
+.gf-rel-card-icon{ color:var(--gf-accent); margin:6px 0 2px; }
+.gf-rel-novo{ font-size:14px; padding:11px 18px; }
+.gf-rel-aviso{ border-radius:10px; padding:10px 14px; font-size:12.5px; line-height:1.45; border:1px solid var(--gf-border); background:var(--gf-gray-100); color:var(--gf-ink); }
+.gf-rel-aviso-info{ background:#EEF4F0; border-color:#CFE0D5; }
+.gf-rel-aviso-atencao{ background:#FBF1D2; border-color:#EFDC9B; color:#6B5305; }
+.gf-rel-aviso-erro{ background:var(--gf-danger-soft); border-color:var(--gf-danger); color:var(--gf-danger); }
+.gf-rel-avisos{ display:flex; flex-direction:column; gap:6px; }
+.gf-rel-lista{ display:flex; flex-direction:column; gap:8px; }
+.gf-rel-item{ display:flex; align-items:center; justify-content:space-between; gap:12px; border:1px solid var(--gf-border); border-radius:10px; padding:11px 14px; background:var(--gf-gray-100); flex-wrap:wrap; }
+.gf-rel-item-info{ flex:1; min-width:240px; display:flex; flex-direction:column; gap:6px; }
+.gf-rel-item-titulo{ font-weight:700; color:var(--gf-primary); font-size:14px; }
+.gf-rel-item-acoes{ flex:0 0 auto; }
+.gf-rel-ref{ font-size:12.5px; background:var(--gf-gray-100); border-radius:10px; padding:10px 14px; margin-bottom:12px; color:var(--gf-ink); }
+.gf-rel-resumo-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+.gf-rel-resumo-grid > div{ background:var(--gf-gray-100); border-radius:10px; padding:9px 12px; display:flex; flex-direction:column; gap:3px; }
+.gf-rel-resumo-grid span{ font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--gf-muted); font-weight:600; }
+.gf-rel-resumo-grid b{ font-size:13px; word-break:break-word; }
+.gf-rel-ul{ margin:6px 0 0; padding-left:18px; font-size:12.5px; color:var(--gf-ink); display:flex; flex-direction:column; gap:3px; }
+.gf-rel-tr-resumo td{ background:var(--gf-gray-100); }
+.gf-rel-previa{ display:flex; flex-direction:column; gap:16px; align-items:center; background:#d9dcd7; padding:16px; border-radius:10px; }
+.gf-rel-previa img{ width:100%; max-width:760px; height:auto; box-shadow:0 4px 18px rgba(0,0,0,.2); background:#fff; }
+.gf-rel-svg{ width:100%; height:auto; max-height:420px; background:#FAFAF8; border:1px solid var(--gf-border); border-radius:10px; }
+.gf-rel-abas{ flex-wrap:wrap; margin-bottom:0; }
+.gf-rel-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
+.gf-rel-kpis > div{ background:#fff; border:1px solid var(--gf-border); border-left:4px solid var(--gf-accent); border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; }
+.gf-rel-kpis span{ font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--gf-muted); font-weight:600; }
+.gf-rel-kpis b{ font-family:var(--gf-font-display); font-size:20px; color:var(--gf-primary); }
+.gf-rel-kpis b.neg{ color:var(--gf-danger); }
+.gf-rel-macros{ display:flex; flex-direction:column; gap:10px; }
+.gf-rel-macro-row{ display:grid; grid-template-columns:minmax(120px,1.1fr) 2fr 90px; gap:12px; align-items:center; }
+.gf-rel-macro-nome{ font-size:12.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gf-rel-barra{ position:relative; height:16px; background:var(--gf-gray-100); border-radius:8px; }
+.gf-rel-barra-fill{ position:absolute; left:0; top:0; bottom:0; background:var(--gf-accent); border-radius:8px; }
+.gf-rel-barra-prev{ position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--gf-ink); border-radius:2px; }
+.gf-rel-macro-val{ display:flex; flex-direction:column; align-items:flex-end; font-size:13px; }
+.gf-rel-macro-val span{ font-size:10.5px; color:var(--gf-muted); }
+.gf-rel-grupo{ border:1px solid var(--gf-border); border-radius:10px; margin-top:10px; overflow:hidden; }
+.gf-rel-grupo-cab{ width:100%; display:flex; align-items:center; gap:8px; background:var(--gf-gray-100); border:none; padding:10px 12px; cursor:pointer; text-align:left; font-family:inherit; flex-wrap:wrap; }
+.gf-rel-grupo-cab svg.gf-rot90{ transform:rotate(90deg); }
+.gf-rel-grupo-nome{ font-weight:700; color:var(--gf-primary); font-size:13px; flex:1; min-width:160px; }
+.gf-rel-grupo-info{ font-size:11.5px; color:var(--gf-muted); }
+.gf-rel-tabela-afer td, .gf-rel-tabela-afer th{ white-space:nowrap; }
+.gf-rel-tabela-afer td:first-child{ white-space:normal; min-width:220px; }
+.gf-rel-afer-cel{ display:flex; align-items:center; gap:6px; }
+.gf-rel-afer-input{ width:76px; text-align:right; }
+.gf-rel-btn-mini{ padding:4px 8px; font-size:11.5px; }
+.gf-rel-st-nao td:first-child{ border-left:3px solid #C9CEC8; }
+.gf-rel-st-zero td:first-child{ border-left:3px solid #D9B43A; }
+.gf-rel-st-parcial td:first-child{ border-left:3px solid #4A86B5; }
+.gf-rel-st-completa td:first-child{ border-left:3px solid var(--gf-accent); }
+.gf-rel-legenda{ display:flex; gap:18px; flex-wrap:wrap; font-size:12px; color:var(--gf-muted); }
+.gf-rel-legenda i{ display:inline-block; width:26px; height:0; border-top:3px dashed #5D6B64; vertical-align:middle; margin-right:6px; }
+.gf-rel-legenda i.real{ border-top:4px solid #0E3B2E; }
+.gf-rel-fotos{ display:flex; flex-direction:column; gap:12px; }
+.gf-rel-foto{ display:flex; gap:14px; border:1px solid var(--gf-border); border-radius:10px; padding:12px; background:var(--gf-gray-100); }
+.gf-rel-foto-img{ flex:0 0 180px; height:140px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.gf-rel-foto-img img{ max-width:100%; max-height:100%; object-fit:contain; }
+.gf-rel-foto-campos{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+.gf-rel-foto-topo{ display:flex; justify-content:space-between; align-items:center; }
+.gf-rel-editor-acoes{ flex-wrap:wrap; }
+@media (max-width: 700px){
+  .gf-rel-foto{ flex-direction:column; }
+  .gf-rel-foto-img{ flex:0 0 auto; width:100%; height:200px; }
+  .gf-rel-macro-row{ grid-template-columns:1fr 70px; }
+  .gf-rel-macro-nome{ grid-column:1 / -1; white-space:normal; }
+  .gf-rel-item{ flex-direction:column; align-items:stretch; }
+  .gf-rel-item-acoes{ justify-content:flex-start; }
+}
 
 @media (max-width: 900px){
   .gf-tiles{ grid-template-columns:repeat(3,1fr); }
