@@ -275,23 +275,40 @@ const ASSISTENTE_PERMS = {
   relatorios_obra_visualizar: true, relatorios_obra_gerenciar: true,
 };
 
+const GESTOR_PERMS = {
+  ...permsAllFalse(),
+  planejamento_visualizar: true, planejamento_gerenciar: true,
+  relatorios_obra_visualizar: true, relatorios_obra_gerenciar: true,
+  gerenciamento_lancar: true,
+};
+
 const DEFAULT_USUARIOS = [
   { id: "pedro", nome: "Pedro", papel: "admin", ativo: true, senha: "glover2026", perms: permsAllTrue() },
   { id: "fabio", nome: "Fabio", papel: "admin", ativo: true, senha: "glover2026", perms: permsAllTrue() },
   { id: "assistente", nome: "Assistente Administrativo", papel: "operacional", ativo: true, senha: "1234", perms: ASSISTENTE_PERMS },
   { id: "perfil4", nome: "4º usuário (a definir)", papel: "customizavel", ativo: true, senha: "1234", perms: permsAllFalse() },
+  { id: "gestor_andre", nome: "André", papel: "gestor_obra", ativo: true, senha: "1234", perms: { ...GESTOR_PERMS }, gestorObras: [] },
+  { id: "gestor_izabella", nome: "Izabella", papel: "gestor_obra", ativo: true, senha: "1234", perms: { ...GESTOR_PERMS }, gestorObras: [] },
+  { id: "gestor_leonardo", nome: "Leonardo", papel: "gestor_obra", ativo: true, senha: "1234", perms: { ...GESTOR_PERMS }, gestorObras: [] },
 ];
 
-const PAPEL_LABEL = { admin: "Administrador", operacional: "Operacional", customizavel: "Personalizado", investidor: "Investidor (somente leitura)" };
+const PAPEL_LABEL = { admin: "Administrador", operacional: "Operacional", customizavel: "Personalizado", investidor: "Investidor (somente leitura)", gestor_obra: "Gestor de Obra" };
 
 // Usuário "Investidor": acesso somente leitura, restrito a UMA obra (Painel de Obras) e a UMA
 // Conta Investidor. Independente das permissões gravadas, só pode visualizar essas duas páginas.
 const INVESTIDOR_PAGES = ["obras", "contasinvestidores"];
 const isInvestidor = (u) => !!u && u.papel === "investidor";
 
+// Usuário "Gestor de Obra": só acessa Planejamento Semanal, Relatórios de Obra e Obras Gerenciamento,
+// e apenas das obras selecionadas pelo administrador (campo gestorObras).
+const GESTOR_PAGES = ["planejamentosemanal", "relatoriosobra", "obrasgerenciamento"];
+const GESTOR_PERM_KEYS = Object.keys(GESTOR_PERMS).filter((k) => GESTOR_PERMS[k]);
+const isGestor = (u) => !!u && u.papel === "gestor_obra";
+
 function can(user, key) {
   if (!user || !user.ativo) return false;
   if (isInvestidor(user)) return key === "investidores_visualizar"; // nenhuma permissão de edição, nunca
+  if (isGestor(user) && !GESTOR_PERM_KEYS.includes(key)) return false; // nunca além das 3 páginas liberadas
   return !!(user.perms && user.perms[key]);
 }
 
@@ -761,10 +778,13 @@ function migrarFornecedoresCadastro(d) {
 // os demais recebem "false" (padrão seguro).
 function migrarPermissoesUsuarios(usuariosSalvos) {
   if (!usuariosSalvos || !usuariosSalvos.length) return DEFAULT_USUARIOS;
-  return usuariosSalvos.map((u) => ({
+  const migrados = usuariosSalvos.map((u) => ({
     ...u,
     perms: { ...(u.papel === "admin" ? permsAllTrue() : permsAllFalse()), ...u.perms },
   }));
+  // Gestores de obra padrão (André, Izabella, Leonardo): criados uma vez se ainda não existirem.
+  const faltando = DEFAULT_USUARIOS.filter((d) => d.papel === "gestor_obra" && !migrados.some((u) => u.id === d.id));
+  return [...migrados, ...faltando];
 }
 
 function seedData() {
@@ -1413,7 +1433,9 @@ export default function App() {
 
   const currentUser = usuarios.find((u) => u.id === currentUserId) || null;
   const ehInvestidor = isInvestidor(currentUser);
-  const page = ehInvestidor && !INVESTIDOR_PAGES.includes(pageRaw) ? "obras" : pageRaw;
+  const ehGestor = isGestor(currentUser);
+  const page = ehInvestidor && !INVESTIDOR_PAGES.includes(pageRaw) ? "obras"
+    : ehGestor && !GESTOR_PAGES.includes(pageRaw) ? "planejamentosemanal" : pageRaw;
 
   const logAudit = (entry) => {
     setAuditLog((prev) => [{
@@ -1727,7 +1749,9 @@ export default function App() {
   // Escopo do usuário Investidor: só enxerga a obra e a Conta Investidor vinculadas a ele.
   const obrasEscopo = ehInvestidor
     ? obras.filter((o) => o.id === currentUser.investidorObraId).map((o) => ({ ...o, arquivada: false }))
-    : obras;
+    : ehGestor
+      ? obras.filter((o) => (currentUser.gestorObras || []).includes(o.id))
+      : obras;
   const contasInvestidoresEscopo = ehInvestidor
     ? contasInvestidores.filter((c) => c.id === currentUser.investidorContaId)
     : contasInvestidores;
@@ -1822,7 +1846,7 @@ export default function App() {
           )}
           {page === "obrasgerenciamento" && (
             <ObrasGerenciamentoPage
-              obras={obras} entries={entries}
+              obras={obrasEscopo} entries={entries}
               gerContasPagar={gerContasPagar} setGerContasPagar={setGerContasPagar}
               gerDepositos={gerDepositos} setGerDepositos={setGerDepositos}
               gerReembolsos={gerReembolsos} setGerReembolsos={setGerReembolsos}
@@ -1844,7 +1868,7 @@ export default function App() {
           )}
           {page === "planejamentosemanal" && (
             <PlanejamentoSemanalPage
-              obras={obras}
+              obras={obrasEscopo}
               planejamentosSemanais={planejamentosSemanais} setPlanejamentosSemanais={setPlanejamentosSemanais}
               disciplinas={disciplinas} setDisciplinas={setDisciplinas}
               fornecedorOptions={fornecedorOptions}
@@ -1852,7 +1876,7 @@ export default function App() {
             />
           )}
           {page === "relatoriosobra" && !ehInvestidor && (
-            <RelatoriosObraPage obras={obras} disciplinas={disciplinas} usuarios={usuarios} currentUser={currentUser} logAudit={logAudit} />
+            <RelatoriosObraPage obras={obrasEscopo} disciplinas={disciplinas} usuarios={usuarios} currentUser={currentUser} logAudit={logAudit} />
           )}
           {page === "socios" && (
             <SociosPage
@@ -1903,7 +1927,9 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
-  ].filter((it) => (isInvestidor(currentUser) ? INVESTIDOR_PAGES.includes(it.id) : (!it.perm || can(currentUser, it.perm))));
+  ].filter((it) => (isInvestidor(currentUser) ? INVESTIDOR_PAGES.includes(it.id)
+    : isGestor(currentUser) ? GESTOR_PAGES.includes(it.id) && can(currentUser, it.perm)
+    : (!it.perm || can(currentUser, it.perm))));
   return (
     <nav className="gf-sidebar">
       <div className="gf-brand">
@@ -7905,10 +7931,16 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
     const perms = papel === "admin" ? permsAllTrue()
       : papel === "operacional" ? { ...ASSISTENTE_PERMS }
       : papel === "investidor" ? { ...permsAllFalse(), investidores_visualizar: true }
+      : papel === "gestor_obra" ? { ...GESTOR_PERMS }
       : permsAllFalse();
     upd({ papel, perms });
   };
   const ehInv = f.papel === "investidor";
+  const ehGes = f.papel === "gestor_obra";
+  const toggleObraGestor = (id) => setF((s) => {
+    const atual = s.gestorObras || [];
+    return { ...s, gestorObras: atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id] };
+  });
   const submit = (e) => {
     e.preventDefault();
     if (!f.nome.trim() || !String(f.senha || "").trim()) return;
@@ -7919,8 +7951,8 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
         setErro("Já existe um usuário com este nome. O investidor entra digitando o nome, então ele precisa ser único."); return;
       }
     }
-    const { investidorObraId, investidorContaId, ...resto } = f;
-    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}) });
+    const { investidorObraId, investidorContaId, gestorObras, ...resto } = f;
+    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}), ...(ehGes ? { gestorObras: gestorObras || [] } : {}) });
   };
 
   return (
@@ -7937,11 +7969,12 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
         </Field>
         <div className="gf-span-2">
           <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Perfil (aplica um modelo de permissões — você ainda pode ajustar individualmente abaixo)</span>
-          <div className="gf-segmented gf-segmented-3">
+          <div className="gf-segmented gf-segmented-3" style={{ flexWrap: "wrap", display: "flex" }}>
             <button type="button" className={f.papel === "admin" ? "is-active" : ""} onClick={() => aplicarTemplate("admin")}>Administrador</button>
             <button type="button" className={f.papel === "operacional" ? "is-active" : ""} onClick={() => aplicarTemplate("operacional")}>Operacional</button>
             <button type="button" className={f.papel === "customizavel" ? "is-active" : ""} onClick={() => aplicarTemplate("customizavel")}>Personalizado</button>
             <button type="button" className={f.papel === "investidor" ? "is-active" : ""} onClick={() => aplicarTemplate("investidor")}>Investidor</button>
+            <button type="button" className={f.papel === "gestor_obra" ? "is-active" : ""} onClick={() => aplicarTemplate("gestor_obra")}>Gestor de Obra</button>
           </div>
         </div>
 
@@ -7967,7 +8000,35 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
           </>
         )}
 
-        {!ehInv && <div className="gf-span-2">
+        {ehGes && (
+          <div className="gf-span-2">
+            <div className="gf-hint" style={{ marginBottom: 8 }}>
+              O <b>Gestor de Obra</b> acessa somente <b>Planejamento Semanal</b>, <b>Relatórios de Obra</b> e <b>Obras Gerenciamento</b>, e apenas das obras marcadas abaixo.
+              Sem nenhuma obra marcada, ele não vê obra alguma.
+            </div>
+            <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Obras que este usuário poderá acessar</span>
+            <div className="gf-perm-grid">
+              {obras.length === 0 && <span className="gf-field-hint">Nenhuma obra cadastrada.</span>}
+              {obras.map((o) => (
+                <label className="gf-checkbox gf-perm-item" key={o.id}>
+                  <input type="checkbox" checked={(f.gestorObras || []).includes(o.id)} onChange={() => toggleObraGestor(o.id)} />
+                  <span>{o.nome}{o.arquivada ? " (concluída)" : ""}</span>
+                </label>
+              ))}
+            </div>
+            <span className="gf-field-label" style={{ display: "block", margin: "12px 0 6px" }}>Permissões nas páginas liberadas</span>
+            <div className="gf-perm-grid">
+              {GESTOR_PERM_KEYS.map((k) => (
+                <label className="gf-checkbox gf-perm-item" key={k}>
+                  <input type="checkbox" checked={!!f.perms[k]} onChange={() => togglePerm(k)} />
+                  <span>{permLabel(k)}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!ehInv && !ehGes && <div className="gf-span-2">
           {PERMISSION_GROUPS.map((g) => (
             <div key={g.group} style={{ marginBottom: 12 }}>
               <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>{g.group}</span>
