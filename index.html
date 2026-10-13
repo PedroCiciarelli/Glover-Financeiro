@@ -8324,8 +8324,14 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
 }
 
 function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, onClose, onSave }) {
-  const [f, setF] = useState(ordem ? { ...ordem, valor: String(ordem.valor), valorContrato: String(ordem.valorContrato ?? ""), saldoAposMedicao: String(ordem.saldoAposMedicao ?? "") }
-    : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true });
+  const [f, setF] = useState(ordem ? { ...ordem, valor: String(ordem.valor), valorContrato: String(ordem.valorContrato ?? ""), saldoAposMedicao: String(ordem.saldoAposMedicao ?? ""), dadosBancarios: ordem.dadosBancarios || "" }
+    : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true, dadosBancarios: "" });
+  const [bancoAuto, setBancoAuto] = useState(false); // dados bancários preenchidos automaticamente (última ordem do fornecedor)
+  // Dados bancários mais recentes já usados em ordens deste fornecedor (em qualquer obra)
+  const dadosAnteriores = (fornecedor) => {
+    const o = ordens.filter((x) => x.fornecedor === fornecedor && x.id !== ordem?.id && (x.dadosBancarios || "").trim()).sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0))[0];
+    return o ? o.dadosBancarios : "";
+  };
   const [excecoes, setExcecoes] = useState(ordem?.apropriacao ? [ordem.apropriacao] : []);
   const [erro, setErro] = useState("");
   const contrato = ppContratoDe(contratos, f.obraId, f.fornecedor);
@@ -8351,7 +8357,7 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
     }
     onSave({
       obraId: f.obraId, fornecedor: f.fornecedor, apropriacao: f.apropriacao, valor: ppArred(valorNum), dataPagamento: f.dataPagamento,
-      descricao: (f.descricao || "").trim(), valorContrato: ppArred(valorContratoEf), saldoAposMedicao: ppArred(saldoEf), contratoId,
+      descricao: (f.descricao || "").trim(), dadosBancarios: (f.dadosBancarios || "").trim(), valorContrato: ppArred(valorContratoEf), saldoAposMedicao: ppArred(saldoEf), contratoId,
     });
   };
   return (
@@ -8362,13 +8368,21 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
             options={obras.filter((o) => !o.arquivada).map((o) => ({ value: o.id, label: o.nome }))} placeholder="Selecione a obra…" />
         </Field>
         <Field label="Fornecedor">
-          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v, apropriacao: reapropriar(f.obraId, v) })}
+          <SearchableSelect value={f.fornecedor} onChange={(v) => {
+            const sugestao = dadosAnteriores(v);
+            const podeSugerir = sugestao && (!(f.dadosBancarios || "").trim() || bancoAuto);
+            upd({ fornecedor: v, apropriacao: reapropriar(f.obraId, v), ...(podeSugerir ? { dadosBancarios: sugestao } : {}) });
+            if (podeSugerir) setBancoAuto(true); else if (bancoAuto && !sugestao) { upd({ dadosBancarios: "" }); setBancoAuto(false); }
+          }}
             options={fornecedorOptions.map((x) => ({ value: x, label: x }))} placeholder="Buscar fornecedor…" />
         </Field>
         <Field label="Apropriação">
           <ApropriacaoField value={f.apropriacao} onChange={(v) => upd({ apropriacao: v })} centroCustoId={f.obraId} fornecedorNome={f.fornecedor}
             apropriacoesGlobais={apropriacoes} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
             excecoes={excecoes} onAddExcecao={(n) => setExcecoes((p) => [...new Set([...p, n])])} />
+        </Field>
+        <Field label="Dados bancários" hint={bancoAuto ? "Preenchido automaticamente com os dados da última ordem deste fornecedor — confira e edite se mudou" : "Banco, agência, conta, PIX… (será reaproveitado nas próximas ordens deste fornecedor)"} className="gf-span-2">
+          <textarea rows={3} value={f.dadosBancarios || ""} onChange={(e) => { upd({ dadosBancarios: e.target.value }); setBancoAuto(false); }} placeholder="Ex.: Banco Itaú — Ag. 1234 — C/C 56789-0 — CNPJ 00.000.000/0001-00 — PIX: financeiro@fornecedor.com.br" />
         </Field>
         <Field label="Valor a pagar (R$)"><input type="number" min="0.01" step="0.01" value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
         <Field label="Data para pagamento"><input type="date" value={f.dataPagamento} onChange={(e) => upd({ dataPagamento: e.target.value })} /></Field>
@@ -8415,6 +8429,7 @@ function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
       <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
         <div><span>Obra</span><b>{obraNome}</b></div><div><span>Fornecedor</span><b>{ordem.fornecedor}</b></div>
         <div><span>Apropriação</span><b>{ordem.apropriacao}</b></div><div><span>Valor</span><b className="mono">{BRL(ordem.valor)}</b></div>
+        {ordem.dadosBancarios && <div style={{ gridColumn: "1 / -1" }}><span>Dados bancários</span><b style={{ whiteSpace: "pre-line" }}>{ordem.dadosBancarios}</b></div>}
       </div>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form" style={{ marginTop: 14 }}>
         <Field label="Data do pagamento"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
@@ -8551,7 +8566,7 @@ function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos,
                 {pendentes.map((o) => (
                   <tr key={o.id}>
                     <td>{fmtDate(o.dataPagamento)}{o.dataPagamento < hoje && <Badge tone="red" style={{ marginLeft: 6 }}>Atrasada</Badge>}</td>
-                    <td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}</td><td>{o.apropriacao}</td>
+                    <td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}{o.dadosBancarios && <div className="gf-muted" style={{ fontSize: 11, whiteSpace: "pre-line", maxWidth: 260 }} title="Dados bancários">{o.dadosBancarios}</div>}</td><td>{o.apropriacao}</td>
                     <td className="num mono">{BRL(o.valor)}</td>
                     <td className="num mono">{BRL(o.valorContrato)}</td>
                     <td className={`num mono ${o.saldoAposMedicao < 0 ? "neg" : ""}`}>{BRL(o.saldoAposMedicao)}</td>
@@ -8579,7 +8594,7 @@ function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos,
                 {concluidos.length === 0 && <tr><td colSpan={8}><EmptyState icon={CircleDollarSign} title="Nenhum pagamento concluído" body="Os pagamentos efetuados aparecem aqui." /></td></tr>}
                 {concluidos.map((o) => (
                   <tr key={o.id}>
-                    <td>{fmtDate(o.pagamento?.data)}</td><td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}</td><td>{o.apropriacao}</td>
+                    <td>{fmtDate(o.pagamento?.data)}</td><td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}{o.dadosBancarios && <div className="gf-muted" style={{ fontSize: 11, whiteSpace: "pre-line", maxWidth: 260 }}>{o.dadosBancarios}</div>}</td><td>{o.apropriacao}</td>
                     <td className="num mono">{BRL(o.valor)}</td>
                     <td>{(o.pagamento?.contas || []).map((c) => <div key={c.contaId}>{nomeConta(c.contaId)} <span className="gf-muted">{BRL(c.valor)}</span></div>)}<div className="gf-muted" style={{ fontSize: 11 }}>por {o.pagamento?.pagoPor}</div></td>
                     <td className="gf-td-desc" title={o.descricao}>{o.descricao || "—"}</td>
