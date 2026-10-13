@@ -247,6 +247,11 @@ const PERMISSION_GROUPS = [
     { key: "planejamento_visualizar", label: "Acessar o Planejamento Semanal" },
     { key: "planejamento_gerenciar", label: "Criar/editar/excluir planejamentos semanais" },
   ] },
+  { group: "Programação de Pagamentos", keys: [
+    { key: "progpag_visualizar", label: "Acessar Programação de Pagamentos" },
+    { key: "progpag_criar", label: "Criar/editar ordens de pagamento e contratos" },
+    { key: "progpag_pagar", label: "Efetuar pagamentos programados (somente administrador/operacional)" },
+  ] },
   { group: "Faturamento Direto", keys: [
     { key: "fatdireto_visualizar", label: "Acessar Faturamento Direto (consulta)" },
     { key: "fatdireto_gerenciar", label: "Lançar, editar e excluir faturamento direto" },
@@ -278,6 +283,7 @@ const ASSISTENTE_PERMS = {
   planejamento_visualizar: true, planejamento_gerenciar: true,
   relatorios_obra_visualizar: true, relatorios_obra_gerenciar: true,
   fatdireto_visualizar: true, fatdireto_gerenciar: true,
+  progpag_visualizar: true, progpag_criar: true, progpag_pagar: true,
 };
 
 // Conta bancária especial "Fat Direto": só recebe pares entrada+saída de mesmo valor (saldo sempre 0).
@@ -291,6 +297,7 @@ const GESTOR_PERMS = {
   relatorios_obra_visualizar: true, relatorios_obra_gerenciar: true,
   gerenciamento_lancar: true,
   fatdireto_visualizar: true, fatdireto_gerenciar: true,
+  progpag_visualizar: true, progpag_criar: true,
 };
 
 const DEFAULT_USUARIOS = [
@@ -312,7 +319,7 @@ const isInvestidor = (u) => !!u && u.papel === "investidor";
 
 // Usuário "Gestor de Obra": só acessa Planejamento Semanal, Relatórios de Obra e Obras Gerenciamento,
 // e apenas das obras selecionadas pelo administrador (campo gestorObras).
-const GESTOR_PAGES = ["planejamentosemanal", "relatoriosobra", "obrasgerenciamento", "faturamentodireto"];
+const GESTOR_PAGES = ["planejamentosemanal", "relatoriosobra", "obrasgerenciamento", "faturamentodireto", "programacaopagamentos"];
 const GESTOR_PERM_KEYS = Object.keys(GESTOR_PERMS).filter((k) => GESTOR_PERMS[k]);
 const isGestor = (u) => !!u && u.papel === "gestor_obra";
 
@@ -791,7 +798,7 @@ function migrarPermissoesUsuarios(usuariosSalvos) {
   if (!usuariosSalvos || !usuariosSalvos.length) return DEFAULT_USUARIOS;
   const migrados = usuariosSalvos.map((u) => ({
     ...u,
-    perms: { ...(u.papel === "admin" ? permsAllTrue() : u.papel === "gestor_obra" ? { ...permsAllFalse(), ...GESTOR_PERMS } : permsAllFalse()), ...u.perms },
+    perms: { ...(u.papel === "admin" ? permsAllTrue() : u.papel === "gestor_obra" ? { ...permsAllFalse(), ...GESTOR_PERMS } : u.papel === "operacional" ? { ...permsAllFalse(), ...ASSISTENTE_PERMS } : permsAllFalse()), ...u.perms },
   }));
   // Gestores de obra padrão (André, Izabella, Leonardo): criados uma vez se ainda não existirem.
   const faltando = DEFAULT_USUARIOS.filter((d) => d.papel === "gestor_obra" && !migrados.some((u) => u.id === d.id));
@@ -1282,6 +1289,8 @@ export default function App() {
   const [investimentos, setInvestimentos] = useState([]);
   const [disciplinas, setDisciplinas] = useState(DEFAULT_DISCIPLINAS);
   const [planejamentosSemanais, setPlanejamentosSemanais] = useState([]);
+  const [programacoesPagamento, setProgramacoesPagamento] = useState([]);
+  const [contratosFornecedor, setContratosFornecedor] = useState([]);
   const [cartoesCredito, setCartoesCredito] = useState([]);
   const [lancamentosCartao, setLancamentosCartao] = useState([]);
   const [faturasCartao, setFaturasCartao] = useState([]);
@@ -1318,6 +1327,8 @@ export default function App() {
     setInvestimentos(d.investimentos || []);
     setDisciplinas(d.disciplinas && d.disciplinas.length ? d.disciplinas : DEFAULT_DISCIPLINAS);
     setPlanejamentosSemanais(d.planejamentosSemanais || []);
+    setProgramacoesPagamento(d.programacoesPagamento || []);
+    setContratosFornecedor(d.contratosFornecedor || []);
     setCartoesCredito(d.cartoesCredito || []);
     setLancamentosCartao(d.lancamentosCartao || []);
     setFaturasCartao(d.faturasCartao || []);
@@ -1402,7 +1413,7 @@ export default function App() {
       try {
         // Sessão de investidor é estritamente somente leitura: nunca grava no banco compartilhado.
         if (isInvestidor(usuarios.find((u) => u.id === currentUserId))) return;
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
@@ -1413,7 +1424,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -1465,7 +1476,7 @@ export default function App() {
     setDividas(seed.dividas || []); setInvestimentos(seed.investimentos || []);
     setCartoesCredito(seed.cartoesCredito || []); setLancamentosCartao(seed.lancamentosCartao || []); setFaturasCartao(seed.faturasCartao || []);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
-    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]);
   };
 
   const clearAll = async () => {
@@ -1478,14 +1489,14 @@ export default function App() {
     setCartoesCredito([]); setLancamentosCartao([]); setFaturasCartao([]);
     setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
-    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]);
   };
 
   const exportarBackup = () => {
     const dados = {
       accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
       socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores,
-      contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais,
+      contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor,
       cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog,
       exportadoEm: new Date().toISOString(),
     };
@@ -1744,7 +1755,7 @@ export default function App() {
     fornecedores: "relatorios_acessar", contaspagar: null, cartoescredito: "cartao_lancar", custosinternos: "relatorios_acessar",
     dividasinvestimentos: "relatorios_acessar", obrasgerenciamento: "gerenciamento_lancar",
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
-    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar", faturamentodireto: "fatdireto_visualizar",
+    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar", faturamentodireto: "fatdireto_visualizar", programacaopagamentos: "progpag_visualizar",
   };
   if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
@@ -1887,6 +1898,16 @@ export default function App() {
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
+          {page === "programacaopagamentos" && !ehInvestidor && (
+            <ProgramacaoPagamentosPage
+              ordens={programacoesPagamento} setOrdens={setProgramacoesPagamento}
+              contratos={contratosFornecedor} setContratos={setContratosFornecedor}
+              accounts={accounts} obras={obrasEscopo} entries={entries} setEntries={setEntries}
+              apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
+              orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+              currentUser={currentUser} logAudit={logAudit}
+            />
+          )}
           {page === "faturamentodireto" && !ehInvestidor && (
             <FaturamentoDiretoPage
               accounts={accounts} setAccounts={setAccounts} accountStats={accountStats}
@@ -1944,6 +1965,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "custosinternos", label: "Custos Internos", icon: BarChart3, perm: "relatorios_acessar" },
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
     { id: "planejamentosemanal", label: "Planejamento Semanal", icon: CalendarRange, perm: "planejamento_visualizar" },
+    { id: "programacaopagamentos", label: "Programação de Pagamentos", icon: CalendarClock, perm: "progpag_visualizar" },
     { id: "faturamentodireto", label: "Faturamento Direto", icon: Handshake, perm: "fatdireto_visualizar" },
     { id: "relatoriosobra", label: "Relatórios de Obra", icon: FileText, perm: "relatorios_obra_visualizar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
@@ -8221,6 +8243,359 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
         </div>
       </section>
       {verAnexos && <FdAnexosModal registro={verAnexos} onClose={() => setVerAnexos(null)} />}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Página: Programação de Pagamentos
+   Gestores de obra criam ordens de pagamento (depósito); administradores e o assistente
+   administrativo (operacional) efetuam o pagamento, apontando a(s) conta(s) de onde saiu o valor.
+   Ao pagar, são gerados os lançamentos de saída (aba Lançamentos → saldos bancários).
+--------------------------------------------------------------- */
+
+const PP_PODE_PAGAR_PAPEIS = ["admin", "operacional"];
+const ppPodePagar = (u) => !!u && can(u, "progpag_pagar") && PP_PODE_PAGAR_PAPEIS.includes(u.papel);
+const ppArred = (v) => Math.round((Number(v) || 0) * 100) / 100;
+const ppContratoDe = (contratos, obraId, fornecedor) => contratos.find((c) => c.ativo !== false && c.obraId === obraId && c.fornecedor === fornecedor) || null;
+// Total já medido/pago do contrato: valor inicial informado + ordens (exceto a que está sendo editada).
+const ppMedidoAnterior = (contrato, ordens, ignorarId) =>
+  ppArred((Number(contrato?.medidoInicial) || 0) + ordens.filter((o) => o.contratoId === contrato?.id && o.id !== ignorarId).reduce((s, o) => s + (Number(o.valor) || 0), 0));
+
+function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOptions, currentUser, logAudit, onClose }) {
+  const blank = { id: null, obraId: "", fornecedor: "", valorTotal: "", medidoInicial: "", ativo: true };
+  const [f, setF] = useState(blank);
+  const [erro, setErro] = useState("");
+  const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
+  const idsObras = new Set(obras.map((o) => o.id));
+  const lista = contratos.filter((c) => idsObras.has(c.obraId));
+  const salvar = (e) => {
+    e.preventDefault();
+    if (!f.obraId || !f.fornecedor || !(Number(f.valorTotal) > 0)) { setErro("Informe obra, fornecedor e valor total do contrato."); return; }
+    if (contratos.some((c) => c.id !== f.id && c.ativo !== false && f.ativo && c.obraId === f.obraId && c.fornecedor === f.fornecedor)) { setErro("Já existe um contrato ativo deste fornecedor nesta obra."); return; }
+    const reg = { id: f.id || uid("ctr"), obraId: f.obraId, fornecedor: f.fornecedor, valorTotal: ppArred(f.valorTotal), medidoInicial: ppArred(f.medidoInicial), ativo: !!f.ativo, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() };
+    setContratos((prev) => (f.id ? prev.map((c) => (c.id === f.id ? { ...c, ...reg, criadoPor: c.criadoPor, criadoEm: c.criadoEm } : c)) : [...prev, reg]));
+    logAudit?.({ tipoOperacao: f.id ? "Edição de contrato de fornecedor" : "Cadastro de contrato de fornecedor", registroAlterado: `${nomeObra(reg.obraId)} — ${reg.fornecedor}`, valorAnterior: "—", valorNovo: BRL(reg.valorTotal) });
+    setF(blank); setErro("");
+  };
+  return (
+    <Modal title="Contratos de fornecedores" onClose={onClose} width={760}>
+      <p className="gf-field-hint">Com um contrato ativo cadastrado para a obra e o fornecedor, o valor total e o saldo após medição são preenchidos automaticamente nas ordens de pagamento.</p>
+      <form onSubmit={salvar} className="gf-form-grid gf-modal-form">
+        <Field label="Obra">
+          <select value={f.obraId} onChange={(e) => setF((s) => ({ ...s, obraId: e.target.value }))}>
+            <option value="">Selecione…</option>
+            {obras.filter((o) => !o.arquivada).map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+          </select>
+        </Field>
+        <Field label="Fornecedor"><SearchableSelect value={f.fornecedor} onChange={(v) => setF((s) => ({ ...s, fornecedor: v }))} options={fornecedorOptions.map((x) => ({ value: x, label: x }))} placeholder="Buscar fornecedor…" /></Field>
+        <Field label="Valor total do contrato (R$)"><input type="number" min="0.01" step="0.01" value={f.valorTotal} onChange={(e) => setF((s) => ({ ...s, valorTotal: e.target.value }))} /></Field>
+        <Field label="Já medido/pago antes (R$)" hint="Opcional — o que já foi medido fora do sistema"><input type="number" min="0" step="0.01" value={f.medidoInicial} onChange={(e) => setF((s) => ({ ...s, medidoInicial: e.target.value }))} /></Field>
+        <Field label="Situação">
+          <select value={f.ativo ? "1" : "0"} onChange={(e) => setF((s) => ({ ...s, ativo: e.target.value === "1" }))}><option value="1">Ativo</option><option value="0">Encerrado</option></select>
+        </Field>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">{f.id ? "Salvar contrato" : "Adicionar contrato"}</button>
+          {f.id && <button type="button" className="gf-btn gf-btn-ghost" onClick={() => { setF(blank); setErro(""); }}>Cancelar edição</button>}
+        </div>
+      </form>
+      <div className="gf-table-wrap">
+        <table className="gf-table">
+          <thead><tr><th>Obra</th><th>Fornecedor</th><th className="num">Valor total</th><th className="num">Medido</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
+          <tbody>
+            {lista.length === 0 && <tr><td colSpan={7}><EmptyState icon={FileText} title="Nenhum contrato cadastrado" body="Cadastre acima ou ao criar uma ordem de pagamento." /></td></tr>}
+            {lista.map((c) => {
+              const med = ppMedidoAnterior(c, ordens, null);
+              return (
+                <tr key={c.id}>
+                  <td>{nomeObra(c.obraId)}</td><td>{c.fornecedor}</td>
+                  <td className="num mono">{BRL(c.valorTotal)}</td><td className="num mono">{BRL(med)}</td><td className={`num mono ${c.valorTotal - med < 0 ? "neg" : ""}`}>{BRL(c.valorTotal - med)}</td>
+                  <td><Badge tone={c.ativo !== false ? "green" : "gray"}>{c.ativo !== false ? "Ativo" : "Encerrado"}</Badge></td>
+                  <td><button type="button" className="gf-icon-btn" title="Editar" onClick={() => setF({ id: c.id, obraId: c.obraId, fornecedor: c.fornecedor, valorTotal: String(c.valorTotal), medidoInicial: String(c.medidoInicial || ""), ativo: c.ativo !== false })}><Pencil size={14} /></button></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Modal>
+  );
+}
+
+function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, onClose, onSave }) {
+  const [f, setF] = useState(ordem ? { ...ordem, valor: String(ordem.valor), valorContrato: String(ordem.valorContrato ?? ""), saldoAposMedicao: String(ordem.saldoAposMedicao ?? "") }
+    : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true });
+  const [excecoes, setExcecoes] = useState(ordem?.apropriacao ? [ordem.apropriacao] : []);
+  const [erro, setErro] = useState("");
+  const contrato = ppContratoDe(contratos, f.obraId, f.fornecedor);
+  const medido = contrato ? ppMedidoAnterior(contrato, ordens, ordem?.id) : 0;
+  const valorNum = Number(f.valor) || 0;
+  const saldoAuto = contrato ? ppArred(contrato.valorTotal - medido - valorNum) : null;
+  const valorContratoEf = contrato ? contrato.valorTotal : f.valorContrato;
+  const saldoEf = contrato ? saldoAuto : f.saldoAposMedicao;
+  const upd = (p) => { setF((s) => ({ ...s, ...p })); setErro(""); };
+  const reapropriar = (obraId, fornecedor) => {
+    const disp = computeApropriacoesDisponiveis(obraId, fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+    return f.apropriacao && [...disp, ...excecoes].includes(f.apropriacao) ? f.apropriacao : "";
+  };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.obraId || !f.fornecedor || !f.apropriacao || !(valorNum > 0) || !f.dataPagamento) { setErro("Preencha obra, fornecedor, apropriação, valor e data para pagamento."); return; }
+    if (!contrato && (f.valorContrato === "" || f.saldoAposMedicao === "")) { setErro("Informe o valor total do contrato e o saldo após a medição (ou cadastre um contrato ativo para esta obra e fornecedor)."); return; }
+    let contratoId = contrato ? contrato.id : null;
+    if (!contrato && f.cadastrarContrato && Number(f.valorContrato) > 0 && !ordem) {
+      contratoId = uid("ctr");
+      const jaMedido = ppArred(Number(f.valorContrato) - Number(f.saldoAposMedicao) - valorNum); // o que já havia sido medido antes desta ordem
+      setContratos((prev) => [...prev, { id: contratoId, obraId: f.obraId, fornecedor: f.fornecedor, valorTotal: ppArred(f.valorContrato), medidoInicial: Math.max(0, jaMedido), ativo: true, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() }]);
+    }
+    onSave({
+      obraId: f.obraId, fornecedor: f.fornecedor, apropriacao: f.apropriacao, valor: ppArred(valorNum), dataPagamento: f.dataPagamento,
+      descricao: (f.descricao || "").trim(), valorContrato: ppArred(valorContratoEf), saldoAposMedicao: ppArred(saldoEf), contratoId,
+    });
+  };
+  return (
+    <Modal title={ordem ? "Editar ordem de pagamento" : "Nova ordem de pagamento"} onClose={onClose} width={680}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <Field label="Obra">
+          <SearchableSelect value={f.obraId} onChange={(v) => upd({ obraId: v, apropriacao: reapropriar(v, f.fornecedor) })}
+            options={obras.filter((o) => !o.arquivada).map((o) => ({ value: o.id, label: o.nome }))} placeholder="Selecione a obra…" />
+        </Field>
+        <Field label="Fornecedor">
+          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v, apropriacao: reapropriar(f.obraId, v) })}
+            options={fornecedorOptions.map((x) => ({ value: x, label: x }))} placeholder="Buscar fornecedor…" />
+        </Field>
+        <Field label="Apropriação">
+          <ApropriacaoField value={f.apropriacao} onChange={(v) => upd({ apropriacao: v })} centroCustoId={f.obraId} fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={excecoes} onAddExcecao={(n) => setExcecoes((p) => [...new Set([...p, n])])} />
+        </Field>
+        <Field label="Valor a pagar (R$)"><input type="number" min="0.01" step="0.01" value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
+        <Field label="Data para pagamento"><input type="date" value={f.dataPagamento} onChange={(e) => upd({ dataPagamento: e.target.value })} /></Field>
+        <Field label="Descrição"><input value={f.descricao || ""} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Ex.: 2ª medição — instalações elétricas" /></Field>
+        <Field label="Valor total do contrato (R$)" hint={contrato ? "Contrato ativo encontrado — preenchido automaticamente" : "Sem contrato ativo para esta obra/fornecedor: informe manualmente"}>
+          <input type="number" step="0.01" value={contrato ? contrato.valorTotal : f.valorContrato} readOnly={!!contrato} onChange={(e) => upd({ valorContrato: e.target.value })} />
+        </Field>
+        <Field label="Saldo do contrato após medição (R$)" hint={contrato ? `Total ${BRL(contrato.valorTotal)} − já medido ${BRL(medido)} − esta ordem ${BRL(valorNum)}` : "Valor que restará do contrato após esta medição"}>
+          <input type="number" step="0.01" value={contrato ? saldoAuto : f.saldoAposMedicao} readOnly={!!contrato} onChange={(e) => upd({ saldoAposMedicao: e.target.value })} />
+        </Field>
+        {contrato && saldoAuto < 0 && <div className="gf-warn gf-span-2">Atenção: esta ordem ultrapassa o saldo do contrato em {BRL(-saldoAuto)}.</div>}
+        {!contrato && !ordem && (
+          <label className="gf-checkbox gf-span-2">
+            <input type="checkbox" checked={!!f.cadastrarContrato} onChange={(e) => upd({ cadastrarContrato: e.target.checked })} />
+            <span>Cadastrar como contrato ativo desta obra e fornecedor (as próximas ordens preenchem o valor e o saldo automaticamente)</span>
+          </label>
+        )}
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">{ordem ? "Salvar alterações" : "Criar ordem de pagamento"}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
+  const [data, setData] = useState(todayISO());
+  const [linhas, setLinhas] = useState([{ id: 1, contaId: accounts[0]?.id || "", valor: String(ordem.valor) }]);
+  const [erro, setErro] = useState("");
+  const soma = ppArred(linhas.reduce((s, l) => s + (Number(l.valor) || 0), 0));
+  const resta = ppArred(ordem.valor - soma);
+  const setL = (id, p) => { setLinhas((ls) => ls.map((l) => (l.id === id ? { ...l, ...p } : l))); setErro(""); };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!data) return;
+    if (linhas.some((l) => !l.contaId || !(Number(l.valor) > 0))) { setErro("Informe conta e valor em todas as linhas."); return; }
+    if (new Set(linhas.map((l) => l.contaId)).size !== linhas.length) { setErro("Cada conta pode aparecer apenas uma vez."); return; }
+    if (Math.abs(resta) > 0.005) { setErro(`A soma das contas (${BRL(soma)}) deve ser igual ao valor da ordem (${BRL(ordem.valor)}).`); return; }
+    onConfirm({ data, contas: linhas.map((l) => ({ contaId: l.contaId, valor: ppArred(l.valor) })) });
+  };
+  return (
+    <Modal title="Efetuar pagamento" onClose={onClose} width={560}>
+      <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(2,1fr)" }}>
+        <div><span>Obra</span><b>{obraNome}</b></div><div><span>Fornecedor</span><b>{ordem.fornecedor}</b></div>
+        <div><span>Apropriação</span><b>{ordem.apropriacao}</b></div><div><span>Valor</span><b className="mono">{BRL(ordem.valor)}</b></div>
+      </div>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form" style={{ marginTop: 14 }}>
+        <Field label="Data do pagamento"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Conta(s) de onde saiu o valor</span>
+          {linhas.map((l) => (
+            <div key={l.id} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+              <select value={l.contaId} onChange={(e) => setL(l.id, { contaId: e.target.value })} style={{ flex: 2 }}>
+                <option value="">Selecione…</option>
+                {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              </select>
+              <input type="number" min="0.01" step="0.01" value={l.valor} onChange={(e) => setL(l.id, { valor: e.target.value })} style={{ flex: 1 }} />
+              {linhas.length > 1 && <button type="button" className="gf-icon-btn" title="Remover" onClick={() => setLinhas((ls) => ls.filter((x) => x.id !== l.id))}><X size={14} /></button>}
+            </div>
+          ))}
+          <button type="button" className="gf-btn gf-btn-ghost" onClick={() => setLinhas((ls) => [...ls, { id: Math.max(...ls.map((x) => x.id)) + 1, contaId: "", valor: resta > 0 ? String(resta) : "" }])}><Plus size={14} /> Adicionar outra conta</button>
+        </div>
+        <div className="gf-account-balance gf-span-2">
+          <span>{Math.abs(resta) < 0.005 ? "Valores conferem" : resta > 0 ? "Falta distribuir" : "Excede o valor da ordem em"}</span>
+          <strong className="mono">{Math.abs(resta) < 0.005 ? BRL(soma) : BRL(Math.abs(resta))}</strong>
+        </div>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">Confirmar pagamento</button>
+          <span className="gf-hint">Gera o(s) lançamento(s) de saída e atualiza o saldo da(s) conta(s).</span>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos, accounts, obras, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
+  const [aba, setAba] = useState("programadas");
+  const [modal, setModal] = useState(null); // { tipo: "nova" | "editar" | "pagar" | "contratos", ordem }
+  const [filtros, setFiltros] = useState({ q: "", obraId: "", de: "", ate: "" });
+  const podeCriar = can(currentUser, "progpag_criar");
+  const podePagar = ppPodePagar(currentUser);
+  const idsEscopo = useMemo(() => new Set(obras.map((o) => o.id)), [obras]);
+  const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
+  const nomeConta = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const contasAtivas = accounts.filter((a) => a.status === "Ativa" && !isFatDiretoAccount(a));
+  const hoje = todayISO();
+
+  const doEscopo = ordens.filter((o) => idsEscopo.has(o.obraId));
+  const passa = (o, campoData) => {
+    if (filtros.obraId && o.obraId !== filtros.obraId) return false;
+    if (filtros.de && o[campoData] < filtros.de) return false;
+    if (filtros.ate && o[campoData] > filtros.ate) return false;
+    if (filtros.q && !relNorm([o.fornecedor, o.apropriacao, o.descricao, nomeObra(o.obraId)].join(" ")).includes(relNorm(filtros.q))) return false;
+    return true;
+  };
+  const pendentes = doEscopo.filter((o) => o.status === "pendente" && passa(o, "dataPagamento")).sort((a, b) => (a.dataPagamento < b.dataPagamento ? -1 : 1));
+  const concluidos = doEscopo.filter((o) => o.status === "pago" && passa(o, "dataPagamentoEfetivo")).sort((a, b) => ((b.pagamento?.data || "") < (a.pagamento?.data || "") ? -1 : 1));
+  const totalPend = pendentes.reduce((s, o) => s + o.valor, 0);
+  const totalConc = concluidos.reduce((s, o) => s + o.valor, 0);
+
+  const salvarOrdem = (dados, editando) => {
+    if (editando) {
+      setOrdens((prev) => prev.map((o) => (o.id === editando.id ? { ...o, ...dados, ...carimbarEdicao(currentUser) } : o)));
+      logAudit?.({ tipoOperacao: "Edição de ordem de pagamento", registroAlterado: `${nomeObra(dados.obraId)} — ${dados.fornecedor}`, valorAnterior: BRL(editando.valor), valorNovo: BRL(dados.valor) });
+    } else {
+      setOrdens((prev) => [...prev, { id: uid("pp"), status: "pendente", ...dados, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() }]);
+      logAudit?.({ tipoOperacao: "Ordem de pagamento", registroAlterado: `${nomeObra(dados.obraId)} — ${dados.fornecedor}`, valorAnterior: "—", valorNovo: BRL(dados.valor) });
+    }
+    setModal(null);
+  };
+  const excluir = (o) => {
+    if (!window.confirm(`Excluir a ordem de pagamento de ${BRL(o.valor)} para ${o.fornecedor}?`)) return;
+    setOrdens((prev) => prev.filter((x) => x.id !== o.id));
+    logAudit?.({ tipoOperacao: "Exclusão de ordem de pagamento", registroAlterado: `${nomeObra(o.obraId)} — ${o.fornecedor}`, valorAnterior: BRL(o.valor), valorNovo: "—" });
+  };
+  const pagar = (o, { data, contas }) => {
+    if (!podePagar) return;
+    const n = contas.length;
+    const novos = contas.map((c, i) => ({
+      id: uid("lan"), tipo: "saida", origemTipo: "CONTA_EMPRESA", contaId: c.contaId, contaInvestidorId: null,
+      obraId: o.obraId, data, valor: c.valor, fornecedor: o.fornecedor, apropriacao: o.apropriacao,
+      descricao: `${o.descricao ? o.descricao + " — " : ""}Programação de pagamento${n > 1 ? ` (parte ${i + 1}/${n})` : ""}`,
+      programacaoId: o.id, createdAt: Date.now(), ...carimbarCriacao(currentUser),
+    }));
+    setEntries((prev) => [...prev, ...novos]);
+    setOrdens((prev) => prev.map((x) => (x.id === o.id ? { ...x, status: "pago", dataPagamentoEfetivo: data, pagamento: { data, contas, entryIds: novos.map((e) => e.id), pagoPor: currentUser?.nome || "—", pagoEm: Date.now() } } : x)));
+    logAudit?.({ tipoOperacao: "Pagamento de ordem de pagamento", registroAlterado: `${nomeObra(o.obraId)} — ${o.fornecedor}`, valorAnterior: "—", valorNovo: `${BRL(o.valor)} (${contas.map((c) => nomeConta(c.contaId)).join(", ")})` });
+    setModal(null);
+  };
+  const estornar = (o) => {
+    if (!podePagar) return;
+    if (!window.confirm(`Estornar o pagamento de ${BRL(o.valor)} para ${o.fornecedor}? Os lançamentos gerados serão removidos e a ordem volta para "Programadas".`)) return;
+    const ids = new Set(o.pagamento?.entryIds || []);
+    setEntries((prev) => prev.filter((e) => !ids.has(e.id)));
+    setOrdens((prev) => prev.map((x) => { if (x.id !== o.id) return x; const { pagamento, dataPagamentoEfetivo, ...resto } = x; return { ...resto, status: "pendente" }; }));
+    logAudit?.({ tipoOperacao: "Estorno de pagamento programado", registroAlterado: `${nomeObra(o.obraId)} — ${o.fornecedor}`, valorAnterior: BRL(o.valor), valorNovo: "—" });
+  };
+
+  const filtrosUI = (
+    <div className="gf-filters">
+      <div className="gf-search"><Search size={15} /><input placeholder="Pesquisar por fornecedor, obra, apropriação…" value={filtros.q} onChange={(e) => setFiltros((f) => ({ ...f, q: e.target.value }))} /></div>
+      <div className="gf-filters-grid">
+        <input type="date" title="De" value={filtros.de} onChange={(e) => setFiltros((f) => ({ ...f, de: e.target.value }))} />
+        <input type="date" title="Até" value={filtros.ate} onChange={(e) => setFiltros((f) => ({ ...f, ate: e.target.value }))} />
+        <select value={filtros.obraId} onChange={(e) => setFiltros((f) => ({ ...f, obraId: e.target.value }))}>
+          <option value="">Obra (todas)</option>
+          {obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="gf-stack">
+      <section className="gf-card">
+        <div className="gf-card-head">
+          <h2>Programação de Pagamentos</h2>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {podeCriar && <button className="gf-btn gf-btn-ghost" onClick={() => setModal({ tipo: "contratos" })}><FileText size={14} /> Contratos</button>}
+            {podeCriar && <button className="gf-btn gf-btn-primary" onClick={() => setModal({ tipo: "nova" })}><Plus size={14} /> Nova ordem de pagamento</button>}
+          </div>
+        </div>
+        <div className="gf-segmented">
+          <button type="button" className={aba === "programadas" ? "is-active" : ""} onClick={() => setAba("programadas")}>Programadas ({doEscopo.filter((o) => o.status === "pendente").length})</button>
+          <button type="button" className={aba === "concluidos" ? "is-active" : ""} onClick={() => setAba("concluidos")}>Pagamentos Concluídos ({doEscopo.filter((o) => o.status === "pago").length})</button>
+        </div>
+        {filtrosUI}
+      </section>
+
+      {aba === "programadas" ? (
+        <section className="gf-card">
+          <div className="gf-card-head"><h2>Ordens programadas</h2><div className="gf-summary-inline"><span>Total a pagar <b className="neg">{BRL(totalPend)}</b></span></div></div>
+          <div className="gf-table-wrap">
+            <table className="gf-table gf-table-ledger">
+              <thead><tr><th>Pagar em</th><th>Obra</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th className="num">Contrato</th><th className="num">Saldo após medição</th><th>Descrição</th><th></th></tr></thead>
+              <tbody>
+                {pendentes.length === 0 && <tr><td colSpan={9}><EmptyState icon={CalendarClock} title="Nenhuma ordem programada" body={podeCriar ? "Crie uma nova ordem de pagamento." : "Não há pagamentos pendentes."} /></td></tr>}
+                {pendentes.map((o) => (
+                  <tr key={o.id}>
+                    <td>{fmtDate(o.dataPagamento)}{o.dataPagamento < hoje && <Badge tone="red" style={{ marginLeft: 6 }}>Atrasada</Badge>}</td>
+                    <td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}</td><td>{o.apropriacao}</td>
+                    <td className="num mono">{BRL(o.valor)}</td>
+                    <td className="num mono">{BRL(o.valorContrato)}</td>
+                    <td className={`num mono ${o.saldoAposMedicao < 0 ? "neg" : ""}`}>{BRL(o.saldoAposMedicao)}</td>
+                    <td className="gf-td-desc" title={o.descricao}>{o.descricao || "—"}<div className="gf-muted" style={{ fontSize: 11 }}>por {o.criadoPor}</div></td>
+                    <td>
+                      <div className="gf-row-actions">
+                        {podePagar && <button className="gf-icon-btn" title="Efetuar pagamento" onClick={() => setModal({ tipo: "pagar", ordem: o })}><CircleDollarSign size={15} /></button>}
+                        {podeCriar && <button className="gf-icon-btn" title="Editar" onClick={() => setModal({ tipo: "editar", ordem: o })}><Pencil size={14} /></button>}
+                        {podeCriar && <button className="gf-icon-btn" title="Excluir" onClick={() => excluir(o)}><Trash2 size={14} /></button>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : (
+        <section className="gf-card">
+          <div className="gf-card-head"><h2>Pagamentos Concluídos</h2><div className="gf-summary-inline"><span>Total pago <b>{BRL(totalConc)}</b></span></div></div>
+          <div className="gf-table-wrap">
+            <table className="gf-table gf-table-ledger">
+              <thead><tr><th>Pago em</th><th>Obra</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Conta(s)</th><th>Descrição</th><th></th></tr></thead>
+              <tbody>
+                {concluidos.length === 0 && <tr><td colSpan={8}><EmptyState icon={CircleDollarSign} title="Nenhum pagamento concluído" body="Os pagamentos efetuados aparecem aqui." /></td></tr>}
+                {concluidos.map((o) => (
+                  <tr key={o.id}>
+                    <td>{fmtDate(o.pagamento?.data)}</td><td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}</td><td>{o.apropriacao}</td>
+                    <td className="num mono">{BRL(o.valor)}</td>
+                    <td>{(o.pagamento?.contas || []).map((c) => <div key={c.contaId}>{nomeConta(c.contaId)} <span className="gf-muted">{BRL(c.valor)}</span></div>)}<div className="gf-muted" style={{ fontSize: 11 }}>por {o.pagamento?.pagoPor}</div></td>
+                    <td className="gf-td-desc" title={o.descricao}>{o.descricao || "—"}</td>
+                    <td>{podePagar && <div className="gf-row-actions"><button className="gf-icon-btn" title="Estornar pagamento" onClick={() => estornar(o)}><Undo2 size={14} /></button></div>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {modal?.tipo === "nova" && <PPOrdemModal ordem={null} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, null)} />}
+      {modal?.tipo === "editar" && <PPOrdemModal ordem={modal.ordem} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, modal.ordem)} />}
+      {modal?.tipo === "pagar" && <PPPagarModal ordem={modal.ordem} accounts={contasAtivas} obraNome={nomeObra(modal.ordem.obraId)} onClose={() => setModal(null)} onConfirm={(p) => pagar(modal.ordem, p)} />}
+      {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
     </div>
   );
 }
