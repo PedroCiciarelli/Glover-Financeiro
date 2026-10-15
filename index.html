@@ -10940,7 +10940,7 @@ function relConsolidar({ rel, versao, plan, historico, refTipo, versaoNome }) {
    (marcador: REL_RENDER_BEGIN)
 =================================================================== */
 
-const REL_W = 1680, REL_H = 2376, REL_M = 140;
+const REL_W = 2376, REL_H = 1680, REL_M = 110; // A4 paisagem (≈203 dpi)
 const REL_COR = {
   verde: "#0E3B2E", verdeMed: "#1D5A45", accent: "#2F8F5B", accentClaro: "#BFE0CC", cinza: "#F0F1EE", cinzaMed: "#D9DCD7",
   texto: "#1F2A25", muted: "#5D6B64", vermelho: "#B23A34", branco: "#FFFFFF",
@@ -10948,7 +10948,8 @@ const REL_COR = {
 const REL_FONTE_CORPO = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
 const REL_FONTE_TITULO = '"Space Grotesk", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
 const relFonte = (px, peso = 400, titulo = false) => `${peso} ${px}px ${titulo ? REL_FONTE_TITULO : REL_FONTE_CORPO}`;
-const REL_TOPO_CONTEUDO = 380, REL_BASE_CONTEUDO = REL_H - 270;
+const REL_TOPO_CONTEUDO = 300, REL_BASE_CONTEUDO = REL_H - 200;
+const REL_AV_LINHA_H = 84, REL_AV_TOPO_LINHAS_PRIM = 700; // linhas do gráfico de avanço e início aproximado na 1ª página
 
 function relCriarCanvas(w, h) {
   const c = (globalThis.__relCriarCanvas ? globalThis.__relCriarCanvas() : document.createElement("canvas"));
@@ -11037,7 +11038,7 @@ function relLimitarLinhas(ctx, linhas, max, larg) {
 function relFluxo(ctx, blocos, yIni, yFim, larg) {
   const paginas = [[]];
   let y = yIni;
-  const LH = 46;
+  const LH = 50;
   const nova = () => { paginas.push([]); y = yIni; };
   for (const b of blocos) {
     if (b.k === "gap") { if (y + b.h <= yFim) { y += b.h; } else nova(); continue; }
@@ -11056,7 +11057,7 @@ function relFluxo(ctx, blocos, yIni, yFim, larg) {
       y += h + 6; continue;
     }
     const nota = b.k === "nota";
-    const fpx = nota ? 26 : 30, lh = nota ? 38 : LH;
+    const fpx = nota ? 26 : 32, lh = nota ? 40 : LH;
     const indent = b.k === "li" ? 56 : 0;
     ctx.font = relFonte(fpx, 400);
     const linhas = relQuebrar(ctx, b.texto, larg - indent);
@@ -11077,7 +11078,7 @@ function relFluxo(ctx, blocos, yIni, yFim, larg) {
 
 /* ---------- paginação do relatório ---------- */
 function relPaginar(ctx, d) {
-  const larg = REL_W - 2 * REL_M;
+  const larg = Math.min(REL_W - 2 * REL_M, 1900); // largura de leitura do texto corrido (paisagem)
   const paginas = [{ tipo: "capa" }, { tipo: "indice" }];
   const secoes = {};
   // 1. Introdução
@@ -11093,9 +11094,8 @@ function relPaginar(ctx, d) {
   // 2. Avanço físico
   secoes.avanco = paginas.length + 1;
   const macros = d.macros || [];
-  const LINHA_H = 100;
-  const capPrim = Math.max(1, Math.floor((REL_BASE_CONTEUDO - 840) / LINHA_H));
-  const capOutras = Math.max(1, Math.floor((REL_BASE_CONTEUDO - REL_TOPO_CONTEUDO - 80) / LINHA_H));
+  const capPrim = Math.max(1, Math.floor((REL_BASE_CONTEUDO - REL_AV_TOPO_LINHAS_PRIM) / REL_AV_LINHA_H));
+  const capOutras = Math.max(1, Math.floor((REL_BASE_CONTEUDO - (REL_TOPO_CONTEUDO - 20 + 86)) / REL_AV_LINHA_H));
   let pos = 0, primeira = true;
   do {
     const cap = primeira ? capPrim : capOutras;
@@ -11105,16 +11105,14 @@ function relPaginar(ctx, d) {
   // 3. Previsto x realizado
   secoes.curva = paginas.length + 1;
   paginas.push({ tipo: "curva", sec: 3, titulo: "3. ANDAMENTO — PREVISTO X REALIZADO" });
-  // 4. Registro fotográfico
+  // 4. Registro fotográfico (até 3 fotos por página, lado a lado)
   secoes.fotos = paginas.length + 1;
   const fotos = (d.fotos || []).map((f, i) => ({ ...f, n: i + 1 }));
   if (!fotos.length) paginas.push({ tipo: "fotos", sec: 4, titulo: "4. REGISTRO FOTOGRÁFICO", cont: false, fotos: [] });
   else {
     let i = 0, primeiraF = true;
     while (i < fotos.length) {
-      const restantes = fotos.length - i;
-      let n = Math.min(3, restantes);
-      if (n === 3 && fotos.slice(i, i + 3).some((f) => f.w && f.h && f.w / f.h < 1.15)) n = 2; // retrato/quadrada: 2 por página
+      const n = Math.min(3, fotos.length - i);
       paginas.push({ tipo: "fotos", sec: 4, titulo: "4. REGISTRO FOTOGRÁFICO", cont: !primeiraF, fotos: fotos.slice(i, i + n) });
       i += n; primeiraF = false;
     }
@@ -11131,13 +11129,13 @@ function relPaginar(ctx, d) {
 
 /* ---------- desenho das páginas ---------- */
 function relRodape(ctx, d, n, total, logo) {
-  const y = REL_H - 215;
+  const y = REL_H - 168;
   ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, y, REL_W - 2 * REL_M, 3);
-  const yTxt = REL_H - 118;
+  const yTxt = REL_H - 78;
   relTexto(ctx, "GLOVER ENGENHARIA | RELATÓRIO DE OBRA", REL_M, yTxt, { fonte: relFonte(23, 700), cor: REL_COR.verde, espaco: 1 });
   relTexto(ctx, `Página ${n} de ${total}`, REL_W / 2, yTxt, { fonte: relFonte(24, 500), cor: REL_COR.muted, align: "center" });
-  // logo oficial com fundo cinza, no canto inferior direito
-  const ph = 130, pw = logo ? ph * (logo.width / logo.height) : 265, px = REL_W - REL_M - pw, py = REL_H - 190;
+  // logo oficial com fundo cinza, no canto inferior direito (bordas arredondadas)
+  const ph = 112, pw = logo ? ph * (logo.width / logo.height) : 220, px = REL_W - REL_M - pw, py = REL_H - 148;
   if (logo) {
     ctx.save();
     ctx.beginPath();
@@ -11149,62 +11147,68 @@ function relRodape(ctx, d, n, total, logo) {
   }
 }
 function relCabecalho(ctx, d, pg) {
-  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 118, { fonte: relFonte(24, 700), cor: REL_COR.verde, espaco: 4 });
+  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 84, { fonte: relFonte(24, 700), cor: REL_COR.verde, espaco: 4 });
   ctx.font = relFonte(23, 400);
-  const dir = relElipse(ctx, `Relatório de Obra nº ${String(d.numero).padStart(2, "0")}  |  ${d.obraNome}`, 1000);
-  relTexto(ctx, dir, REL_W - REL_M, 118, { fonte: relFonte(23, 400), cor: REL_COR.muted, align: "right" });
-  ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, 148, REL_W - 2 * REL_M, 3);
+  const dir = relElipse(ctx, `Relatório de Obra nº ${String(d.numero).padStart(2, "0")}  |  ${d.obraNome}`, 1300);
+  relTexto(ctx, dir, REL_W - REL_M, 84, { fonte: relFonte(23, 400), cor: REL_COR.muted, align: "right" });
+  ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, 108, REL_W - 2 * REL_M, 3);
   const t = pg.titulo + (pg.cont ? " (continuação)" : "");
-  const px = relAjustarFonte(ctx, t, REL_W - 2 * REL_M, 60, 34, 700, true);
-  relTexto(ctx, t, REL_M, 262, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
-  relRetangulo(ctx, REL_M, 296, 130, 9, REL_COR.accent, 4);
+  const px = relAjustarFonte(ctx, t, REL_W - 2 * REL_M, 56, 34, 700, true);
+  relTexto(ctx, t, REL_M, 190, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
+  relRetangulo(ctx, REL_M, 216, 130, 9, REL_COR.accent, 4);
 }
 function relCapa(ctx, d) {
-  relRetangulo(ctx, 0, 0, REL_W, 1500, REL_COR.verde);
+  const hV = 1040, yFaixa = hV, yFimFaixa = REL_H - 168;
+  relRetangulo(ctx, 0, 0, REL_W, hV, REL_COR.verde);
   // elementos geométricos discretos
   ctx.save(); ctx.globalAlpha = 0.07; ctx.fillStyle = "#FFFFFF";
   ctx.beginPath(); ctx.moveTo(REL_W, 0); ctx.lineTo(REL_W, 760); ctx.lineTo(REL_W - 760, 0); ctx.closePath(); ctx.fill();
   ctx.globalAlpha = 0.05;
-  ctx.beginPath(); ctx.moveTo(REL_W, 330); ctx.lineTo(REL_W, 1130); ctx.lineTo(REL_W - 800, 330); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(REL_W, 330); ctx.lineTo(REL_W, 1040); ctx.lineTo(REL_W - 710, 330); ctx.closePath(); ctx.fill();
   ctx.restore();
-  relRetangulo(ctx, 0, 0, 22, 1500, REL_COR.accent);
-  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 220, { fonte: relFonte(46, 700, true), cor: "#FFFFFF", espaco: 10 });
-  relRetangulo(ctx, REL_M, 262, 220, 8, REL_COR.accent, 4);
+  relRetangulo(ctx, 0, 0, 22, hV, REL_COR.accent);
+  relTexto(ctx, "GLOVER ENGENHARIA", REL_M, 170, { fonte: relFonte(46, 700, true), cor: "#FFFFFF", espaco: 10 });
+  relRetangulo(ctx, REL_M, 206, 220, 8, REL_COR.accent, 4);
   const titulo = `RELATÓRIO DE OBRA Nº ${String(d.numero).padStart(2, "0")}`;
-  const pxT = relAjustarFonte(ctx, titulo, REL_W - 2 * REL_M, 104, 56, 700, true);
-  relTexto(ctx, titulo, REL_M, 640, { fonte: relFonte(pxT, 700, true), cor: "#FFFFFF" });
-  relTexto(ctx, "OBRA", REL_M, 800, { fonte: relFonte(30, 600), cor: REL_COR.accentClaro, espaco: 8 });
-  ctx.font = relFonte(76, 700, true);
-  const linhasObra = relLimitarLinhas(ctx, relQuebrar(ctx, String(d.obraNome || "").toUpperCase(), REL_W - 2 * REL_M), 3, REL_W - 2 * REL_M);
-  linhasObra.forEach((l, i) => relTexto(ctx, l, REL_M, 890 + i * 94, { fonte: relFonte(76, 700, true), cor: "#FFFFFF" }));
-  const yP = 890 + linhasObra.length * 94 + 90;
-  relTexto(ctx, "PERÍODO", REL_M, yP, { fonte: relFonte(30, 600), cor: REL_COR.accentClaro, espaco: 8 });
-  relTexto(ctx, `${relFmtData(d.periodoIni)} A ${relFmtData(d.periodoFim)}`, REL_M, yP + 78, { fonte: relFonte(64, 600, true), cor: "#FFFFFF" });
-  // faixa cinza com dados complementares
-  relRetangulo(ctx, 0, 1500, REL_W, REL_H - 1500 - 250, REL_COR.cinza);
-  const linhas = [["CLIENTE", d.cliente || "—"], ["RESPONSÁVEL PELO RELATÓRIO", d.responsavel || "—"], ["DATA DE REFERÊNCIA DA AFERIÇÃO", relFmtData(d.dataRef)]];
-  linhas.forEach(([r, v], i) => {
-    const y = 1640 + i * 150;
-    relTexto(ctx, r, REL_M, y, { fonte: relFonte(24, 700), cor: REL_COR.accent, espaco: 3 });
+  const pxT = relAjustarFonte(ctx, titulo, REL_W - 2 * REL_M, 100, 56, 700, true);
+  relTexto(ctx, titulo, REL_M, 410, { fonte: relFonte(pxT, 700, true), cor: "#FFFFFF" });
+  relTexto(ctx, "OBRA", REL_M, 550, { fonte: relFonte(28, 600), cor: REL_COR.accentClaro, espaco: 8 });
+  ctx.font = relFonte(70, 700, true);
+  const linhasObra = relLimitarLinhas(ctx, relQuebrar(ctx, String(d.obraNome || "").toUpperCase(), REL_W - 2 * REL_M), 2, REL_W - 2 * REL_M);
+  linhasObra.forEach((l, i) => relTexto(ctx, l, REL_M, 628 + i * 84, { fonte: relFonte(70, 700, true), cor: "#FFFFFF" }));
+  const yP = 628 + linhasObra.length * 84 + 56;
+  relTexto(ctx, "PERÍODO", REL_M, yP, { fonte: relFonte(28, 600), cor: REL_COR.accentClaro, espaco: 8 });
+  relTexto(ctx, `${relFmtData(d.periodoIni)} A ${relFmtData(d.periodoFim)}`, REL_M, yP + 70, { fonte: relFonte(58, 600, true), cor: "#FFFFFF" });
+  // faixa cinza com dados complementares (três colunas)
+  relRetangulo(ctx, 0, yFaixa, REL_W, yFimFaixa - yFaixa, REL_COR.cinza);
+  const colunas = [["CLIENTE", d.cliente || "—"], ["RESPONSÁVEL PELO RELATÓRIO", d.responsavel || "—"], ["DATA DE REFERÊNCIA DA AFERIÇÃO", relFmtData(d.dataRef)]];
+  const gap = 60, wCol = (REL_W - 2 * REL_M - gap * 2) / 3, yc = yFaixa + (yFimFaixa - yFaixa) / 2 - 20;
+  colunas.forEach(([r, v], i) => {
+    const x = REL_M + i * (wCol + gap);
+    relRetangulo(ctx, x, yc - 46, 8, 120, REL_COR.accent, 3);
+    ctx.font = relFonte(22, 700);
+    relTexto(ctx, relElipse(ctx, r, wCol - 30), x + 28, yc, { fonte: relFonte(22, 700), cor: REL_COR.accent, espaco: 2 });
     ctx.font = relFonte(38, 500);
-    relTexto(ctx, relElipse(ctx, v, REL_W - 2 * REL_M), REL_M, y + 56, { fonte: relFonte(38, 500), cor: REL_COR.texto });
+    const linhasV = relLimitarLinhas(ctx, relQuebrar(ctx, v, wCol - 30), 2, wCol - 30);
+    linhasV.forEach((l, k) => relTexto(ctx, l, x + 28, yc + 56 + k * 46, { fonte: relFonte(38, 500), cor: REL_COR.texto }));
   });
 }
 function relIndice(ctx, d, secoes) {
   relCabecalho(ctx, d, { titulo: "ÍNDICE" });
   const itens = [["1.", "Introdução", secoes.intro], ["2.", "Avanço Físico", secoes.avanco], ["3.", "Andamento — Previsto x Realizado", secoes.curva], ["4.", "Registro Fotográfico", secoes.fotos], ["5.", "Análise Técnica", secoes.analise]];
-  let y = 480;
+  let y = 400;
+  const xDir = REL_W - REL_M - 300; // índice em coluna centralizada, mais estreita que a página
   for (const [n, t, p] of itens) {
     relTexto(ctx, n, REL_M, y, { fonte: relFonte(40, 700, true), cor: REL_COR.accent });
     relTexto(ctx, t, REL_M + 70, y, { fonte: relFonte(40, 500), cor: REL_COR.texto });
     const wTxt = ctx.measureText(t).width;
     ctx.font = relFonte(40, 700);
     const sp = String(p), wP = ctx.measureText(sp).width;
-    relTexto(ctx, sp, REL_W - REL_M, y, { fonte: relFonte(40, 700), cor: REL_COR.verde, align: "right" });
+    relTexto(ctx, sp, xDir, y, { fonte: relFonte(40, 700), cor: REL_COR.verde, align: "right" });
     ctx.fillStyle = REL_COR.cinzaMed;
-    for (let x = REL_M + 70 + wTxt + 24; x < REL_W - REL_M - wP - 24; x += 14) ctx.fillRect(x, y - 6, 4, 4);
-    ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, y + 40, REL_W - 2 * REL_M, 2);
-    y += 120;
+    for (let x = REL_M + 70 + wTxt + 24; x < xDir - wP - 24; x += 14) ctx.fillRect(x, y - 6, 4, 4);
+    ctx.fillStyle = REL_COR.cinzaMed; ctx.fillRect(REL_M, y + 36, xDir - REL_M, 2);
+    y += 140;
   }
 }
 function relPaginaTexto(ctx, d, pg) {
@@ -11214,7 +11218,7 @@ function relPaginaTexto(ctx, d, pg) {
       op.linhas.forEach((l, i) => relTexto(ctx, l, REL_M, op.y + 36 + i * 52, { fonte: relFonte(36, 700, true), cor: REL_COR.verde }));
       relRetangulo(ctx, REL_M, op.y + 36 + (op.linhas.length - 1) * 52 + 16, 90, 5, REL_COR.accent, 2);
     } else if (op.k === "kpis") {
-      const n = op.itens.length, gap = 24, w = (REL_W - 2 * REL_M - gap * (n - 1)) / n;
+      const n = op.itens.length, gap = 30, w = Math.min(640, (REL_W - 2 * REL_M - gap * (n - 1)) / n);
       op.itens.forEach((it, i) => {
         const x = REL_M + i * (w + gap);
         relRetangulo(ctx, x, op.y, w, op.h, REL_COR.cinza, 16);
@@ -11244,23 +11248,24 @@ function relPaginaAvanco(ctx, d, pg) {
       ["AVANÇO FÍSICO REALIZADO", relFmtPct(g.real)], ["AVANÇO PREVISTO NA DATA DE REFERÊNCIA", relFmtPct(g.prev)],
       ["ATIVIDADES EXECUTÁVEIS", `${g.nAtividades} | ${relFmtNum(g.totalDias, 2)} dias`],
     ] : [];
-    const gap = 24, w = (wTot - gap * 2) / 3;
+    const gap = 30, w = (wTot - gap * 2) / 3, hCx = 170;
     caixas.forEach(([r, v], i) => {
       const x = REL_M + i * (w + gap);
-      relRetangulo(ctx, x, y, w, 190, REL_COR.cinza, 16); relRetangulo(ctx, x, y, 10, 190, REL_COR.accent, 4);
+      relRetangulo(ctx, x, y, w, hCx, REL_COR.cinza, 16); relRetangulo(ctx, x, y, 10, hCx, REL_COR.accent, 4);
       ctx.font = relFonte(20, 700);
-      relTexto(ctx, relElipse(ctx, r, w - 60), x + 34, y + 54, { fonte: relFonte(20, 700), cor: REL_COR.muted, espaco: 1 });
-      const px = relAjustarFonte(ctx, v, w - 60, i === 2 ? 40 : 70, 26, 700, true);
-      relTexto(ctx, v, x + 34, y + 138, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
+      relTexto(ctx, relElipse(ctx, r, w - 60), x + 34, y + 48, { fonte: relFonte(20, 700), cor: REL_COR.muted, espaco: 1 });
+      const px = relAjustarFonte(ctx, v, w - 60, i === 2 ? 40 : 66, 26, 700, true);
+      relTexto(ctx, v, x + 34, y + 122, { fonte: relFonte(px, 700, true), cor: REL_COR.verde });
     });
-    y += 190 + 40;
+    y += hCx + 30;
     ctx.font = relFonte(22, 400);
     const nota = "Percentual de cada atividade (agrupador de 3º nível do cronograma) = Σ (duração × % realizado) ÷ Σ duração das suas atividades executáveis (dias de trabalho do cronograma). Não se utiliza média simples. Atividades-resumo e marcos não entram no cálculo.";
-    relQuebrar(ctx, nota, wTot).forEach((l, i) => relTexto(ctx, l, REL_M, y + 24 + i * 32, { fonte: relFonte(22, 400), cor: REL_COR.muted }));
-    y += 24 + relQuebrar(ctx, nota, wTot).length * 32 + 20;
+    const ln = relQuebrar(ctx, nota, wTot);
+    ln.forEach((l, i) => relTexto(ctx, l, REL_M, y + 24 + i * 32, { fonte: relFonte(22, 400), cor: REL_COR.muted }));
+    y += 24 + ln.length * 32 + 12;
   }
   // legenda e eixo
-  const barW = 1100, barX = REL_M;
+  const barW = 1700, barX = REL_M;
   relTexto(ctx, "Realizado (barra)", barX, y + 20, { fonte: relFonte(22, 600), cor: REL_COR.verde });
   relRetangulo(ctx, barX + 250, y + 4, 36, 18, REL_COR.accent, 4);
   relTexto(ctx, "Previsto na data de referência (marcador)", barX + 320, y + 20, { fonte: relFonte(22, 600), cor: REL_COR.muted });
@@ -11276,25 +11281,25 @@ function relPaginaAvanco(ctx, d, pg) {
     relTexto(ctx, "Nenhum cronograma disponível: o avanço físico por atividade macro não pôde ser calculado.", REL_M, y + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
     return;
   }
+  const LH = REL_AV_LINHA_H;
   pg.macros.forEach((m, i) => {
-    const yy = topoLinhas + i * 100;
-    ctx.font = relFonte(27, 600);
-    const rot = m.nome;
-    relTexto(ctx, relElipse(ctx, rot, 900), barX, yy + 26, { fonte: relFonte(27, 600), cor: REL_COR.texto });
-    relTexto(ctx, `${relFmtNum(m.durDias, 2)} dias`, barX + barW, yy + 26, { fonte: relFonte(21, 400), cor: REL_COR.muted, align: "right" });
-    relRetangulo(ctx, barX, yy + 40, barW, 34, REL_COR.cinza, 8);
+    const yy = topoLinhas + i * LH;
+    ctx.font = relFonte(26, 600);
+    relTexto(ctx, relElipse(ctx, m.nome, 1400), barX, yy + 24, { fonte: relFonte(26, 600), cor: REL_COR.texto });
+    relTexto(ctx, `${relFmtNum(m.durDias, 2)} dias`, barX + barW, yy + 24, { fonte: relFonte(21, 400), cor: REL_COR.muted, align: "right" });
+    relRetangulo(ctx, barX, yy + 34, barW, 28, REL_COR.cinza, 8);
     const w = Math.max(0, Math.min(100, m.pctReal)) / 100 * barW;
-    if (w > 0) relRetangulo(ctx, barX, yy + 40, Math.max(w, 10), 34, REL_COR.accent, 8);
+    if (w > 0) relRetangulo(ctx, barX, yy + 34, Math.max(w, 10), 28, REL_COR.accent, 8);
     const xp = barX + Math.max(0, Math.min(100, m.pctPrev)) / 100 * barW;
-    relRetangulo(ctx, Math.min(xp, barX + barW - 4) - 2, yy + 34, 5, 46, REL_COR.texto);
-    relTexto(ctx, relFmtPct(m.pctReal), barX + barW + 28, yy + 70, { fonte: relFonte(34, 700, true), cor: REL_COR.verde });
-    relTexto(ctx, `prev. ${relFmtPct(m.pctPrev)}`, REL_W - REL_M, yy + 70, { fonte: relFonte(22, 400), cor: REL_COR.muted, align: "right" });
+    relRetangulo(ctx, Math.min(xp, barX + barW - 4) - 2, yy + 29, 5, 38, REL_COR.texto);
+    relTexto(ctx, relFmtPct(m.pctReal), barX + barW + 28, yy + 60, { fonte: relFonte(32, 700, true), cor: REL_COR.verde });
+    relTexto(ctx, `prev. ${relFmtPct(m.pctPrev)}`, REL_W - REL_M, yy + 60, { fonte: relFonte(22, 400), cor: REL_COR.muted, align: "right" });
   });
 }
 function relPaginaCurva(ctx, d, pg) {
   relCabecalho(ctx, d, pg);
-  relTexto(ctx, "CURVA S DE AVANÇO FÍSICO", REL_M, 372, { fonte: relFonte(32, 700, true), cor: REL_COR.muted, espaco: 3 });
-  const x0 = REL_M + 110, x1 = REL_W - REL_M - 30, yT = 450, yB = 1280;
+  relTexto(ctx, "CURVA S DE AVANÇO FÍSICO", REL_M, 290, { fonte: relFonte(28, 700, true), cor: REL_COR.muted, espaco: 3 });
+  const x0 = REL_M + 100, x1 = 1640, yT = 330, yB = 1230;
   const prev = (d.curva && d.curva.prev) || [], real = (d.curva && d.curva.real) || [];
   // fundo e grade
   relRetangulo(ctx, x0, yT, x1 - x0, yB - yT, "#FAFAF8");
@@ -11312,13 +11317,13 @@ function relPaginaCurva(ctx, d, pg) {
     const X = (iso) => x0 + ((relIsoParaDias(iso) - dmin) / (dmax - dmin)) * (x1 - x0);
     const Y = (v) => yB - ((yB - yT) * Math.max(0, Math.min(100, v))) / 100;
     // eixo X
-    const nTicks = 7;
+    const nTicks = 9;
     for (let i = 0; i <= nTicks; i++) {
       const dia = Math.round(dmin + ((dmax - dmin) * i) / nTicks), x = x0 + ((x1 - x0) * i) / nTicks;
       ctx.fillStyle = "#E8EAE6"; ctx.fillRect(x, yT, 2, yB - yT);
-      relTexto(ctx, relFmtDataCurta(relDiasParaIso(dia)), x, yB + 42, { fonte: relFonte(22, 500), cor: REL_COR.muted, align: "center" });
+      relTexto(ctx, relFmtDataCurta(relDiasParaIso(dia)), x, yB + 40, { fonte: relFonte(22, 500), cor: REL_COR.muted, align: "center" });
     }
-    relTexto(ctx, "Data", (x0 + x1) / 2, yB + 86, { fonte: relFonte(22, 600), cor: REL_COR.muted, align: "center" });
+    relTexto(ctx, "Data", (x0 + x1) / 2, yB + 82, { fonte: relFonte(22, 600), cor: REL_COR.muted, align: "center" });
     // linha da data de referência
     if (d.dataRef) {
       ctx.save(); ctx.strokeStyle = REL_COR.muted; ctx.lineWidth = 3; ctx.setLineDash([14, 10]);
@@ -11340,36 +11345,39 @@ function relPaginaCurva(ctx, d, pg) {
     if (!real.length) relTexto(ctx, "Sem aferições registradas.", (x0 + x1) / 2, yT + 120, { fonte: relFonte(26, 500), cor: REL_COR.muted, align: "center" });
   }
   // legenda
-  const yl = yB + 150;
+  const yl = yB + 140;
   ctx.save(); ctx.strokeStyle = REL_COR.muted; ctx.lineWidth = 7; ctx.setLineDash([22, 12]); ctx.beginPath(); ctx.moveTo(x0, yl); ctx.lineTo(x0 + 90, yl); ctx.stroke(); ctx.restore();
   relTexto(ctx, "Previsto (cronograma)", x0 + 110, yl + 9, { fonte: relFonte(25, 600), cor: REL_COR.texto });
   ctx.save(); ctx.strokeStyle = REL_COR.verde; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x0 + 520, yl); ctx.lineTo(x0 + 610, yl); ctx.stroke(); ctx.restore();
   ctx.fillStyle = REL_COR.verde; ctx.beginPath(); ctx.arc(x0 + 565, yl, 12, 0, 7); ctx.fill();
   relTexto(ctx, "Realizado (aferições)", x0 + 630, yl + 9, { fonte: relFonte(25, 600), cor: REL_COR.texto });
-  // indicadores
+  // indicadores (coluna à direita do gráfico)
+  const xR = x1 + 70, wR = REL_W - REL_M - xR;
   const g = d.geral;
+  let yR = yT;
   if (g) {
     const caixas = [["AVANÇO PREVISTO", relFmtPct(g.prev)], ["AVANÇO REALIZADO", relFmtPct(g.real)], ["DESVIO", g.desvioTexto.replace(/^([+−])/, "$1")], ["SITUAÇÃO", g.situacao]];
-    const gap = 24, w = (REL_W - 2 * REL_M - gap) / 2, h = 140;
+    const h = 128, gap = 18;
     caixas.forEach(([r, v], i) => {
-      const x = REL_M + (i % 2) * (w + gap), y = 1530 + Math.floor(i / 2) * (h + 24);
-      relRetangulo(ctx, x, y, w, h, REL_COR.cinza, 14); relRetangulo(ctx, x, y, 10, h, REL_COR.accent, 4);
-      relTexto(ctx, r, x + 34, y + 48, { fonte: relFonte(22, 700), cor: REL_COR.muted, espaco: 2 });
+      const y = yT + i * (h + gap);
+      relRetangulo(ctx, xR, y, wR, h, REL_COR.cinza, 14); relRetangulo(ctx, xR, y, 10, h, REL_COR.accent, 4);
+      relTexto(ctx, r, xR + 30, y + 42, { fonte: relFonte(20, 700), cor: REL_COR.muted, espaco: 2 });
       const cor = (r === "SITUAÇÃO" && g.situacao === "ATRASADA") || (r === "DESVIO" && g.desvio < 0) ? REL_COR.vermelho : REL_COR.verde;
-      const px = relAjustarFonte(ctx, v, w - 70, 50, 26, 700, true);
-      relTexto(ctx, v, x + 34, y + 110, { fonte: relFonte(px, 700, true), cor });
+      const px = relAjustarFonte(ctx, v, wR - 60, 46, 24, 700, true);
+      relTexto(ctx, v, xR + 30, y + 102, { fonte: relFonte(px, 700, true), cor });
     });
+    yR = yT + 4 * (h + gap) + 14;
   }
-  // notas
-  let yn = 1530 + 2 * 164 + 30;
+  // notas (coluna à direita, abaixo dos indicadores)
   const notas = [];
   if (d.premissas && d.premissas.length) notas.push(...d.premissas);
   notas.push("Realizado: somente datas com aferição registrada em relatório (sem interpolação ou estimativa). Atividade sem aferição é considerada 0%.");
   if (relResumoReal(d)) notas.push(relResumoReal(d));
-  ctx.font = relFonte(21, 400);
+  ctx.font = relFonte(19, 400);
+  let yn = yR + 20;
   for (const n of notas) {
-    const ls = relQuebrar(ctx, "• " + n, REL_W - 2 * REL_M);
-    for (const l of ls) { if (yn > REL_BASE_CONTEUDO + 10) break; relTexto(ctx, l, REL_M, yn, { fonte: relFonte(21, 400), cor: REL_COR.muted }); yn += 30; }
+    const ls = relQuebrar(ctx, "• " + n, wR);
+    for (const l of ls) { if (yn > REL_BASE_CONTEUDO + 10) break; relTexto(ctx, l, xR, yn, { fonte: relFonte(19, 400), cor: REL_COR.muted }); yn += 26; }
     yn += 6;
   }
 }
@@ -11385,29 +11393,37 @@ function relPaginaFotos(ctx, d, pg) {
     relTexto(ctx, "Nenhuma fotografia foi registrada neste relatório.", REL_M, REL_TOPO_CONTEUDO + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
     return;
   }
-  const yIni = REL_TOPO_CONTEUDO - 10, yFim = REL_BASE_CONTEUDO + 10, gap = 36;
-  const slotH = (yFim - yIni - gap * (fotos.length - 1)) / fotos.length;
-  const capH = 128, wTot = REL_W - 2 * REL_M;
+  const yIni = REL_TOPO_CONTEUDO - 20, yFim = REL_BASE_CONTEUDO + 10, gap = 40, capH = 130;
+  const wTot = REL_W - 2 * REL_M;
+  const colW = (wTot - gap * 2) / 3; // largura fixa de coluna (até 3 fotos lado a lado)
+  const x0 = REL_M + (wTot - (fotos.length * colW + (fotos.length - 1) * gap)) / 2;
+  const boxMax = yFim - yIni - capH;
+  // altura da caixa: acompanha a foto mais alta da página (sem deformar), limitada ao espaço disponível
+  let boxH = 0;
+  fotos.forEach((f) => {
+    const iw = f.img ? (f.img.naturalWidth || f.img.width) : (f.w || 4), ih = f.img ? (f.img.naturalHeight || f.img.height) : (f.h || 3);
+    boxH = Math.max(boxH, Math.min(boxMax, (colW - 16) * (ih / iw) + 16));
+  });
+  boxH = Math.max(Math.min(boxMax, 420), boxH);
   fotos.forEach((f, i) => {
-    const y = yIni + i * (slotH + gap);
-    const boxH = slotH - capH;
-    relRetangulo(ctx, REL_M, y, wTot, boxH, REL_COR.cinza, 10);
+    const x = x0 + i * (colW + gap), y = yIni;
+    relRetangulo(ctx, x, y, colW, boxH, REL_COR.cinza, 10);
     if (f.img) {
       const iw = f.img.naturalWidth || f.img.width, ih = f.img.naturalHeight || f.img.height;
-      const esc = Math.min((wTot - 16) / iw, (boxH - 16) / ih);
+      const esc = Math.min((colW - 16) / iw, (boxH - 16) / ih);
       const w = iw * esc, h = ih * esc;
       ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(f.img, REL_M + (wTot - w) / 2, y + (boxH - h) / 2, w, h);
-    } else relTexto(ctx, "Imagem indisponível", REL_M + wTot / 2, y + boxH / 2, { fonte: relFonte(28, 500), cor: REL_COR.muted, align: "center" });
+      ctx.drawImage(f.img, x + (colW - w) / 2, y + (boxH - h) / 2, w, h);
+    } else relTexto(ctx, "Imagem indisponível", x + colW / 2, y + boxH / 2, { fonte: relFonte(26, 500), cor: REL_COR.muted, align: "center" });
     const rotulo = `Foto ${String(f.n).padStart(2, "0")} — `;
-    ctx.font = relFonte(27, 700);
+    ctx.font = relFonte(25, 700);
     const wr = ctx.measureText(rotulo).width;
-    ctx.font = relFonte(27, 400);
-    const leg = relLimitarLinhas(ctx, relQuebrar(ctx, " ".repeat(0) + (f.legenda || "(sem legenda)"), wTot - wr), 2, wTot - wr);
-    relTexto(ctx, rotulo, REL_M, y + boxH + 42, { fonte: relFonte(27, 700), cor: REL_COR.verde });
-    leg.forEach((l, k) => relTexto(ctx, l, REL_M + wr, y + boxH + 42 + k * 36, { fonte: relFonte(27, 400), cor: REL_COR.texto }));
+    ctx.font = relFonte(25, 400);
+    const leg = relLimitarLinhas(ctx, relQuebrar(ctx, f.legenda || "(sem legenda)", colW - wr), 2, colW - wr);
+    relTexto(ctx, rotulo, x, y + boxH + 38, { fonte: relFonte(25, 700), cor: REL_COR.verde });
+    leg.forEach((l, k) => relTexto(ctx, l, x + wr, y + boxH + 38 + k * 32, { fonte: relFonte(25, 400), cor: REL_COR.texto }));
     const meta = [f.disciplina, f.data ? relFmtData(f.data) : ""].filter(Boolean).join("  |  ");
-    if (meta) relTexto(ctx, meta, REL_M, y + boxH + 42 + 2 * 36 + 4, { fonte: relFonte(22, 500), cor: REL_COR.muted });
+    if (meta) relTexto(ctx, relElipse(ctx, meta, colW), x, y + boxH + 38 + 2 * 32 + 6, { fonte: relFonte(21, 500), cor: REL_COR.muted });
   });
 }
 
@@ -11446,7 +11462,7 @@ async function relRenderizarRelatorio(d, { qualidade = 0.9, onProgresso } = {}) 
   return { paginas: saida, total, secoes };
 }
 
-/* ---------- escrita do PDF (A4 retrato, uma imagem JPEG por página) ---------- */
+/* ---------- escrita do PDF (A4 paisagem, uma imagem JPEG por página) ---------- */
 function relMontarPDF(paginas, { titulo = "Relatório de Obra", autor = "Glover Engenharia" } = {}) {
   const enc = new TextEncoder();
   const partes = []; let pos = 0;
@@ -11464,7 +11480,7 @@ function relMontarPDF(paginas, { titulo = "Relatório de Obra", autor = "Glover 
   const agora = new Date();
   const dataPdf = `D:${agora.getUTCFullYear()}${String(agora.getUTCMonth() + 1).padStart(2, "0")}${String(agora.getUTCDate()).padStart(2, "0")}${String(agora.getUTCHours()).padStart(2, "0")}${String(agora.getUTCMinutes()).padStart(2, "0")}${String(agora.getUTCSeconds()).padStart(2, "0")}Z`;
   obj(3, `<< /Title ${hexUtf16(titulo)} /Author ${hexUtf16(autor)} /Creator ${hexUtf16("Glover Engenharia - Relatórios de Obra")} /Producer ${hexUtf16("Glover Engenharia")} /CreationDate (${dataPdf}) >>`);
-  const PW = 595.28, PH = 841.89;
+  const PW = 841.89, PH = 595.28; // A4 paisagem
   paginas.forEach((p, i) => {
     obj(idPagina(i), `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /XObject << /Im0 ${idImagem(i)} 0 R >> /ProcSet [/PDF /ImageC] >> /Contents ${idConteudo(i)} 0 R >>`);
     const cont = `q\n${PW} 0 0 ${PH} 0 0 cm\n/Im0 Do\nQ\n`;
@@ -12223,7 +12239,7 @@ function RelPreviewModal({ obra, relId, relObj, usuarios, onClose, onPdf }) {
       {paginas && (
         <>
           <div className="gf-row-actions" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-            <span className="gf-field-hint">{paginas.length} página(s) — A4 retrato. Esta é exatamente a imagem das páginas do PDF.</span>
+            <span className="gf-field-hint">{paginas.length} página(s) — A4 paisagem. Esta é exatamente a imagem das páginas do PDF.</span>
             <div className="gf-row-actions">
               <button className="gf-btn gf-btn-ghost" onClick={onClose}>Voltar à edição</button>
               <button className="gf-btn gf-btn-primary" onClick={baixar}><FileDown size={14} /> Gerar PDF</button>
@@ -13118,7 +13134,7 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
 .gf-rel-ul{ margin:6px 0 0; padding-left:18px; font-size:12.5px; color:var(--gf-ink); display:flex; flex-direction:column; gap:3px; }
 .gf-rel-tr-resumo td{ background:var(--gf-gray-100); }
 .gf-rel-previa{ display:flex; flex-direction:column; gap:16px; align-items:center; background:#d9dcd7; padding:16px; border-radius:10px; }
-.gf-rel-previa img{ width:100%; max-width:760px; height:auto; box-shadow:0 4px 18px rgba(0,0,0,.2); background:#fff; }
+.gf-rel-previa img{ width:100%; max-width:1100px; height:auto; box-shadow:0 4px 18px rgba(0,0,0,.2); background:#fff; }
 .gf-rel-svg{ width:100%; height:auto; max-height:420px; background:#FAFAF8; border:1px solid var(--gf-border); border-radius:10px; }
 .gf-rel-abas{ flex-wrap:wrap; margin-bottom:0; }
 .gf-rel-kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:10px; }
