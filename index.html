@@ -2829,6 +2829,16 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
     setShowNew(false); setEditingAccount(null);
   };
 
+  const excluirTransferencia = (id) => {
+    if (!podeTransferir) return;
+    const t = transfers.find((x) => x.id === id);
+    if (!t) return;
+    const nomeConta = (cid) => accounts.find((a) => a.id === cid)?.nome || "—";
+    if (!window.confirm(`Excluir a transferência de ${BRL(t.valor)} de "${nomeConta(t.origemId)}" para "${nomeConta(t.destinoId)}" (${fmtDate(t.data)})? Os saldos das duas contas serão recalculados.`)) return;
+    setTransfers((prev) => prev.filter((x) => x.id !== id));
+    logAudit?.({ tipoOperacao: "Exclusão de transferência entre contas", registroAlterado: `${nomeConta(t.origemId)} → ${nomeConta(t.destinoId)}`, valorAnterior: BRL(t.valor), valorNovo: "—" });
+  };
+
   const doTransfer = (t) => {
     if (!podeTransferir) return;
     setTransfers((prev) => [...prev, { ...t, id: uid("trf"), createdAt: Date.now() }]);
@@ -2946,6 +2956,7 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
           retiradasInvestidores={retiradasInvestidores.filter((r) => r.tipo === "GLOVER" && r.contaGloverDestinoId === detailAccountId)}
           contasInvestidores={contasInvestidores}
           obras={obras}
+          onDeleteTransfer={podeTransferir ? excluirTransferencia : null}
           onClose={() => setDetailAccountId(null)}
         />
       )}
@@ -2955,7 +2966,7 @@ function SaldosPage({ accounts, setAccounts, accountStats, entries, transfers, s
 
 // Extrato completo da conta bancária: lançamentos + transferências entre contas + aportes/retiradas
 // de sócios (inclui pró-labore) + aportes/retiradas da Glover em Contas Investidoras, com saldo corrente.
-function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], movimentosSocios = [], socios = [], aportesInvestidores = [], retiradasInvestidores = [], contasInvestidores = [], obras, onClose }) {
+function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], movimentosSocios = [], socios = [], aportesInvestidores = [], retiradasInvestidores = [], contasInvestidores = [], obras, onDeleteTransfer, onClose }) {
   const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
   const contaNome = (id) => accounts.find((a) => a.id === id)?.nome || "—";
   const contaInvNome = (id) => contasInvestidores.find((c) => c.id === id)?.nome || "—";
@@ -2969,11 +2980,11 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
       valor: e.tipo === "entrada" ? Number(e.valor) : -Number(e.valor),
     })),
     ...transfers.filter((t) => t.destinoId === conta?.id).map((t) => ({
-      id: `ti-${t.id}`, data: t.data, createdAt: t.createdAt || 0, tipo: "Transferência recebida",
+      id: `ti-${t.id}`, transferId: t.id, data: t.data, createdAt: t.createdAt || 0, tipo: "Transferência recebida",
       origem: `De: ${contaNome(t.origemId)}`, descricao: t.descricao, valor: Math.abs(Number(t.valor)),
     })),
     ...transfers.filter((t) => t.origemId === conta?.id).map((t) => ({
-      id: `to-${t.id}`, data: t.data, createdAt: t.createdAt || 0, tipo: "Transferência enviada",
+      id: `to-${t.id}`, transferId: t.id, data: t.data, createdAt: t.createdAt || 0, tipo: "Transferência enviada",
       origem: `Para: ${contaNome(t.destinoId)}`, descricao: t.descricao, valor: -Math.abs(Number(t.valor)),
     })),
     ...movimentosSocios.map((m) => ({
@@ -3010,11 +3021,11 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
       <div className="gf-table-wrap">
         <table className="gf-table gf-table-ledger">
           <thead>
-            <tr><th>Data</th><th>Tipo</th><th>Centro de custo / Origem-destino</th><th>Descrição</th><th className="num">Valor</th><th className="num">Saldo após</th></tr>
+            <tr><th>Data</th><th>Tipo</th><th>Centro de custo / Origem-destino</th><th>Descrição</th><th className="num">Valor</th><th className="num">Saldo após</th><th></th></tr>
           </thead>
           <tbody>
             {ordenados.length === 0 && (
-              <tr><td colSpan={6}><EmptyState icon={Receipt} title="Nenhuma movimentação" body="Nenhuma movimentação registrada para esta conta ainda." /></td></tr>
+              <tr><td colSpan={7}><EmptyState icon={Receipt} title="Nenhuma movimentação" body="Nenhuma movimentação registrada para esta conta ainda." /></td></tr>
             )}
             {ordenados.map((m) => (
               <tr key={m.id} className={m.valor >= 0 ? "row-pos" : "row-neg"}>
@@ -3024,6 +3035,9 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
                 <td className="gf-td-desc" title={m.descricao}>{m.descricao || "—"}</td>
                 <td className={`num mono ${m.valor >= 0 ? "pos" : "neg"}`}>{m.valor >= 0 ? "+" : "−"} {BRL(Math.abs(m.valor))}</td>
                 <td className="num mono">{BRL(m.saldoApos)}</td>
+                <td>{m.transferId && onDeleteTransfer && (
+                  <button type="button" className="gf-icon-btn" title="Excluir transferência" onClick={() => onDeleteTransfer(m.transferId)}><Trash2 size={14} /></button>
+                )}</td>
               </tr>
             ))}
           </tbody>
