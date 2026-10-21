@@ -367,11 +367,20 @@ function remessaIdDoReembolso(entryId, gerReembolsos) {
 }
 
 // Status de uma compra/parcela de cartão, derivado da fatura à qual está vinculada.
+function faturaPagamentos(f) {
+  if (Array.isArray(f?.pagamentos)) return f.pagamentos;
+  if (f?.pagamento) return [{ ...f.pagamento, id: "legacy", valor: (f.pagamento.contas || []).reduce((s, c) => s + (Number(c.valor) || 0), 0) }];
+  return [];
+}
+// Compra/parcela já quitada: paga por um pagamento parcial, ou fatura antiga totalmente paga.
+function lcQuitado(lc, fatura) {
+  return !!lc.pagamentoId || (fatura?.status === "Paga" && !Array.isArray(fatura.pagamentos));
+}
 function statusLancamentoCartao(lc, faturas) {
   if (!lc.faturaId) return "Em aberto";
   const fatura = faturas.find((f) => f.id === lc.faturaId);
   if (!fatura) return "Em aberto";
-  if (fatura.status === "Paga") return "Processado em Lançamentos";
+  if (lcQuitado(lc, fatura) || fatura.status === "Paga") return "Processado em Lançamentos";
   return "Vinculado à fatura";
 }
 
@@ -1848,6 +1857,7 @@ export default function App() {
               contasPagar={contasPagar} setContasPagar={setContasPagar}
               entries={entries} setEntries={setEntries}
               accounts={accounts.filter((a) => a.status === "Ativa" && !isFatDiretoAccount(a))}
+              contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")}
               obras={obras} apropriacoes={apropriacoes} supplierNames={supplierNames} fornecedorOptions={fornecedorOptions}
               fornecedoresCadastro={fornecedoresCadastro}
               saldoAtualTotal={dashboard.saldoTotal}
@@ -4691,9 +4701,11 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
   const rows = supplierNames
     .map((name) => ({ name, ...(supplierStats[name] || { total: 0, count: 0, obras: new Set(), last: null }) }))
     .filter((r) => r.count > 0)
-    .sort((a, b) => b.total - a.total)
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), "pt-BR", { sensitivity: "base" }))
     .filter((r) => !buscaN || relNorm(r.name).includes(buscaN));
-  const cadastroFiltrado = fornecedoresCadastro.filter((f) => !buscaN || relNorm(f.nome || "").includes(buscaN));
+  const cadastroFiltrado = [...fornecedoresCadastro]
+    .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR", { sensitivity: "base" }))
+    .filter((f) => !buscaN || relNorm(f.nome || "").includes(buscaN));
 
   return (
     <div className="gf-stack">
@@ -4940,7 +4952,7 @@ function FornecedorDetail({ nome, entries, obras, onClose }) {
    Página: Contas a Pagar
 --------------------------------------------------------------- */
 
-function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, obras, apropriacoes, supplierNames, fornecedorOptions, fornecedoresCadastro, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
+function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, accounts, contasInvestidores = [], obras, apropriacoes, supplierNames, fornecedorOptions, fornecedoresCadastro, saldoAtualTotal, orcamentoItens, currentUser, logAudit }) {
   const [showNew, setShowNew] = useState(false);
   const [baixaFor, setBaixaFor] = useState(null);
   const [grupoId, setGrupoId] = useState(null);
@@ -5037,7 +5049,11 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
     const rateioPago = rateiaAcrescimo(conta.rateio, acrescimoLiquido);
 
     const novosLancamentos = rateioPago.map((r) => ({
-      id: uid("lan"), tipo: "saida", contaId: pagamentoBase.contaId, obraId: r.centroCusto,
+      id: uid("lan"), tipo: "saida",
+      origemTipo: pagamentoBase.investidor ? "CONTA_INVESTIDOR" : "CONTA_EMPRESA",
+      contaId: pagamentoBase.investidor ? null : pagamentoBase.contaId,
+      contaInvestidorId: pagamentoBase.investidor ? pagamentoBase.contaId : null,
+      obraId: r.centroCusto,
       data: pagamentoBase.data, valor: r.valorFinal, fornecedor: conta.fornecedor, apropriacao: conta.apropriacao,
       descricao: conta.rateio.length > 1
         ? `${conta.descricao || "Baixa de conta a pagar"} (rateio ${r.percentual.toFixed(0)}% — ${centroCustoName(r.centroCusto)})`
@@ -5345,7 +5361,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
         />
       )}
       {baixaFor && (
-        <BaixaModal conta={baixaFor} accounts={accounts} centroCustoName={centroCustoName} onClose={() => setBaixaFor(null)} onSave={(pag) => baixarConta(baixaFor, pag)} />
+        <BaixaModal conta={baixaFor} accounts={accounts} contasInvestidores={contasInvestidores} centroCustoName={centroCustoName} onClose={() => setBaixaFor(null)} onSave={(pag) => baixarConta(baixaFor, pag)} />
       )}
       {editingConta && (
         <EditContaModal conta={editingConta} apropriacoes={apropriacoes} onClose={() => setEditingConta(null)} onSave={saveEdicao} />
@@ -5670,9 +5686,9 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
   );
 }
 
-function BaixaModal({ conta, accounts, centroCustoName, onClose, onSave }) {
+function BaixaModal({ conta, accounts, contasInvestidores = [], centroCustoName, onClose, onSave }) {
   const [f, setF] = useState({
-    data: todayISO(), contaId: accounts[0]?.id || "", multa: "0", juros: "0", outrosAcrescimos: "0", descontos: "0",
+    data: todayISO(), contaId: accounts[0] ? `acc:${accounts[0].id}` : "", multa: "0", juros: "0", outrosAcrescimos: "0", descontos: "0",
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
   const valorOriginal = conta.valorPrevisto;
@@ -5684,7 +5700,8 @@ function BaixaModal({ conta, accounts, centroCustoName, onClose, onSave }) {
     e.preventDefault();
     if (!f.contaId || !f.data) return;
     onSave({
-      data: f.data, contaId: f.contaId, valorOriginal,
+      data: f.data, valorOriginal,
+      contaId: f.contaId.replace(/^(acc|inv):/, ""), investidor: f.contaId.startsWith("inv:"),
       multa: Number(f.multa) || 0, juros: Number(f.juros) || 0,
       outrosAcrescimos: Number(f.outrosAcrescimos) || 0, descontos: Number(f.descontos) || 0,
       valorFinal: Math.max(0, Math.round(valorFinal * 100) / 100),
@@ -5701,10 +5718,17 @@ function BaixaModal({ conta, accounts, centroCustoName, onClose, onSave }) {
       </div>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form" style={{ marginTop: 14 }}>
         <Field label="Data efetiva do pagamento"><input type="date" required value={f.data} onChange={(e) => upd({ data: e.target.value })} /></Field>
-        <Field label="Conta bancária utilizada">
+        <Field label="Conta utilizada">
           <select required value={f.contaId} onChange={(e) => upd({ contaId: e.target.value })}>
             <option value="" disabled>Selecione…</option>
-            {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+            <optgroup label="Contas bancárias">
+              {accounts.map((a) => <option key={a.id} value={`acc:${a.id}`}>{a.nome}</option>)}
+            </optgroup>
+            {contasInvestidores.length > 0 && (
+              <optgroup label="Contas Investidor">
+                {contasInvestidores.map((c) => <option key={c.id} value={`inv:${c.id}`}>{c.nome}</option>)}
+              </optgroup>
+            )}
           </select>
         </Field>
         <Field label="Multa (R$)"><input type="number" step="0.01" value={f.multa} onChange={(e) => upd({ multa: e.target.value })} /></Field>
@@ -5944,50 +5968,113 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
 
   const pagarFatura = (fatura, pagamentoContas, dataPagamento) => {
     if (!podeLancar || fatura.status === "Paga") return;
-    const itensFatura = lancamentosCartao.filter((lc) => lc.faturaId === fatura.id);
-    const totalFatura = itensFatura.reduce((s, lc) => s + lc.valor, 0);
-    if (totalFatura <= 0) return;
-    const percentuaisContas = pagamentoContas.map((p) => ({ centroCusto: p.contaId, percentual: (p.valor / totalFatura) * 100 }));
+    const ordenar = (a, b) => (a.dataCompra < b.dataCompra ? -1 : a.dataCompra > b.dataCompra ? 1 : (a.seq || 0) - (b.seq || 0) || String(a.id).localeCompare(String(b.id)));
+    const pendentes = lancamentosCartao.filter((lc) => lc.faturaId === fatura.id && !lcQuitado(lc, fatura)).sort(ordenar);
+    const totalPend = Math.round(pendentes.reduce((s, lc) => s + lc.valor, 0) * 100) / 100;
+    const valorPago = Math.round(pagamentoContas.reduce((s, p) => s + (Number(p.valor) || 0), 0) * 100) / 100;
+    if (totalPend <= 0 || valorPago <= 0 || valorPago > totalPend + 0.005) return;
+    const pagId = uid("pgf");
+    const percentuaisContas = pagamentoContas.map((p) => ({ centroCusto: p.contaId, percentual: (p.valor / valorPago) * 100 }));
+    const escalaRateio = (rateio, valor) => (rateio && rateio.length > 1
+      ? computeRateioValores(rateio.map((r) => ({ centroCusto: r.centroCusto, percentual: r.percentual != null ? r.percentual : (r.valor / (rateio.reduce((t, x) => t + x.valor, 0) || 1)) * 100 })), valor)
+      : rateio);
+
+    // Soma as compras em ordem até atingir o valor pago; a última, se necessário, é dividida em duas.
+    let restante = valorPago;
+    const pagos = []; // { lc (já com valor coberto), parcial }
+    const mudancas = {}; // id -> item atualizado
+    const novosItens = [];
+    for (const lc of pendentes) {
+      if (restante < 0.005) break;
+      if (lc.valor <= restante + 0.005) {
+        pagos.push({ lc, parcial: !!lc.splitDe });
+        mudancas[lc.id] = { ...lc, pagamentoId: pagId };
+        restante = Math.round((restante - lc.valor) * 100) / 100;
+      } else {
+        const coberto = Math.round(restante * 100) / 100;
+        const sobra = Math.round((lc.valor - coberto) * 100) / 100;
+        const raiz = lc.splitDe || lc.id;
+        const parteA = { ...lc, valor: coberto, rateio: escalaRateio(lc.rateio, coberto), splitDe: raiz, pagamentoId: pagId };
+        const parteB = { ...lc, id: uid("clc"), valor: sobra, rateio: escalaRateio(lc.rateio, sobra), splitDe: raiz, pagamentoId: null };
+        pagos.push({ lc: parteA, parcial: true });
+        mudancas[lc.id] = parteA;
+        novosItens.push(parteB);
+        restante = 0;
+      }
+    }
 
     const novosLancamentos = [];
-    itensFatura.forEach((lc) => {
-      // Se a compra foi rateada entre centros de custo, cada fatia dela também precisa ser
-      // rateada entre as contas bancárias do pagamento — daí o cruzamento das duas divisões.
+    pagos.forEach(({ lc, parcial }) => {
       const centrosDaCompra = (lc.rateio && lc.rateio.length > 1)
         ? lc.rateio.map((r) => ({ centroCusto: r.centroCusto, valor: r.valor }))
         : [{ centroCusto: lc.centroCusto, valor: lc.valor }];
       centrosDaCompra.forEach((parteCentro) => {
-        const rateioContas = computeRateioValores(percentuaisContas, parteCentro.valor);
-        rateioContas.forEach((parteConta) => {
+        computeRateioValores(percentuaisContas, parteCentro.valor).forEach((parteConta) => {
+          if (parteConta.valor <= 0) return;
           novosLancamentos.push({
             id: uid("lan"), tipo: "saida", contaId: parteConta.centroCusto, obraId: parteCentro.centroCusto,
             data: dataPagamento, valor: parteConta.valor, fornecedor: lc.fornecedor, apropriacao: lc.apropriacao,
-            descricao: lc.total > 1 ? `${lc.descricao} (parcela ${lc.seq}/${lc.total}) — fatura ${cartaoName(fatura.cartaoId)}` : `${lc.descricao} — fatura ${cartaoName(fatura.cartaoId)}`,
-            createdAt: Date.now(), cartaoLancamentoId: lc.id, faturaCartaoId: fatura.id,
+            descricao: (lc.total > 1 ? `${lc.descricao} (parcela ${lc.seq}/${lc.total}) — fatura ${cartaoName(fatura.cartaoId)}` : `${lc.descricao} — fatura ${cartaoName(fatura.cartaoId)}`) + (parcial ? " (pagamento parcial)" : ""),
+            createdAt: Date.now(), cartaoLancamentoId: lc.id, faturaCartaoId: fatura.id, pagamentoFaturaId: pagId,
             ...carimbarCriacao(currentUser),
           });
         });
       });
     });
 
+    const quitouTudo = Math.abs(totalPend - valorPago) < 0.005;
     setEntries((prev) => [...novosLancamentos, ...prev]);
-    setFaturasCartao((prev) => prev.map((f) => (f.id === fatura.id ? {
-      ...f, status: "Paga",
-      pagamento: { data: dataPagamento, contas: pagamentoContas, processadoEm: Date.now(), entriesGeradas: novosLancamentos.map((e) => e.id) },
-    } : f)));
+    setLancamentosCartao((prev) => [...prev.map((x) => mudancas[x.id] || x), ...novosItens]);
+    setFaturasCartao((prev) => prev.map((f) => {
+      if (f.id !== fatura.id) return f;
+      const { pagamento, ...resto } = f;
+      return {
+        ...resto, status: quitouTudo ? "Paga" : "Parcialmente paga",
+        pagamentos: [...faturaPagamentos(f), { id: pagId, data: dataPagamento, contas: pagamentoContas, valor: valorPago, processadoEm: Date.now(), entriesGeradas: novosLancamentos.map((e) => e.id) }],
+      };
+    }));
     logAudit?.({
-      tipoOperacao: "Pagamento de fatura de cartão", registroAlterado: `${cartaoName(fatura.cartaoId)} — ${fatura.periodoLabel}`,
-      valorAnterior: "Aberta", valorNovo: BRL(totalFatura),
+      tipoOperacao: quitouTudo ? "Pagamento de fatura de cartão" : "Pagamento parcial de fatura de cartão", registroAlterado: `${cartaoName(fatura.cartaoId)} — ${fatura.periodoLabel}`,
+      valorAnterior: BRL(totalPend), valorNovo: BRL(valorPago),
     });
   };
 
-  const estornarPagamento = (fatura) => {
+  const estornarPagamento = (fatura, pagId) => {
     if (!podeLancar) return;
-    if (!window.confirm("Isso vai excluir os lançamentos gerados e reabrir esta fatura. Continuar?")) return;
-    const ids = fatura.pagamento?.entriesGeradas || [];
+    const lista = faturaPagamentos(fatura);
+    const alvo = lista.find((p) => p.id === pagId) || lista[0];
+    if (!alvo) return;
+    if (!window.confirm(`Isso vai excluir os lançamentos gerados por este pagamento (${BRL(alvo.valor)}) e devolver as compras correspondentes à fatura como não pagas. Continuar?`)) return;
+    const ids = alvo.entriesGeradas || [];
     if (ids.length) setEntries((prev) => prev.filter((e) => !ids.includes(e.id)));
-    setFaturasCartao((prev) => prev.map((f) => (f.id === fatura.id ? { ...f, status: "Fechada", pagamento: null } : f)));
-    logAudit?.({ tipoOperacao: "Estorno de pagamento de fatura", registroAlterado: `${cartaoName(fatura.cartaoId)} — ${fatura.periodoLabel}`, valorAnterior: "Paga", valorNovo: "Fechada" });
+    if (alvo.id === "legacy") {
+      setFaturasCartao((prev) => prev.map((f) => (f.id === fatura.id ? { ...f, status: "Fechada", pagamento: null } : f)));
+    } else {
+      setLancamentosCartao((prev) => {
+        const lib = prev.map((x) => (x.pagamentoId === alvo.id ? { ...x, pagamentoId: null } : x));
+        // reúne de volta as partes não pagas de uma compra que tinha sido dividida
+        const grupos = {};
+        lib.forEach((x) => { if (x.faturaId === fatura.id && !x.pagamentoId && x.splitDe) (grupos[x.splitDe] = grupos[x.splitDe] || []).push(x); });
+        const remover = new Set(); const subst = {};
+        Object.values(grupos).forEach((g) => {
+          if (g.length < 2) return;
+          const base = g.find((x) => x.id === x.splitDe) || g[0];
+          const valor = Math.round(g.reduce((t, x) => t + x.valor, 0) * 100) / 100;
+          let rateio = base.rateio;
+          if (g.some((x) => x.rateio && x.rateio.length > 1)) {
+            const porCentro = {};
+            g.forEach((x) => (x.rateio || []).forEach((r) => { porCentro[r.centroCusto] = (porCentro[r.centroCusto] || 0) + r.valor; }));
+            rateio = Object.entries(porCentro).map(([centroCusto, v]) => ({ centroCusto, valor: Math.round(v * 100) / 100, percentual: (v / valor) * 100 }));
+          }
+          subst[base.id] = { ...base, valor, rateio };
+          g.forEach((x) => { if (x.id !== base.id) remover.add(x.id); });
+        });
+        return lib.filter((x) => !remover.has(x.id)).map((x) => subst[x.id] || x);
+      });
+      const restantes = lista.filter((p) => p.id !== alvo.id);
+      setFaturasCartao((prev) => prev.map((f) => (f.id === fatura.id ? { ...f, pagamentos: restantes, status: restantes.length ? "Parcialmente paga" : "Fechada" } : f)));
+    }
+    logAudit?.({ tipoOperacao: "Estorno de pagamento de fatura", registroAlterado: `${cartaoName(fatura.cartaoId)} — ${fatura.periodoLabel}`, valorAnterior: BRL(alvo.valor), valorNovo: "—" });
   };
 
   const compras = lancamentosCartao
@@ -6105,6 +6192,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
               {faturasCartao.map((f) => {
                 const itens = lancamentosCartao.filter((lc) => lc.faturaId === f.id);
                 const total = itens.reduce((s, lc) => s + lc.valor, 0);
+                const totalPagoF = faturaPagamentos(f).reduce((s, p) => s + (Number(p.valor) || 0), 0);
                 return (
                   <button className="gf-card gf-obra-card" key={f.id} onClick={() => setFaturaDetailId(f.id)}>
                     <div className="gf-card-head">
@@ -6120,6 +6208,9 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
                       <span>Valor total</span>
                       <strong className="mono neg">{BRL(total)}</strong>
                     </div>
+                    {f.status === "Parcialmente paga" && (
+                      <div className="gf-account-rows"><div><span>Já pago</span><b className="mono pos">{BRL(totalPagoF)}</b></div><div><span>Em aberto</span><b className="mono neg">{BRL(Math.max(0, total - totalPagoF))}</b></div></div>
+                    )}
                     <span className="gf-card-cta">Ver detalhes <ChevronRight size={14} /></span>
                   </button>
                 );
@@ -6431,10 +6522,16 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
   const disponiveis = lancamentosCartao.filter((lc) => lc.cartaoId === fatura.cartaoId && (!lc.faturaId || lc.faturaId === fatura.id));
   const vinculadas = lancamentosCartao.filter((lc) => lc.faturaId === fatura.id);
   const total = vinculadas.reduce((s, lc) => s + lc.valor, 0);
-  const listaExibida = fatura.status === "Paga" ? vinculadas : disponiveis;
+  const pendentesItens = vinculadas.filter((lc) => !lcQuitado(lc, fatura));
+  const totalPendente = Math.round(pendentesItens.reduce((s, lc) => s + lc.valor, 0) * 100) / 100;
+  const pagamentos = faturaPagamentos(fatura);
+  const totalPagoGeral = pagamentos.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const quitada = fatura.status === "Paga";
+  const listaExibida = quitada ? vinculadas : disponiveis;
+  const nomeConta = (id) => (accountsTodas || accounts).find((a) => a.id === id)?.nome || "Conta não encontrada";
 
   const toggle = (lc) => {
-    if (fatura.status === "Paga") return;
+    if (quitada || lcQuitado(lc, fatura)) return;
     setLancamentosCartao((prev) => prev.map((x) => (x.id === lc.id ? { ...x, faturaId: x.faturaId === fatura.id ? null : fatura.id } : x)));
   };
 
@@ -6446,82 +6543,71 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
         <div><span>Vencimento</span><b>{fmtDate(fatura.dataVencimento)}</b></div>
         <div><span>Valor total</span><b className="mono neg">{BRL(total)}</b></div>
       </div>
+      {pagamentos.length > 0 && !quitada && (
+        <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(2,1fr)", marginTop: 8 }}>
+          <div><span>Já pago</span><b className="mono pos">{BRL(totalPagoGeral)}</b></div>
+          <div><span>Em aberto</span><b className="mono neg">{BRL(totalPendente)}</b></div>
+        </div>
+      )}
 
-      <h4 className="gf-chart-title">{fatura.status === "Paga" ? "Compras desta fatura" : "Selecione as compras desta fatura"}</h4>
+      <h4 className="gf-chart-title">{quitada ? "Compras desta fatura" : "Selecione as compras desta fatura"}</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 280, marginBottom: 14 }}>
         <table className="gf-table">
-          <thead><tr>{fatura.status !== "Paga" && <th></th>}<th>Data</th><th>Descrição</th><th>Centro de custo</th><th className="num">Valor</th></tr></thead>
+          <thead><tr>{!quitada && <th></th>}<th>Data</th><th>Descrição</th><th>Centro de custo</th><th>Situação</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {listaExibida.length === 0 && (
-              <tr><td colSpan={5}><EmptyState icon={CreditCard} title="Nenhuma compra disponível" body="Lance compras no cartão para poder incluí-las nesta fatura." /></td></tr>
+              <tr><td colSpan={6}><EmptyState icon={CreditCard} title="Nenhuma compra disponível" body="Lance compras no cartão para poder incluí-las nesta fatura." /></td></tr>
             )}
-            {listaExibida.map((lc) => (
-              <tr key={lc.id}>
-                {fatura.status !== "Paga" && <td><input type="checkbox" checked={lc.faturaId === fatura.id} onChange={() => toggle(lc)} /></td>}
-                <td>{fmtDate(lc.dataCompra)}</td>
-                <td>{lc.descricao}{lc.total > 1 && ` (parcela ${lc.seq}/${lc.total})`}</td>
-                <td>{lc.rateio && lc.rateio.length > 1 ? `Rateado (${lc.rateio.length})` : obraName(lc.centroCusto)}</td>
-                <td className="num mono">{BRL(lc.valor)}</td>
-              </tr>
-            ))}
+            {listaExibida.map((lc) => {
+              const paga = lc.faturaId === fatura.id && lcQuitado(lc, fatura);
+              return (
+                <tr key={lc.id}>
+                  {!quitada && <td><input type="checkbox" checked={lc.faturaId === fatura.id} disabled={paga} onChange={() => toggle(lc)} /></td>}
+                  <td>{fmtDate(lc.dataCompra)}</td>
+                  <td>{lc.descricao}{lc.total > 1 && ` (parcela ${lc.seq}/${lc.total})`}{lc.splitDe && <span className="gf-muted"> · parte da compra</span>}</td>
+                  <td>{lc.rateio && lc.rateio.length > 1 ? `Rateado (${lc.rateio.length})` : obraName(lc.centroCusto)}</td>
+                  <td>{lc.faturaId === fatura.id ? (paga ? <Badge tone="green">Paga</Badge> : <Badge tone="orange">A pagar</Badge>) : "—"}</td>
+                  <td className="num mono">{BRL(lc.valor)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
-      {fatura.status !== "Paga" ? (
-        <div className="gf-form-actions">
-          {podeLancar && <button className="gf-btn gf-btn-primary" disabled={vinculadas.length === 0} onClick={() => setShowPagamento(true)}>Registrar pagamento</button>}
-          <span className="gf-hint">{vinculadas.length} compra(s) vinculada(s) — {BRL(total)}</span>
-        </div>
-      ) : (
+      {pagamentos.length > 0 && (
         <>
-          <h4 className="gf-chart-title">Detalhes do pagamento</h4>
-          {(() => {
-            const pg = fatura.pagamento || {};
-            const contasPg = pg.contas || [];
-            const totalPago = contasPg.reduce((s, c) => s + (Number(c.valor) || 0), 0);
-            const nomeConta = (id) => (accountsTodas || accounts).find((a) => a.id === id)?.nome || "Conta não encontrada";
-            return (
-              <>
-                <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
-                  <div><span>Data do pagamento</span><b>{fmtDate(pg.data)}</b></div>
-                  <div><span>Valor pago</span><b className="mono neg">{BRL(totalPago)}</b></div>
-                  <div><span>Registrado em</span><b>{pg.processadoEm ? nowStampFromTs(pg.processadoEm) : "—"}</b></div>
-                </div>
-                <div className="gf-table-wrap" style={{ marginBottom: 14 }}>
-                  <table className="gf-table">
-                    <thead><tr><th>Conta bancária de origem</th><th>Data</th><th className="num">Valor debitado</th></tr></thead>
-                    <tbody>
-                      {contasPg.length === 0 && <tr><td colSpan={3}>Sem detalhes de conta registrados para este pagamento.</td></tr>}
-                      {contasPg.map((c, i) => (
-                        <tr key={`${c.contaId}-${i}`}>
-                          <td>{nomeConta(c.contaId)}</td>
-                          <td>{fmtDate(pg.data)}</td>
-                          <td className="num mono neg">− {BRL(c.valor)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    {contasPg.length > 1 && (
-                      <tfoot><tr><td colSpan={2}><b>Total</b></td><td className="num mono neg"><b>− {BRL(totalPago)}</b></td></tr></tfoot>
-                    )}
-                  </table>
-                </div>
-                {Math.abs(totalPago - total) > 0.005 && (
-                  <p className="gf-field-hint">Diferença entre o valor da fatura ({BRL(total)}) e o total pago ({BRL(totalPago)}).</p>
-                )}
-              </>
-            );
-          })()}
-          <div className="gf-form-actions">
-            <span className="gf-hint">{(fatura.pagamento?.entriesGeradas || []).length} lançamento(s) de saída gerado(s) nas contas acima, por centro de custo.</span>
-            {podeLancar && <button className="gf-btn gf-btn-ghost" onClick={() => onEstornar(fatura)}><Undo2 size={14} /> Estornar pagamento</button>}
-          </div>
+          <h4 className="gf-chart-title">Pagamentos registrados</h4>
+          {pagamentos.map((pg) => (
+            <div key={pg.id} className="gf-table-wrap" style={{ marginBottom: 10 }}>
+              <table className="gf-table">
+                <thead><tr><th>Conta de origem</th><th>Data</th><th className="num">Valor debitado</th></tr></thead>
+                <tbody>
+                  {(pg.contas || []).length === 0 && <tr><td colSpan={3}>Sem detalhes de conta registrados para este pagamento.</td></tr>}
+                  {(pg.contas || []).map((c, i) => (
+                    <tr key={`${c.contaId}-${i}`}><td>{nomeConta(c.contaId)}</td><td>{fmtDate(pg.data)}</td><td className="num mono neg">− {BRL(c.valor)}</td></tr>
+                  ))}
+                </tbody>
+                <tfoot><tr>
+                  <td colSpan={2}><span className="gf-hint">{(pg.entriesGeradas || []).length} lançamento(s) gerado(s) · registrado em {pg.processadoEm ? nowStampFromTs(pg.processadoEm) : "—"}</span></td>
+                  <td className="num mono neg"><b>− {BRL(pg.valor)}</b>{podeLancar && <button className="gf-btn gf-btn-ghost" style={{ marginLeft: 8 }} onClick={() => onEstornar(fatura, pg.id)}><Undo2 size={14} /> Estornar</button>}</td>
+                </tr></tfoot>
+              </table>
+            </div>
+          ))}
         </>
+      )}
+
+      {!quitada && (
+        <div className="gf-form-actions">
+          {podeLancar && <button className="gf-btn gf-btn-primary" disabled={totalPendente <= 0} onClick={() => setShowPagamento(true)}>{pagamentos.length ? "Registrar novo pagamento" : "Registrar pagamento"}</button>}
+          <span className="gf-hint">{pendentesItens.length} compra(s) a pagar — {BRL(totalPendente)} (o pagamento pode ser parcial)</span>
+        </div>
       )}
 
       {showPagamento && (
         <PagamentoFaturaModal
-          total={total} accounts={accounts} onClose={() => setShowPagamento(false)}
+          total={totalPendente} accounts={accounts} onClose={() => setShowPagamento(false)}
           onConfirm={(contas, data) => { onPagar(fatura, contas, data); setShowPagamento(false); onClose(); }}
         />
       )}
@@ -6531,26 +6617,36 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
 
 function PagamentoFaturaModal({ total, accounts, onClose, onConfirm }) {
   const [data, setData] = useState(todayISO());
+  const [valorPago, setValorPago] = useState(String(total));
   const [rows, setRows] = useState([{ id: uid("pr"), contaId: accounts[0]?.id || "", valor: String(total) }]);
 
+  const alvo = Math.round((Number(valorPago) || 0) * 100) / 100;
   const upd = (id, patch) => setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const add = () => setRows((prev) => [...prev, { id: uid("pr"), contaId: accounts[0]?.id || "", valor: "" }]);
   const remove = (id) => setRows((prev) => (prev.length > 1 ? prev.filter((r) => r.id !== id) : prev));
+  const mudarValor = (v) => { setValorPago(v); setRows((prev) => (prev.length === 1 ? [{ ...prev[0], valor: v }] : prev)); };
 
   const soma = rows.reduce((s, r) => s + (Number(r.valor) || 0), 0);
-  const dif = Math.round((total - soma) * 100) / 100;
+  const dif = Math.round((alvo - soma) * 100) / 100;
   const fecha = Math.abs(dif) < 0.01;
+  const valido = alvo > 0 && alvo <= total + 0.005;
+  const parcial = valido && alvo < total - 0.005;
 
   const submit = (e) => {
     e.preventDefault();
-    if (!fecha || !data) return;
+    if (!fecha || !data || !valido) return;
     onConfirm(rows.map((r) => ({ contaId: r.contaId, valor: Number(r.valor) })), data);
   };
 
   return (
     <Modal title="Registrar pagamento da fatura" onClose={onClose}>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
-        <Field label="Data do pagamento" className="gf-span-2"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
+        <Field label="Data do pagamento"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
+        <Field label={`Valor pago (em aberto: ${BRL(total)})`}>
+          <input type="number" min="0.01" step="0.01" max={total} required value={valorPago} onChange={(e) => mudarValor(e.target.value)} />
+        </Field>
+        {alvo > total + 0.005 && <div className="gf-warn gf-span-2">O valor pago não pode ser maior que o valor em aberto da fatura.</div>}
+        {parcial && <div className="gf-hint gf-span-2">Pagamento parcial: as compras serão somadas em ordem de data até atingir {BRL(alvo)}. Se a última não couber inteira, ela será dividida em duas e só a parte paga vira lançamento.</div>}
         <div className="gf-span-2 gf-rateio-box">
           <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Contas bancárias usadas no pagamento</span>
           {rows.map((r) => (
@@ -6559,19 +6655,19 @@ function PagamentoFaturaModal({ total, accounts, onClose, onConfirm }) {
                 {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
               </select>
               <input type="number" min="0" step="0.01" placeholder="Valor (R$)" value={r.valor} onChange={(e) => upd(r.id, { valor: e.target.value })} />
-              <span className="gf-rateio-pct mono">{total > 0 ? (((Number(r.valor) || 0) / total) * 100).toFixed(1) : "0.0"}%</span>
+              <span className="gf-rateio-pct mono">{alvo > 0 ? (((Number(r.valor) || 0) / alvo) * 100).toFixed(1) : "0.0"}%</span>
               {rows.length > 1 && <button type="button" className="gf-icon-btn danger" onClick={() => remove(r.id)}><Trash2 size={13} /></button>}
             </div>
           ))}
           <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 4 }} onClick={add}><Plus size={14} /> Adicionar conta bancária</button>
           <div className={`gf-rateio-total ${fecha ? "is-ok" : "is-warn"}`}>
-            <span>Total: {BRL(soma)} de {BRL(total)}</span>
+            <span>Total: {BRL(soma)} de {BRL(alvo)}</span>
             {fecha ? <b className="pos">Fecha 100% ✓</b> : <b className="neg">{dif > 0 ? `Falta ${BRL(dif)}` : `Excedeu em ${BRL(-dif)}`}</b>}
           </div>
         </div>
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary" disabled={!fecha}>Confirmar pagamento</button>
-          <span className="gf-hint">Cada compra da fatura será rateada proporcionalmente entre as contas informadas e lançada em Lançamentos.</span>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={!fecha || !valido}>Confirmar pagamento</button>
+          <span className="gf-hint">Cada compra paga será rateada proporcionalmente entre as contas informadas e lançada em Lançamentos.</span>
         </div>
       </form>
     </Modal>
