@@ -1900,6 +1900,7 @@ export default function App() {
           )}
           {page === "programacaopagamentos" && !ehInvestidor && (
             <ProgramacaoPagamentosPage
+              contasInvestidores={contasInvestidores}
               ordens={programacoesPagamento} setOrdens={setProgramacoesPagamento}
               contratos={contratosFornecedor} setContratos={setContratosFornecedor}
               accounts={accounts} obras={obrasEscopo} entries={entries} setEntries={setEntries}
@@ -4662,6 +4663,8 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
   const [selected, setSelected] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [editingFornecedor, setEditingFornecedor] = useState(null);
+  const [busca, setBusca] = useState("");
+  const buscaN = relNorm(busca.trim());
   const podeCadastrar = can(currentUser, "fornecedores_cadastrar");
   const obraName = (id) => (id === SEM_OBRA ? "Administrativo / Custos internos" : obras.find((o) => o.id === id)?.nome || "—");
 
@@ -4688,7 +4691,9 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
   const rows = supplierNames
     .map((name) => ({ name, ...(supplierStats[name] || { total: 0, count: 0, obras: new Set(), last: null }) }))
     .filter((r) => r.count > 0)
-    .sort((a, b) => b.total - a.total);
+    .sort((a, b) => b.total - a.total)
+    .filter((r) => !buscaN || relNorm(r.name).includes(buscaN));
+  const cadastroFiltrado = fornecedoresCadastro.filter((f) => !buscaN || relNorm(f.nome || "").includes(buscaN));
 
   return (
     <div className="gf-stack">
@@ -4696,17 +4701,22 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
         <h2>Fornecedores</h2>
         {podeCadastrar && <button className="gf-btn gf-btn-primary" onClick={() => setShowNew(true)}><Plus size={15} /> Novo fornecedor</button>}
       </div>
+      <div className="gf-filters">
+        <div className="gf-search"><Search size={15} /><input placeholder="Buscar fornecedor pelo nome…" value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
+      </div>
 
       <section className="gf-card">
         <div className="gf-card-head"><h2>Fornecedores cadastrados</h2></div>
-        {fornecedoresCadastro.length === 0 ? (
+        {cadastroFiltrado.length === 0 && fornecedoresCadastro.length > 0 ? (
+          <EmptyState icon={Search} title="Nenhum fornecedor encontrado" body="Nenhum fornecedor cadastrado corresponde à busca." />
+        ) : fornecedoresCadastro.length === 0 ? (
           <EmptyState icon={Users} title="Nenhum fornecedor cadastrado" body="Cadastre um fornecedor para poder selecioná-lo nos lançamentos e contas a pagar." />
         ) : (
           <div className="gf-table-wrap">
             <table className="gf-table">
               <thead><tr><th>Nome</th><th>Documento</th><th>Telefone</th><th>Status</th><th></th></tr></thead>
               <tbody>
-                {fornecedoresCadastro.map((f) => (
+                {cadastroFiltrado.map((f) => (
                   <tr key={f.id} className={!f.ativo ? "row-neg" : ""}>
                     <td><b>{f.nome}</b></td>
                     <td>{f.documento || "—"}</td>
@@ -8423,9 +8433,9 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
   );
 }
 
-function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
+function PPPagarModal({ ordem, accounts, contasInvestidores = [], obraNome, onClose, onConfirm }) {
   const [data, setData] = useState(todayISO());
-  const [linhas, setLinhas] = useState([{ id: 1, contaId: accounts[0]?.id || "", valor: String(ordem.valor) }]);
+  const [linhas, setLinhas] = useState([{ id: 1, contaId: accounts[0] ? `acc:${accounts[0].id}` : "", valor: String(ordem.valor) }]);
   const [erro, setErro] = useState("");
   const soma = ppArred(linhas.reduce((s, l) => s + (Number(l.valor) || 0), 0));
   const resta = ppArred(ordem.valor - soma);
@@ -8436,7 +8446,7 @@ function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
     if (linhas.some((l) => !l.contaId || !(Number(l.valor) > 0))) { setErro("Informe conta e valor em todas as linhas."); return; }
     if (new Set(linhas.map((l) => l.contaId)).size !== linhas.length) { setErro("Cada conta pode aparecer apenas uma vez."); return; }
     if (Math.abs(resta) > 0.005) { setErro(`A soma das contas (${BRL(soma)}) deve ser igual ao valor da ordem (${BRL(ordem.valor)}).`); return; }
-    onConfirm({ data, contas: linhas.map((l) => ({ contaId: l.contaId, valor: ppArred(l.valor) })) });
+    onConfirm({ data, contas: linhas.map((l) => (l.contaId.startsWith("inv:") ? { contaId: l.contaId.slice(4), investidor: true, valor: ppArred(l.valor) } : { contaId: l.contaId.replace(/^acc:/, ""), valor: ppArred(l.valor) })) });
   };
   return (
     <Modal title="Efetuar pagamento" onClose={onClose} width={560}>
@@ -8453,7 +8463,14 @@ function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
             <div key={l.id} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
               <select value={l.contaId} onChange={(e) => setL(l.id, { contaId: e.target.value })} style={{ flex: 2 }}>
                 <option value="">Selecione…</option>
-                {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+                <optgroup label="Contas bancárias">
+                  {accounts.map((a) => <option key={a.id} value={`acc:${a.id}`}>{a.nome}</option>)}
+                </optgroup>
+                {contasInvestidores.length > 0 && (
+                  <optgroup label="Contas Investidor">
+                    {contasInvestidores.map((c) => <option key={c.id} value={`inv:${c.id}`}>{c.nome}</option>)}
+                  </optgroup>
+                )}
               </select>
               <input type="number" min="0.01" step="0.01" value={l.valor} onChange={(e) => setL(l.id, { valor: e.target.value })} style={{ flex: 1 }} />
               {linhas.length > 1 && <button type="button" className="gf-icon-btn" title="Remover" onClick={() => setLinhas((ls) => ls.filter((x) => x.id !== l.id))}><X size={14} /></button>}
@@ -8475,7 +8492,7 @@ function PPPagarModal({ ordem, accounts, obraNome, onClose, onConfirm }) {
   );
 }
 
-function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos, accounts, obras, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
+function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens, contratos, setContratos, accounts, obras, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
   const [aba, setAba] = useState("programadas");
   const [modal, setModal] = useState(null); // { tipo: "nova" | "editar" | "pagar" | "contratos", ordem }
   const [filtros, setFiltros] = useState({ q: "", obraId: "", de: "", ate: "" });
@@ -8483,7 +8500,7 @@ function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos,
   const podePagar = ppPodePagar(currentUser);
   const idsEscopo = useMemo(() => new Set(obras.map((o) => o.id)), [obras]);
   const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
-  const nomeConta = (id) => accounts.find((a) => a.id === id)?.nome || "—";
+  const nomeConta = (id) => accounts.find((a) => a.id === id)?.nome || contasInvestidores.find((c) => c.id === id)?.nome || "—";
   const contasAtivas = accounts.filter((a) => a.status === "Ativa" && !isFatDiretoAccount(a));
   const hoje = todayISO();
 
@@ -8519,7 +8536,8 @@ function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos,
     if (!podePagar) return;
     const n = contas.length;
     const novos = contas.map((c, i) => ({
-      id: uid("lan"), tipo: "saida", origemTipo: "CONTA_EMPRESA", contaId: c.contaId, contaInvestidorId: null,
+      id: uid("lan"), tipo: "saida", origemTipo: c.investidor ? "CONTA_INVESTIDOR" : "CONTA_EMPRESA",
+      contaId: c.investidor ? null : c.contaId, contaInvestidorId: c.investidor ? c.contaId : null,
       obraId: o.obraId, data, valor: c.valor, fornecedor: o.fornecedor, apropriacao: o.apropriacao,
       descricao: `${o.descricao ? o.descricao + " — " : ""}Programação de pagamento${n > 1 ? ` (parte ${i + 1}/${n})` : ""}`,
       programacaoId: o.id, createdAt: Date.now(), ...carimbarCriacao(currentUser),
@@ -8623,7 +8641,7 @@ function ProgramacaoPagamentosPage({ ordens, setOrdens, contratos, setContratos,
 
       {modal?.tipo === "nova" && <PPOrdemModal ordem={null} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, null)} />}
       {modal?.tipo === "editar" && <PPOrdemModal ordem={modal.ordem} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, modal.ordem)} />}
-      {modal?.tipo === "pagar" && <PPPagarModal ordem={modal.ordem} accounts={contasAtivas} obraNome={nomeObra(modal.ordem.obraId)} onClose={() => setModal(null)} onConfirm={(p) => pagar(modal.ordem, p)} />}
+      {modal?.tipo === "pagar" && <PPPagarModal ordem={modal.ordem} accounts={contasAtivas} contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")} obraNome={nomeObra(modal.ordem.obraId)} onClose={() => setModal(null)} onConfirm={(p) => pagar(modal.ordem, p)} />}
       {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
     </div>
   );
