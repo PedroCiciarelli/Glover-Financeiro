@@ -5380,6 +5380,50 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
   );
 }
 
+/* Editor de parcelas: vencimento e valor exatos de cada parcela. A soma precisa fechar com o total. */
+function gerarParcelasPadrao(valorTotal, n, primeiroVenc, periodicidade, intervaloDias) {
+  const total = Math.max(0, Math.floor(Number(n) || 0));
+  const vt = Number(valorTotal) || 0;
+  if (total < 2 || vt <= 0 || !primeiroVenc) return [];
+  const parcela = Math.round((vt / total) * 100) / 100;
+  const out = [];
+  let venc = primeiroVenc;
+  for (let i = 1; i <= total; i++) {
+    const valor = i === total ? Math.round((vt - parcela * (total - 1)) * 100) / 100 : parcela;
+    out.push({ id: uid("pe"), vencimento: venc, valor: String(valor) });
+    venc = addPeriodo(venc, periodicidade || "mensal", intervaloDias);
+  }
+  return out;
+}
+function parcelasEditorStatus(parcelas, valorTotal) {
+  const soma = Math.round(parcelas.reduce((s, p) => s + (Number(p.valor) || 0), 0) * 100) / 100;
+  const dif = Math.round(((Number(valorTotal) || 0) - soma) * 100) / 100;
+  const completas = parcelas.length >= 2 && parcelas.every((p) => p.vencimento && Number(p.valor) > 0);
+  return { soma, dif, fecha: Math.abs(dif) < 0.01, completas, valido: parcelas.length >= 2 && completas && Math.abs(dif) < 0.01 };
+}
+function ParcelasEditor({ parcelas, setParcelas, valorTotal, onRedistribuir }) {
+  const st = parcelasEditorStatus(parcelas, valorTotal);
+  const upd = (id, patch) => setParcelas((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  if (parcelas.length === 0) return null;
+  return (
+    <div className="gf-span-2 gf-rateio-box">
+      <span className="gf-field-label" style={{ display: "block", marginBottom: 8 }}>Parcelas — edite vencimento e valor de cada uma</span>
+      {parcelas.map((p, i) => (
+        <div className="gf-rateio-row" key={p.id} style={{ gridTemplateColumns: "48px 1fr 1fr" }}>
+          <span className="mono" style={{ alignSelf: "center", fontSize: 12.5 }}>{i + 1}/{parcelas.length}</span>
+          <input type="date" required value={p.vencimento} onChange={(e) => upd(p.id, { vencimento: e.target.value })} />
+          <input type="number" min="0.01" step="0.01" required placeholder="Valor (R$)" value={p.valor} onChange={(e) => upd(p.id, { valor: e.target.value })} />
+        </div>
+      ))}
+      <div className={`gf-rateio-total ${st.fecha ? "is-ok" : "is-warn"}`}>
+        <span>Soma das parcelas: {BRL(st.soma)} de {BRL(Number(valorTotal) || 0)}</span>
+        {st.fecha ? <b className="pos">Fecha com o valor total ✓</b> : <b className="neg">{st.dif > 0 ? `Falta ${BRL(st.dif)}` : `Excedeu em ${BRL(-st.dif)}`}</b>}
+      </div>
+      <button type="button" className="gf-btn gf-btn-ghost" style={{ marginTop: 6 }} onClick={onRedistribuir}>Redistribuir automaticamente</button>
+    </div>
+  );
+}
+
 function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOptions = [], fornecedoresCadastro = [], podeRatear = true, orcamentoItens = [], contasPagar = [], allEntries = [], onClose, onSave }) {
   const [tipo, setTipo] = useState("unica");
   const [f, setF] = useState({
@@ -5390,6 +5434,14 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
     valorRecorrente: "", periodicidadeRecorrente: "mensal", modoFim: "quantidade", quantidadeOcorrencias: 12, dataFinal: "", diaPreferencial: "",
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
+
+  const [parcelasEdit, setParcelasEdit] = useState([]);
+  const redistribuirParcelas = () => setParcelasEdit(gerarParcelasPadrao(f.valorTotal, f.numeroParcelas, f.dataVencimento, f.periodicidadeParcela, f.intervaloDias));
+  useEffect(() => {
+    if (tipo !== "parcelada") return;
+    redistribuirParcelas();
+  }, [tipo, f.valorTotal, f.numeroParcelas, f.dataVencimento, f.periodicidadeParcela, f.intervaloDias]);
+  const parcelasOk = tipo !== "parcelada" || parcelasEditorStatus(parcelasEdit, f.valorTotal).valido;
 
   const [rateioAtivo, setRateioAtivo] = useState(false);
   const [apropriacaoExcecoes, setApropriacaoExcecoes] = useState([]);
@@ -5460,22 +5512,15 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
         pagamento: null, cancelada: false, createdAt: Date.now(),
       }]);
     } else if (tipo === "parcelada") {
-      const total = Number(f.numeroParcelas) || 0;
       const valorTotal = Number(f.valorTotal) || 0;
-      if (total < 2 || valorTotal <= 0 || !f.dataVencimento) return;
-      const parcela = Math.round((valorTotal / total) * 100) / 100;
+      if (valorTotal <= 0 || !parcelasEditorStatus(parcelasEdit, valorTotal).valido) return;
+      const total = parcelasEdit.length;
       const grpId = uid("grp");
-      const list = [];
-      let venc = f.dataVencimento;
-      for (let i = 1; i <= total; i++) {
-        const valor = i === total ? Math.round((valorTotal - parcela * (total - 1)) * 100) / 100 : parcela;
-        list.push({
-          id: uid("cp"), groupId: grpId, seq: i, total, tipo: "parcelada", ...base(),
-          ...montaContaComRateio({ dataCompetencia: venc, dataVencimento: venc }, valor),
-          pagamento: null, cancelada: false, createdAt: Date.now(),
-        });
-        venc = addPeriodo(venc, f.periodicidadeParcela, f.intervaloDias);
-      }
+      const list = parcelasEdit.map((p, idx) => ({
+        id: uid("cp"), groupId: grpId, seq: idx + 1, total, tipo: "parcelada", ...base(),
+        ...montaContaComRateio({ dataCompetencia: p.vencimento, dataVencimento: p.vencimento }, Math.round(Number(p.valor) * 100) / 100),
+        pagamento: null, cancelada: false, createdAt: Date.now(),
+      }));
       onSave(list);
     } else {
       const valor = Number(f.valorRecorrente) || 0;
@@ -5566,9 +5611,7 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
                 <input type="number" min="1" value={f.intervaloDias} onChange={(e) => upd({ intervaloDias: e.target.value })} />
               </Field>
             )}
-            {Number(f.valorTotal) > 0 && Number(f.numeroParcelas) > 1 && (
-              <div className="gf-hint gf-span-2">{f.numeroParcelas}x de aproximadamente {BRL(Number(f.valorTotal) / Number(f.numeroParcelas))}</div>
-            )}
+            <ParcelasEditor parcelas={parcelasEdit} setParcelas={setParcelasEdit} valorTotal={f.valorTotal} onRedistribuir={redistribuirParcelas} />
           </>
         )}
 
@@ -5678,7 +5721,7 @@ function NovaContaPagarModal({ obras, apropriacoes, supplierNames, fornecedorOpt
         )}
 
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary" disabled={!rateioValido}>Cadastrar conta a pagar</button>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={!rateioValido || !parcelasOk}>Cadastrar conta a pagar</button>
           <span className="gf-hint">Não gera saída financeira até que seja baixada como paga.</span>
         </div>
       </form>
@@ -6147,7 +6190,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
                         <tr key={lc.id} className="row-neg">
                           <td>{cartaoName(lc.cartaoId)}</td>
                           <td>{fmtDate(lc.dataCompra)}</td>
-                          <td className="gf-td-desc" title={lc.descricao}>{lc.descricao}{lc.total > 1 && ` (${lc.seq}/${lc.total})`}</td>
+                          <td className="gf-td-desc" title={lc.descricao}>{lc.descricao}{lc.total > 1 && ` (${lc.seq}/${lc.total})`}{lc.dataVencimento && lc.total > 1 && <span className="gf-muted"> · venc. {fmtDate(lc.dataVencimento)}</span>}</td>
                           <td>{lc.fornecedor || "—"}</td>
                           <td className="num mono neg">{BRL(lc.valor)}</td>
                           <td>{lc.rateio && lc.rateio.length > 1 ? `Rateado (${lc.rateio.length})` : obraName(lc.centroCusto)}</td>
@@ -6315,6 +6358,14 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
   });
   const upd = (p) => setF((s) => ({ ...s, ...p }));
 
+  const [parcelasEdit, setParcelasEdit] = useState([]);
+  const redistribuirParcelas = () => setParcelasEdit(gerarParcelasPadrao(f.valor, f.numeroParcelas, f.dataCompra, "mensal"));
+  useEffect(() => {
+    if (!parcelado) return;
+    redistribuirParcelas();
+  }, [parcelado, f.valor, f.numeroParcelas, f.dataCompra]);
+  const parcelasOk = !parcelado || parcelasEditorStatus(parcelasEdit, f.valor).valido;
+
   const [rateioRows, setRateioRows] = useState([
     { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
     { id: uid("rr"), centroCusto: SEM_OBRA, valor: "" },
@@ -6343,7 +6394,7 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
   const submit = (e) => {
     e.preventDefault();
     if (!f.cartaoId || !f.descricao.trim() || !f.valor || Number(f.valor) <= 0 || !f.dataCompra) return;
-    if (!rateioValido) return;
+    if (!rateioValido || !parcelasOk) return;
     const grpId = uid("grp");
     const base = { cartaoId: f.cartaoId, descricao: f.descricao.trim(), fornecedor: f.fornecedor, apropriacao: f.apropriacao, dataCompra: f.dataCompra, faturaId: null, createdAt: Date.now() };
     const montaComRateio = (valorDaParcela) => {
@@ -6353,14 +6404,12 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
     if (!parcelado) {
       onSave([{ ...base, ...montaComRateio(Number(f.valor)), id: uid("clc"), groupId: grpId, seq: 1, total: 1, valor: Number(f.valor), valorTotalCompra: Number(f.valor) }]);
     } else {
-      const total = Math.max(2, Number(f.numeroParcelas) || 2);
+      const total = parcelasEdit.length;
       const valorTotal = Number(f.valor);
-      const parcela = Math.round((valorTotal / total) * 100) / 100;
-      const list = [];
-      for (let i = 1; i <= total; i++) {
-        const valor = i === total ? Math.round((valorTotal - parcela * (total - 1)) * 100) / 100 : parcela;
-        list.push({ ...base, ...montaComRateio(valor), id: uid("clc"), groupId: grpId, seq: i, total, valor, valorTotalCompra: valorTotal });
-      }
+      const list = parcelasEdit.map((p, idx) => {
+        const valor = Math.round(Number(p.valor) * 100) / 100;
+        return { ...base, ...montaComRateio(valor), id: uid("clc"), groupId: grpId, seq: idx + 1, total, valor, valorTotalCompra: valorTotal, dataVencimento: p.vencimento };
+      });
       onSave(list);
     }
   };
@@ -6418,9 +6467,7 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
             <input type="number" min="2" step="1" required value={f.numeroParcelas} onChange={(e) => upd({ numeroParcelas: e.target.value })} />
           </Field>
         )}
-        {parcelado && Number(f.valor) > 0 && Number(f.numeroParcelas) > 1 && (
-          <div className="gf-hint gf-span-2">{f.numeroParcelas}x de aproximadamente {BRL(Number(f.valor) / Number(f.numeroParcelas))} — a 1ª parcela fica disponível para a fatura atual, as demais ficam como futuras.</div>
-        )}
+        {parcelado && <ParcelasEditor parcelas={parcelasEdit} setParcelas={setParcelasEdit} valorTotal={f.valor} onRedistribuir={redistribuirParcelas} />}
 
         <div className="gf-span-2" style={{ borderTop: "1px solid var(--gf-border)", paddingTop: 14, marginTop: 4 }}>
           <div className="gf-rateio-toggle">
@@ -6483,7 +6530,7 @@ function NovaCompraCartaoModal({ cartoesCredito, obras, apropriacoes, fornecedor
         </div>
 
         <div className="gf-form-actions gf-span-2">
-          <button type="submit" className="gf-btn gf-btn-primary" disabled={!rateioValido}>Registrar compra</button>
+          <button type="submit" className="gf-btn gf-btn-primary" disabled={!rateioValido || !parcelasOk}>Registrar compra</button>
           <span className="gf-hint">Não afeta o saldo bancário nem o centro de custo agora — só quando a fatura for paga.</span>
         </div>
       </form>
