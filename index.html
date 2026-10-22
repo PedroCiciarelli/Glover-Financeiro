@@ -10606,6 +10606,13 @@ function relTxt(el, nome) {
 }
 const relNumOuNull = (s) => (s === "" || s === null || s === undefined || isNaN(Number(s)) ? null : Number(s));
 const relDataXML = (s) => (s && /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : null);
+// Valor da atividade no XML (modo físico-financeiro): campo Cost (custo total); na falta, FixedCost. Ausente/negativo -> 0.
+function relCustoXml(el) {
+  const c = relNumOuNull(relTxt(el, "Cost"));
+  const f = relNumOuNull(relTxt(el, "FixedCost"));
+  const v = c !== null && c > 0 ? c : f !== null && f > 0 ? f : 0;
+  return relRound(v, 2);
+}
 
 // Duração ISO 8601 do Project ("PT80H0M0S", "P5D"...) -> minutos de trabalho (inteiro). Nunca assume 8h/dia.
 function relDuracaoMin(str, minPorDia) {
@@ -10735,6 +10742,7 @@ function relParseProjectXML(texto, DomParserCtor) {
       ini: relDataXML(relTxt(el, "Start")), fim: relDataXML(relTxt(el, "Finish")),
       cal: (() => { const c = relTxt(el, "CalendarUID"); return c === "" || c === "-1" ? null : c; })(),
       pctProj: relNumOuNull(relTxt(el, "PercentComplete")),
+      custo: relCustoXml(el),
       bIni: null, bFim: null, bDurMin: null,
       preds: relFilhos(el, "PredecessorLink").map((p) => ({ uid: relTxt(p, "PredecessorUID"), tipo: relNumOuNull(relTxt(p, "Type")), lag: relNumOuNull(relTxt(p, "LinkLag")) })),
       pai: null, temFilhos: false,
@@ -10777,7 +10785,10 @@ function relParseProjectXML(texto, DomParserCtor) {
   const temBaseline = tarefas.some((t) => t.executavel && t.bIni && t.bFim);
   if (!temBaseline) avisos.push({ nivel: "info", msg: "O XML não possui linha de base (Baseline 0) salva. O cronograma importado poderá ser usado como referência do avanço previsto." });
   else if (tarefas.some((t) => t.executavel && !(t.bIni && t.bFim))) avisos.push({ nivel: "aviso", msg: "A linha de base está incompleta: algumas atividades executáveis não possuem Baseline; para elas serão usadas as datas atuais." });
-  return { ok: true, projeto, calendarios, tarefas, avisos, temBaseline };
+  const execsCusto = tarefas.filter((t) => t.executavel);
+  const custoTotal = relRound(execsCusto.reduce((s, t) => s + (t.custo || 0), 0), 2);
+  const temCustos = custoTotal > 0;
+  return { ok: true, projeto, calendarios, tarefas, avisos, temBaseline, temCustos, custoTotal, nComCusto: execsCusto.filter((t) => t.custo > 0).length };
 }
 
 /* ---------- Versões: chave estável, diff ---------- */
@@ -10836,21 +10847,40 @@ function relDiffVersoes(antigas, novas) {
       const va = a[k] ?? null, vb = t[k] ?? null;
       if (va !== vb) mud.push({ campo: rot, de: va, para: vb, chaveCampo: k });
     }
+    if (t.executavel && a.custo !== undefined && t.custo !== undefined && relRound(a.custo || 0, 2) !== relRound(t.custo || 0, 2)) mud.push({ campo: "Valor", de: a.custo || 0, para: t.custo || 0, chaveCampo: "custo" });
     if (mud.length) alteradas.push({ chave: t.chave, nome: t.nome, wbs: t.wbs, mudancas: mud, estrutural: mud.some((m) => ["nome", "wbs", "nivel", "paiChave", "durMin", "executavel"].includes(m.chaveCampo)) });
   }
   const soma = (l) => l.filter((t) => t.executavel).reduce((s, t) => s + (t.durMin || 0), 0);
   const relevante = adicionadas.some((t) => t.executavel) || removidas.some((t) => t.executavel) || alteradas.some((t) => t.mudancas.some((m) => ["durMin", "executavel", "paiChave"].includes(m.chaveCampo)));
-  return { adicionadas, removidas, alteradas, totalMinAntes: soma(antigas), totalMinDepois: soma(novas), relevante };
+  const somaCusto = (l) => relRound(l.filter((t) => t.executavel).reduce((s, t) => s + (t.custo || 0), 0), 2);
+  const custoAlterado = alteradas.filter((x) => x.mudancas.some((m) => m.chaveCampo === "custo")).length;
+  return { adicionadas, removidas, alteradas, totalMinAntes: soma(antigas), totalMinDepois: soma(novas), relevante, custoAlterado, custoAntes: somaCusto(antigas), custoDepois: somaCusto(novas) };
 }
 
 /* ---------- Metodologia de avanço físico ---------- */
 const relExecutaveis = (tarefas) => (tarefas || []).filter((t) => t.executavel);
 
-// Pesos automáticos (duração / Σ durações), em centésimos de % (inteiros) que somam exatamente 10000.
+// Critério de ponderação da versão do cronograma (escolhido na importação):
+//  "fisico" (padrão; versões antigas) -> peso = duração da atividade
+//  "fisfin" -> peso = valor da atividade (Cost/FixedCost do XML); atividades com valor zero ficam fora do cálculo (fora do escopo)
+const REL_MODO_FISICO = "fisico", REL_MODO_FISFIN = "fisfin";
+const relModo = (versao) => (versao && versao.modo === REL_MODO_FISFIN ? REL_MODO_FISFIN : REL_MODO_FISICO);
+const relModoRotulo = (modo) => (modo === REL_MODO_FISFIN ? "Físico-financeiro" : "Físico");
+const relRotuloAvanco = (modo) => (modo === REL_MODO_FISFIN ? "avanço físico-financeiro" : "avanço físico");
+// Atividades que entram no cálculo, com o campo w (peso bruto: minutos de duração ou valor em R$).
+function relAtividadesCalc(versao) {
+  const ex = relExecutaveis(versao && versao.tarefas);
+  if (relModo(versao) !== REL_MODO_FISFIN) return ex.map((t) => ({ ...t, w: t.durMin }));
+  return ex.filter((t) => (t.custo || 0) > 0).map((t) => ({ ...t, w: t.custo }));
+}
+// Atividades executáveis com valor zero no modo físico-financeiro (fora do escopo contratual).
+const relForaEscopo = (versao) => (relModo(versao) === REL_MODO_FISFIN ? relExecutaveis(versao && versao.tarefas).filter((t) => !((t.custo || 0) > 0)) : []);
+
+// Pesos automáticos (w / Σ w — duração ou valor), em centésimos de % (inteiros) que somam exatamente 10000.
 function relPesos(atividades) {
-  const bp = relDistribuirArredondado(atividades.map((a) => a.durMin), 100, 2);
+  const bp = relDistribuirArredondado(atividades.map((a) => (a.w !== undefined ? a.w : a.durMin)), 100, 2);
   const total = bp.reduce((a, b) => a + b, 0);
-  return { bp, totalMin: atividades.reduce((s, a) => s + a.durMin, 0), ok: atividades.length === 0 || total === 10000 };
+  return { bp, totalMin: atividades.reduce((s, a) => s + a.durMin, 0), totalW: atividades.reduce((s, a) => s + (a.w !== undefined ? a.w : a.durMin), 0), ok: atividades.length === 0 || total === 10000 };
 }
 
 /**
@@ -10885,7 +10915,7 @@ function relPlanejamento(versao, ref) {
   if (ref && ref.tipo === "primeira" && usouAtual) avisos.push({ nivel: "aviso", msg: `${usouAtual} atividade(s) não existem na primeira versão importada: o previsto delas usa as datas da versão atual.` });
   if (!ref) avisos.push({ nivel: "aviso", msg: "Nenhuma referência de linha de base definida; o previsto usa as datas da versão atual." });
   if (semDatas) avisos.push({ nivel: "aviso", msg: `${semDatas} atividade(s) sem datas de início/término: previsto considerado 0%.` });
-  if (incoerentes) avisos.push({ nivel: "aviso", msg: `${incoerentes} atividade(s) com duração incompatível com os dias úteis entre início e término. O previsto usa a contagem de dias úteis entre as datas; a duração (peso) vem do campo Duração do XML.` });
+  if (incoerentes) avisos.push({ nivel: "aviso", msg: `${incoerentes} atividade(s) com duração incompatível com os dias úteis entre início e término. O previsto usa a contagem de dias úteis entre as datas; a duração vem do campo Duração do XML.` });
   const premissas = ["Distribuição uniforme do trabalho pelos dias úteis de cada atividade (calendários do Project; fins de semana, feriados e exceções respeitados)."];
   premissas.push(ref && ref.tipo === "baseline" ? "Referência do previsto: linha de base (Baseline 0) do Microsoft Project." : "Referência do previsto: primeira versão do cronograma importada (o XML não possui linha de base).");
   return { itens, avisos, premissas, fonteTipo: ref ? ref.tipo : null };
@@ -10908,11 +10938,13 @@ const relStatusAfer = (a) => (a === undefined || a === null || a.pct === null ||
  * afer: { [chave]: { pct, origem } }  (ausente = não aferida; considerada 0% no somatório, com sinalização)
  */
 function relCalcularAvanco(versao, plan, afer, dataRef) {
-  const atividades = relExecutaveis(versao.tarefas);
+  const modo = relModo(versao);
+  const atividades = relAtividadesCalc(versao);
   const minPorDia = versao.projeto?.minPorDia || 480;
   const pesos = relPesos(atividades);
   const linhas = [];
-  let totalMin = 0, realCent = 0, prevNum = 0; // realCent: Σ durMin × pct(centésimos) ; prevNum: Σ durMin × fração
+  let totalMin = 0, realCent = 0, prevNum = 0; // ponderados pelo peso w (duração ou valor): realCent = Σ w × pct(centésimos) ; prevNum = Σ w × fração
+  let totalDur = 0; // dias de trabalho (minutos) das atividades consideradas — apenas informativo
   let nNao = 0, nZero = 0, nParcial = 0, nCompleta = 0;
   const macros = new Map();
   const nomePorChave = new Map(versao.tarefas.map((t) => [t.chave, t]));
@@ -10940,9 +10972,9 @@ function relCalcularAvanco(versao, plan, afer, dataRef) {
     const pctReal = st === "nao" ? 0 : Math.min(100, Math.max(0, a.pct));
     const frac = dataRef ? relFracaoPrevista(plan, t.chave, dataRef) : 0;
     const pctCent = Math.round(pctReal * 100);
-    totalMin += t.durMin; realCent += t.durMin * pctCent; prevNum += t.durMin * frac;
+    totalMin += t.w; realCent += t.w * pctCent; prevNum += t.w * frac; totalDur += t.durMin;
     const linha = {
-      chave: t.chave, nome: t.nome, wbs: t.wbs, nivel: t.nivel, macroChave: t.macroChave, durMin: t.durMin,
+      chave: t.chave, nome: t.nome, wbs: t.wbs, nivel: t.nivel, macroChave: t.macroChave, durMin: t.durMin, w: t.w,
       pesoBp: pesos.bp[i], pctReal, aferida: st !== "nao", status: st, pctPrev: frac * 100,
       equivRealMin: (t.durMin * pctCent) / 10000, equivPrevMin: t.durMin * frac,
     };
@@ -10951,26 +10983,28 @@ function relCalcularAvanco(versao, plan, afer, dataRef) {
     if (!m) {
       const mt = nomePorChave.get(t.macroChave);
       const pai = mt && mt.paiChave ? nomePorChave.get(mt.paiChave) : null;
-      m = { chave: t.macroChave, nome: mt ? mt.nome : "(sem agrupador)", wbs: mt ? mt.wbs : "", grupo: pai ? pai.nome : "", durMin: 0, realCent: 0, prevNum: 0, n: 0, nNao: 0 };
+      m = { chave: t.macroChave, nome: mt ? mt.nome : "(sem agrupador)", wbs: mt ? mt.wbs : "", grupo: pai ? pai.nome : "", durMin: 0, w: 0, realCent: 0, prevNum: 0, n: 0, nNao: 0, realDur: 0 };
       macros.set(t.macroChave, m);
     }
-    m.durMin += t.durMin; m.realCent += t.durMin * pctCent; m.prevNum += t.durMin * frac; m.n++; if (st === "nao") m.nNao++;
+    m.durMin += t.durMin; m.w += t.w; m.realCent += t.w * pctCent; m.prevNum += t.w * frac; m.realDur += t.durMin * pctCent; m.n++; if (st === "nao") m.nNao++;
   });
   const contNomes = new Map();
   for (const m of macros.values()) contNomes.set(relNorm(m.nome), (contNomes.get(relNorm(m.nome)) || 0) + 1);
   const macrosLista = [...macros.values()].map((m) => ({
     chave: m.chave, nome: contNomes.get(relNorm(m.nome)) > 1 && m.grupo ? `${m.nome} (${m.grupo})` : m.nome, wbs: m.wbs, durMin: m.durMin, n: m.n, nNao: m.nNao,
-    pctReal: m.durMin ? m.realCent / m.durMin / 100 : 0, pctPrev: m.durMin ? (m.prevNum / m.durMin) * 100 : 0,
-    equivRealMin: m.realCent / 10000,
+    pctReal: m.w ? m.realCent / m.w / 100 : 0, pctPrev: m.w ? (m.prevNum / m.w) * 100 : 0,
+    pesoMacro: totalMin ? (m.w / totalMin) * 100 : 0,
+    equivRealMin: m.realDur / 10000,
   }));
   const ordemMacro = new Map(versao.tarefas.map((t, i) => [t.chave, i]));
   macrosLista.sort((a, b) => (ordemMacro.get(a.chave) ?? 0) - (ordemMacro.get(b.chave) ?? 0));
   const real = totalMin ? realCent / totalMin / 100 : 0;
   const prev = totalMin ? (prevNum / totalMin) * 100 : 0;
   return {
-    linhas, macros: macrosLista, totalMin, minPorDia, pesosOk: pesos.ok, nAtividades: atividades.length,
-    real: relRound(real, 4), prev: relRound(prev, 4), equivRealMin: realCent / 10000, equivPrevMin: prevNum,
+    linhas, macros: macrosLista, totalMin: totalDur, totalW: totalMin, minPorDia, pesosOk: pesos.ok, nAtividades: atividades.length,
+    real: relRound(real, 4), prev: relRound(prev, 4),
     contagem: { nao: nNao, zero: nZero, parcial: nParcial, completa: nCompleta },
+    modo, nForaEscopo: relForaEscopo(versao).length,
   };
 }
 
@@ -10986,11 +11020,12 @@ function relIndicadores(prev, real) {
 
 // Curva S prevista: amostras semanais do primeiro ao último dia útil planejado.
 function relCurvaPrevista(versao, plan) {
-  const atividades = relExecutaveis(versao.tarefas).filter((t) => plan.itens.get(t.chave)?.dias.length);
+  const calc = relAtividadesCalc(versao);
+  const atividades = calc.filter((t) => plan.itens.get(t.chave)?.dias.length);
   if (!atividades.length) return [];
   let min = Infinity, max = -Infinity;
   for (const t of atividades) { const d = plan.itens.get(t.chave).dias; min = Math.min(min, d[0]); max = Math.max(max, d[d.length - 1]); }
-  const totalMin = relExecutaveis(versao.tarefas).reduce((s, t) => s + t.durMin, 0);
+  const totalMin = calc.reduce((s, t) => s + t.w, 0);
   const pontos = [];
   const pontoEm = (dia) => {
     let acc = 0;
@@ -10998,7 +11033,7 @@ function relCurvaPrevista(versao, plan) {
       const dias = plan.itens.get(t.chave).dias;
       let lo = 0, hi = dias.length;
       while (lo < hi) { const m = (lo + hi) >> 1; if (dias[m] <= dia) lo = m + 1; else hi = m; }
-      acc += t.durMin * (lo / dias.length);
+      acc += t.w * (lo / dias.length);
     }
     return { d: relDiasParaIso(dia), v: totalMin ? (acc / totalMin) * 100 : 0 };
   };
@@ -11045,7 +11080,8 @@ function relGerarAnaliseTexto(d) {
   const p = [];
   const { ind } = d;
   const dd = relFmtNum(Math.abs(ind.desvio), 1);
-  let s1 = `O avanço físico aferido da obra atingiu ${relFmtPct(ind.real)}, enquanto o cronograma de referência previa ${relFmtPct(ind.prev)} até ${relFmtData(d.dataRef)}`;
+  const rotAv = d.modo === REL_MODO_FISFIN ? "avanço físico-financeiro" : "avanço físico";
+  let s1 = `O ${rotAv} aferido da obra atingiu ${relFmtPct(ind.real)}, enquanto o cronograma de referência previa ${relFmtPct(ind.prev)} até ${relFmtData(d.dataRef)}`;
   if (ind.desvio > 0) s1 += `, representando um adiantamento de ${dd} ponto${Math.abs(ind.desvio) === 1 ? "" : "s"} percentua${Math.abs(ind.desvio) === 1 ? "l" : "is"}.`;
   else if (ind.desvio < 0) s1 += `, representando um atraso de ${dd} ponto${Math.abs(ind.desvio) === 1 ? "" : "s"} percentua${Math.abs(ind.desvio) === 1 ? "l" : "is"} em relação ao cronograma.`;
   else s1 += ", o que indica andamento conforme o previsto.";
@@ -11053,7 +11089,7 @@ function relGerarAnaliseTexto(d) {
   if (d.anterior && isFinite(d.anterior.real)) {
     const delta = relRound(ind.real - d.anterior.real, 1);
     const pl = Math.abs(delta) === 1 ? "ponto percentual" : "pontos percentuais";
-    p.push(`Em relação à aferição anterior (${relFmtData(d.anterior.dataRef)}), o avanço físico aferido passou de ${relFmtPct(d.anterior.real)} para ${relFmtPct(ind.real)} (${delta >= 0 ? "+" : "−"}${relFmtNum(Math.abs(delta), 1)} ${pl} no intervalo).`);
+    p.push(`Em relação à aferição anterior (${relFmtData(d.anterior.dataRef)}), o ${rotAv} aferido passou de ${relFmtPct(d.anterior.real)} para ${relFmtPct(ind.real)} (${delta >= 0 ? "+" : "−"}${relFmtNum(Math.abs(delta), 1)} ${pl} no intervalo).`);
   }
   if (d.principais && d.principais.length) p.push(`Entre as principais atividades registradas no período, destacam-se: ${relListaTexto(d.principais.map((x) => x.replace(/[.;\s]+$/, "")), 6)}.`);
   const LIM = 5;
@@ -11075,13 +11111,14 @@ function relGerarAnaliseTexto(d) {
 /* ---------- Integridade ---------- */
 // Verificações de integridade do cronograma para exibição (regras 1, 2, 13, 15)
 function relVerificarIntegridade(versao) {
-  const ex = relExecutaveis(versao.tarefas);
+  const ex = relAtividadesCalc(versao);
   const pesos = relPesos(ex);
   const problemas = [];
   if (!ex.length) problemas.push("Sem atividades executáveis.");
   if (ex.some((t) => t.resumo || t.marco)) problemas.push("Há resumo/marco entre as executáveis.");
   if (!pesos.ok) problemas.push("Pesos não somam 100%.");
-  return { ok: problemas.length === 0, problemas, totalMin: pesos.totalMin, somaPesosBp: pesos.bp.reduce((a, b) => a + b, 0), n: ex.length };
+  if (relModo(versao) === REL_MODO_FISFIN && !ex.length) problemas.push("Nenhuma atividade com valor: o critério físico-financeiro não pode ser calculado.");
+  return { ok: problemas.length === 0, problemas, totalMin: pesos.totalMin, totalW: pesos.totalW, somaPesosBp: pesos.bp.reduce((a, b) => a + b, 0), n: ex.length };
 }
 
 
@@ -11095,10 +11132,17 @@ function relConsolidar({ rel, versao, plan, historico, refTipo, versaoNome }) {
   const real = relCurvaRealizada([...hist, { dataRef: rel.dataRef, real: relRound(av.real, 2) }]);
   const premissas = [...plan.premissas];
   if (versaoNome) premissas.push(`Versão do cronograma utilizada: ${versaoNome}.`);
+  if (av.modo === REL_MODO_FISFIN) {
+    premissas.unshift("Critério de ponderação: físico-financeiro — peso de cada atividade = valor da atividade ÷ valor total das atividades com valor no cronograma (campos de custo do XML do Microsoft Project).");
+    if (av.nForaEscopo) premissas.push(`${av.nForaEscopo} atividade(s) com valor zero (fora do escopo contratual) não entram no cálculo do avanço.`);
+  } else {
+    premissas.unshift("Critério de ponderação: físico — peso de cada atividade = duração da atividade ÷ soma das durações das atividades executáveis.");
+  }
   premissas.push(`Duração das atividades convertida em dias de trabalho com ${relFmtNum(av.minPorDia / 60, 2)} h/dia.`);
   return {
+    modo: av.modo, nForaEscopo: av.nForaEscopo,
     geral: { ...ind, nAtividades: av.nAtividades, totalDias: av.totalMin / av.minPorDia },
-    macros: av.macros.map((m) => ({ chave: m.chave, wbs: m.wbs, nome: m.nome, durDias: m.durMin / av.minPorDia, pctReal: m.pctReal, pctPrev: m.pctPrev, n: m.n, nNao: m.nNao })),
+    macros: av.macros.map((m) => ({ chave: m.chave, wbs: m.wbs, nome: m.nome, durDias: m.durMin / av.minPorDia, pctReal: m.pctReal, pctPrev: m.pctPrev, pesoMacro: m.pesoMacro, n: m.n, nNao: m.nNao })),
     linhas: av.linhas.map((l) => ({ chave: l.chave, nome: l.nome, wbs: l.wbs, nivel: l.nivel, macroChave: l.macroChave, durMin: l.durMin, pesoBp: l.pesoBp, pctReal: l.pctReal, aferida: l.aferida, status: l.status, pctPrev: l.pctPrev })),
     curva: { prev: relCurvaPrevista(versao, plan), real },
     premissas, contagem: av.contagem, nNao: av.contagem.nao, minPorDia: av.minPorDia, totalMin: av.totalMin,
@@ -11260,7 +11304,8 @@ function relPaginar(ctx, d) {
   const blocosIntro = [{ k: "p", texto: d.introTexto || "" }, { k: "h2", texto: "Principais atividades realizadas no período" }];
   if (d.principais && d.principais.length) for (const a of d.principais) blocosIntro.push({ k: "li", texto: a });
   else blocosIntro.push({ k: "nota", texto: "Nenhuma atividade foi informada para o período." });
-  if (d.geral) blocosIntro.push({ k: "gap", h: 30 }, { k: "h2", texto: "Situação do avanço físico na data de referência" }, { k: "kpis", itens: [
+  const fisfin = d.modo === REL_MODO_FISFIN;
+  if (d.geral) blocosIntro.push({ k: "gap", h: 30 }, { k: "h2", texto: fisfin ? "Situação do avanço físico-financeiro na data de referência" : "Situação do avanço físico na data de referência" }, { k: "kpis", itens: [
     { rot: "AVANÇO PREVISTO", val: relFmtPct(d.geral.prev) }, { rot: "AVANÇO REALIZADO", val: relFmtPct(d.geral.real) }, { rot: "SITUAÇÃO", val: d.geral.situacao, pequeno: true },
   ] });
   const fi = relFluxo(ctx, blocosIntro, REL_TOPO_CONTEUDO, REL_BASE_CONTEUDO, larg);
@@ -11274,7 +11319,7 @@ function relPaginar(ctx, d) {
   let pos = 0, primeira = true;
   do {
     const cap = primeira ? capPrim : capOutras;
-    paginas.push({ tipo: "avanco", sec: 2, titulo: "2. AVANÇO FÍSICO", cont: !primeira, primeira, macros: macros.slice(pos, pos + cap), todas: macros.length });
+    paginas.push({ tipo: "avanco", sec: 2, titulo: fisfin ? "2. AVANÇO FÍSICO-FINANCEIRO" : "2. AVANÇO FÍSICO", cont: !primeira, primeira, macros: macros.slice(pos, pos + cap), todas: macros.length });
     pos += cap; primeira = false;
   } while (pos < macros.length);
   // 3. Previsto x realizado
@@ -11370,7 +11415,7 @@ function relCapa(ctx, d) {
 }
 function relIndice(ctx, d, secoes) {
   relCabecalho(ctx, d, { titulo: "ÍNDICE" });
-  const itens = [["1.", "Introdução", secoes.intro], ["2.", "Avanço Físico", secoes.avanco], ["3.", "Andamento — Previsto x Realizado", secoes.curva], ["4.", "Registro Fotográfico", secoes.fotos], ["5.", "Análise Técnica", secoes.analise]];
+  const itens = [["1.", "Introdução", secoes.intro], ["2.", d.modo === REL_MODO_FISFIN ? "Avanço Físico-Financeiro" : "Avanço Físico", secoes.avanco], ["3.", "Andamento — Previsto x Realizado", secoes.curva], ["4.", "Registro Fotográfico", secoes.fotos], ["5.", "Análise Técnica", secoes.analise]];
   let y = 400;
   const xDir = REL_W - REL_M - 300; // índice em coluna centralizada, mais estreita que a página
   for (const [n, t, p] of itens) {
@@ -11420,7 +11465,7 @@ function relPaginaAvanco(ctx, d, pg) {
   if (pg.primeira) {
     const g = d.geral;
     const caixas = g ? [
-      ["AVANÇO FÍSICO REALIZADO", relFmtPct(g.real)], ["AVANÇO PREVISTO NA DATA DE REFERÊNCIA", relFmtPct(g.prev)],
+      [d.modo === REL_MODO_FISFIN ? "AVANÇO FÍSICO-FINANCEIRO REALIZADO" : "AVANÇO FÍSICO REALIZADO", relFmtPct(g.real)], ["AVANÇO PREVISTO NA DATA DE REFERÊNCIA", relFmtPct(g.prev)],
       ["ATIVIDADES EXECUTÁVEIS", `${g.nAtividades} | ${relFmtNum(g.totalDias, 2)} dias`],
     ] : [];
     const gap = 30, w = (wTot - gap * 2) / 3, hCx = 170;
@@ -11453,7 +11498,7 @@ function relPaginaAvanco(ctx, d, pg) {
   y += 30;
   const topoLinhas = y;
   if (!pg.macros.length) {
-    relTexto(ctx, "Nenhum cronograma disponível: o avanço físico por atividade macro não pôde ser calculado.", REL_M, y + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
+    relTexto(ctx, `Nenhum cronograma disponível: o ${relRotuloAvanco(d.modo)} por atividade macro não pôde ser calculado.`, REL_M, y + 80, { fonte: relFonte(30, 500), cor: REL_COR.muted });
     return;
   }
   const LH = REL_AV_LINHA_H;
@@ -11461,7 +11506,7 @@ function relPaginaAvanco(ctx, d, pg) {
     const yy = topoLinhas + i * LH;
     ctx.font = relFonte(26, 600);
     relTexto(ctx, relElipse(ctx, m.nome, 1400), barX, yy + 24, { fonte: relFonte(26, 600), cor: REL_COR.texto });
-    relTexto(ctx, `${relFmtNum(m.durDias, 2)} dias`, barX + barW, yy + 24, { fonte: relFonte(21, 400), cor: REL_COR.muted, align: "right" });
+    relTexto(ctx, d.modo === REL_MODO_FISFIN && m.pesoMacro !== undefined ? `${relFmtNum(m.durDias, 2)} dias | peso ${relFmtPct(m.pesoMacro, 2)}` : `${relFmtNum(m.durDias, 2)} dias`, barX + barW, yy + 24, { fonte: relFonte(21, 400), cor: REL_COR.muted, align: "right" });
     relRetangulo(ctx, barX, yy + 34, barW, 28, REL_COR.cinza, 8);
     const w = Math.max(0, Math.min(100, m.pctReal)) / 100 * barW;
     if (w > 0) relRetangulo(ctx, barX, yy + 34, Math.max(w, 10), 28, REL_COR.accent, 8);
@@ -11473,7 +11518,7 @@ function relPaginaAvanco(ctx, d, pg) {
 }
 function relPaginaCurva(ctx, d, pg) {
   relCabecalho(ctx, d, pg);
-  relTexto(ctx, "CURVA S DE AVANÇO FÍSICO", REL_M, 290, { fonte: relFonte(28, 700, true), cor: REL_COR.muted, espaco: 3 });
+  relTexto(ctx, d.modo === REL_MODO_FISFIN ? "CURVA S DE AVANÇO FÍSICO-FINANCEIRO" : "CURVA S DE AVANÇO FÍSICO", REL_M, 290, { fonte: relFonte(28, 700, true), cor: REL_COR.muted, espaco: 3 });
   const x0 = REL_M + 100, x1 = 1640, yT = 330, yB = 1230;
   const prev = (d.curva && d.curva.prev) || [], real = (d.curva && d.curva.real) || [];
   // fundo e grade
@@ -11824,11 +11869,12 @@ async function relCronPreparar(obraId, texto, meta) {
   const diff = atual ? relDiffVersoes(atual.tarefas, tarefas) : null;
   return { ok: true, parsed: { ...parsed, tarefas }, diff, avisos: parsed.avisos, atual };
 }
-async function relCronConfirmarImportacao(obraId, prep, nomeArquivo, xmlTexto, usuario) {
+async function relCronConfirmarImportacao(obraId, prep, nomeArquivo, xmlTexto, usuario, modoEscolhido) {
   const meta = await relCronLerMeta(obraId); // leitura fresca antes de gravar
   const id = uid("cv");
   const { parsed } = prep;
-  const dados = { id, projeto: parsed.projeto, calendarios: parsed.calendarios, tarefas: parsed.tarefas, avisos: parsed.avisos, temBaseline: parsed.temBaseline };
+  const modo = modoEscolhido === REL_MODO_FISFIN && parsed.temCustos ? REL_MODO_FISFIN : REL_MODO_FISICO;
+  const dados = { id, modo, projeto: parsed.projeto, calendarios: parsed.calendarios, tarefas: parsed.tarefas, avisos: parsed.avisos, temBaseline: parsed.temBaseline };
   await relGravar(relChave.cronv(obraId, id), dados);
   let xmlSalvo = true;
   try { await relGravarTexto(relChave.xml(obraId, id), xmlTexto); } catch (e) { xmlSalvo = false; }
@@ -11837,6 +11883,7 @@ async function relCronConfirmarImportacao(obraId, prep, nomeArquivo, xmlTexto, u
     id, numero: meta.versoes.length + 1, arquivo: nomeArquivo, importadoEm: Date.now(), importadoPor: usuario || "—",
     projetoNome: parsed.projeto.nome, nTarefas: parsed.tarefas.length, nExec: exec.length,
     totalMin: exec.reduce((s, t) => s + t.durMin, 0), minPorDia: parsed.projeto.minPorDia, temBaseline: !!parsed.temBaseline, xmlSalvo,
+    modo, custoTotal: modo === REL_MODO_FISFIN ? parsed.custoTotal : null, nForaEscopo: modo === REL_MODO_FISFIN ? exec.filter((t) => !(t.custo > 0)).length : 0,
     diff: prep.diff ? { add: prep.diff.adicionadas.length, rem: prep.diff.removidas.length, alt: prep.diff.alteradas.length } : null,
   };
   const novo = { ...meta, versoes: [...meta.versoes, versao], atualId: id, rev: (meta.rev || 0) + 1 };
@@ -11879,6 +11926,7 @@ async function relPrepararDadosPDF(rel, obra, usuarioLista, { usarSnapshot = tru
   return {
     obraNome: obra.nome, cliente: obra.cliente || "", numero: rel.numero, periodoIni: rel.periodoIni, periodoFim: rel.periodoFim,
     dataRef: rel.dataRef, responsavel: rel.responsavel, introTexto: rel.introTexto, principais: relLinhasLista(rel.principais),
+    modo: cons && cons.modo === REL_MODO_FISFIN ? REL_MODO_FISFIN : REL_MODO_FISICO,
     geral: cons ? cons.geral : null, macros: cons ? cons.macros : [], curva: cons ? cons.curva : { prev: [], real: [] },
     premissas: cons ? cons.premissas : ["Cronograma do Microsoft Project não importado: avanço previsto e realizado indisponíveis."],
     fotos, analise: rel.analise, logoSrc: GLOVER_LOGO_CINZA_URI,
@@ -12181,6 +12229,8 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
   const [verAtividades, setVerAtividades] = useState(false);
   const inputRef = useRef(null);
   const usuarioNome = currentUser?.nome || "—";
+  // Valores em R$ das atividades só aparecem para quem já tem acesso aos relatórios financeiros.
+  const verValores = can(currentUser, "relatorios_acessar");
 
   const escolher = async (e) => {
     const f = e.target.files && e.target.files[0];
@@ -12198,12 +12248,12 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
     setLendo(false);
   };
 
-  const confirmar = async () => {
+  const confirmar = async (modo) => {
     setLendo(true);
     try {
-      const novo = await relCronConfirmarImportacao(obra.id, prep.prep, prep.arquivo, prep.texto, usuarioNome);
+      const novo = await relCronConfirmarImportacao(obra.id, prep.prep, prep.arquivo, prep.texto, usuarioNome, modo);
       setMeta(novo);
-      logAudit?.({ tipoOperacao: "Importação de cronograma (Relatórios de Obra)", registroAlterado: `${obra.nome} — ${prep.arquivo}`, valorAnterior: "—", valorNovo: `Versão ${novo.versoes.length}` });
+      logAudit?.({ tipoOperacao: "Importação de cronograma (Relatórios de Obra)", registroAlterado: `${obra.nome} — ${prep.arquivo}`, valorAnterior: "—", valorNovo: `Versão ${novo.versoes.length} — critério ${relModoRotulo(novo.versoes[novo.versoes.length - 1].modo)}` });
       setPrep(null);
     } catch (err) { setErro((err && err.message) || "Falha ao salvar o cronograma."); }
     setLendo(false);
@@ -12255,14 +12305,15 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
           </div>
           <div className="gf-table-wrap">
             <table className="gf-table">
-              <thead><tr><th>Versão</th><th>Arquivo</th><th>Importado em</th><th className="num">Atividades exec.</th><th className="num">Dias de trabalho acum.</th><th>Linha de base</th><th>Mudanças vs. anterior</th></tr></thead>
+              <thead><tr><th>Versão</th><th>Arquivo</th><th>Importado em</th><th>Critério</th><th className="num">Atividades exec.</th><th className="num">Dias de trabalho acum.</th><th>Linha de base</th><th>Mudanças vs. anterior</th></tr></thead>
               <tbody>
                 {[...versoes].reverse().map((v) => (
                   <tr key={v.id}>
                     <td>v{v.numero} {v.id === meta.atualId && <Badge tone="green">Atual</Badge>}</td>
                     <td className="gf-td-desc" title={v.arquivo}>{v.arquivo}</td>
                     <td>{new Date(v.importadoEm).toLocaleString("pt-BR")} <span className="gf-field-hint">({v.importadoPor})</span></td>
-                    <td className="num mono">{v.nExec}</td>
+                    <td><Badge tone={v.modo === REL_MODO_FISFIN ? "green" : "gray"}>{relModoRotulo(v.modo)}</Badge></td>
+                    <td className="num mono">{v.modo === REL_MODO_FISFIN && v.nForaEscopo ? <span title={`${v.nForaEscopo} atividade(s) com valor zero (fora do escopo)`}>{v.nExec - v.nForaEscopo} <span className="gf-field-hint">(+{v.nForaEscopo} fora do escopo)</span></span> : v.nExec}</td>
                     <td className="num mono">{relFmtDias(v.totalMin, v.minPorDia)}</td>
                     <td>{v.temBaseline ? "Sim" : "Não"}</td>
                     <td>{v.diff ? `+${v.diff.add} / −${v.diff.rem} / ~${v.diff.alt}` : "Versão inicial"}</td>
@@ -12273,8 +12324,8 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
           </div>
         </>
       )}
-      {prep && <RelImportModal prep={prep} meta={meta} onCancel={() => setPrep(null)} onConfirm={confirmar} salvando={lendo} />}
-      {verAtividades && atual && <RelAtividadesModal obraId={obra.id} versaoInfo={atual} onClose={() => setVerAtividades(false)} />}
+      {prep && <RelImportModal prep={prep} meta={meta} verValores={verValores} onCancel={() => setPrep(null)} onConfirm={confirmar} salvando={lendo} />}
+      {verAtividades && atual && <RelAtividadesModal obraId={obra.id} versaoInfo={atual} verValores={verValores} onClose={() => setVerAtividades(false)} />}
     </div>
   );
 }
@@ -12288,14 +12339,21 @@ function RelAvisosLista({ avisos }) {
   );
 }
 
-function RelImportModal({ prep, meta, onCancel, onConfirm, salvando }) {
+function RelImportModal({ prep, meta, verValores, onCancel, onConfirm, salvando }) {
   const p = prep.prep;
   const exec = relExecutaveis(p.parsed.tarefas);
   const total = exec.reduce((s, t) => s + t.durMin, 0);
   const d = p.diff;
-  const bloqueado = p.avisos.some((a) => a.nivel === "erro");
+  const temCustos = !!p.parsed.temCustos;
+  const modoAnterior = p.atual ? relModo(p.atual) : null;
+  const [modo, setModo] = useState(modoAnterior === REL_MODO_FISFIN && temCustos ? REL_MODO_FISFIN : REL_MODO_FISICO);
+  const fisfin = modo === REL_MODO_FISFIN;
+  const semValor = exec.filter((t) => !(t.custo > 0));
+  const bloqueado = p.avisos.some((a) => a.nivel === "erro") || (fisfin && !temCustos);
+  const fmtR = (v) => "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const lista = (itens, f) => (itens.length ? <ul className="gf-rel-ul">{itens.slice(0, 40).map((x, i) => <li key={i}>{f(x)}</li>)}{itens.length > 40 && <li>… e mais {itens.length - 40}</li>}</ul> : null);
-  const fmtV = (c, v) => (v === null || v === undefined ? "—" : c === "Duração" ? relFmtDias(v, p.parsed.projeto.minPorDia) + " dias" : c === "Início" || c === "Término" ? relFmtData(v) : String(v));
+  const fmtV = (c, v) => (v === null || v === undefined ? "—" : c === "Duração" ? relFmtDias(v, p.parsed.projeto.minPorDia) + " dias" : c === "Valor" ? (verValores ? fmtR(v) : "alterado") : c === "Início" || c === "Término" ? relFmtData(v) : String(v));
+  const mudancasVisiveis = (x) => x.mudancas.filter((m) => m.chaveCampo !== "paiChave" && (fisfin || m.chaveCampo !== "custo"));
   return (
     <Modal title="Importar cronograma — conferência" onClose={onCancel} width={820}>
       <div className="gf-stack" style={{ gap: 12 }}>
@@ -12307,6 +12365,32 @@ function RelImportModal({ prep, meta, onCancel, onConfirm, salvando }) {
           <div><span>Dias de trabalho acumulados</span><b>{relFmtDias(total, p.parsed.projeto.minPorDia)}</b></div>
           <div><span>Linha de base</span><b>{p.parsed.temBaseline ? "Presente" : "Ausente"}</b></div>
         </div>
+        <div className="gf-rel-modo">
+          <div className="gf-eyebrow">Critério de aferição do avanço</div>
+          <label className={`gf-rel-modo-op ${!fisfin ? "is-sel" : ""}`}>
+            <input type="radio" name="rel-modo" checked={!fisfin} onChange={() => setModo(REL_MODO_FISICO)} />
+            <div><b>Físico — ponderado pela duração</b><span>Peso de cada atividade = duração ÷ soma das durações. É o critério usado até hoje; os valores do XML, se houver, são ignorados.</span></div>
+          </label>
+          <label className={`gf-rel-modo-op ${fisfin ? "is-sel" : ""} ${!temCustos ? "is-off" : ""}`}>
+            <input type="radio" name="rel-modo" checked={fisfin} disabled={!temCustos} onChange={() => setModo(REL_MODO_FISFIN)} />
+            <div><b>Físico-financeiro — ponderado pelo valor</b><span>{temCustos
+              ? "Peso de cada atividade = valor da atividade (campo Custo do Project) ÷ valor total. Atividades com valor zero ficam fora do cálculo (fora do escopo contratual)."
+              : "Indisponível: o XML não tem valores nas atividades. Preencha o Custo (ou Custo fixo) das atividades no Microsoft Project e exporte novamente."}</span></div>
+          </label>
+          {fisfin && (
+            <div className="gf-rel-resumo-grid" style={{ marginTop: 8 }}>
+              {verValores && <div><span>Valor total das atividades</span><b>{fmtR(p.parsed.custoTotal)}</b></div>}
+              <div><span>Atividades com valor (entram no cálculo)</span><b>{exec.length - semValor.length}</b></div>
+              <div><span>Atividades com valor zero (fora do escopo)</span><b>{semValor.length}</b></div>
+            </div>
+          )}
+          {fisfin && semValor.length > 0 && <details style={{ marginTop: 6 }}><summary>Ver atividades fora do escopo ({semValor.length})</summary>{lista(semValor, (x) => `${x.wbs} ${x.nome}`)}</details>}
+          {modoAnterior && modoAnterior !== modo && (
+            <div className="gf-rel-aviso gf-rel-aviso-atencao" style={{ marginTop: 8 }}>
+              O critério muda de <b>{relModoRotulo(modoAnterior)}</b> (versão atual) para <b>{relModoRotulo(modo)}</b>. Relatórios finalizados não mudam. Relatórios em elaboração que forem atualizados para esta versão terão o avanço recalculado pelo novo critério; na Curva S, os pontos realizados de relatórios anteriores continuam com o critério em que foram calculados.
+            </div>
+          )}
+        </div>
         <RelAvisosLista avisos={p.avisos} />
         {!d ? (
           <div className="gf-rel-aviso gf-rel-aviso-info">
@@ -12315,48 +12399,53 @@ function RelImportModal({ prep, meta, onCancel, onConfirm, salvando }) {
         ) : (
           <>
             <div className={`gf-rel-aviso ${d.relevante ? "gf-rel-aviso-atencao" : "gf-rel-aviso-info"}`}>
-              Diferenças em relação à versão atual: <b>{d.adicionadas.length}</b> adicionada(s), <b>{d.removidas.length}</b> removida(s), <b>{d.alteradas.length}</b> alterada(s).
+              Diferenças em relação à versão atual: <b>{d.adicionadas.length}</b> adicionada(s), <b>{d.removidas.length}</b> removida(s), <b>{d.alteradas.filter((x) => mudancasVisiveis(x).length).length}</b> alterada(s).
               {" "}Dias de trabalho acumulados: {relFmtDias(d.totalMinAntes, p.atual?.projeto?.minPorDia || p.parsed.projeto.minPorDia)} → {relFmtDias(d.totalMinDepois, p.parsed.projeto.minPorDia)}.
+              {fisfin && d.custoAlterado > 0 && <> {" "}Valor alterado em <b>{d.custoAlterado}</b> atividade(s){verValores ? <> (total {fmtR(d.custoAntes)} → {fmtR(d.custoDepois)})</> : null}.</>}
               {d.relevante && " Há mudanças relevantes na estrutura/duração: confira abaixo antes de confirmar."}
               {" "}As aferições existentes são mantidas (atividades identificadas por ID e estrutura). Relatórios finalizados não serão alterados; relatórios em elaboração continuam na versão anterior até serem atualizados manualmente.
             </div>
             {d.adicionadas.length > 0 && <details open={d.adicionadas.length <= 15}><summary><b>Adicionadas ({d.adicionadas.length})</b></summary>{lista(d.adicionadas, (x) => `${x.wbs} ${x.nome}${x.executavel ? ` — ${relFmtDias(x.durMin, p.parsed.projeto.minPorDia)} dias` : " (resumo/marco)"}`)}</details>}
             {d.removidas.length > 0 && <details open={d.removidas.length <= 15}><summary><b>Removidas ({d.removidas.length})</b></summary>{lista(d.removidas, (x) => `${x.wbs} ${x.nome}`)}</details>}
-            {d.alteradas.length > 0 && <details><summary><b>Alteradas ({d.alteradas.length})</b></summary>{lista(d.alteradas, (x) => `${x.wbs} ${x.nome}: ` + x.mudancas.filter((m) => m.chaveCampo !== "paiChave").map((m) => `${m.campo} ${fmtV(m.campo, m.de)} → ${fmtV(m.campo, m.para)}`).join("; "))}</details>}
+            {d.alteradas.filter((x) => mudancasVisiveis(x).length).length > 0 && <details><summary><b>Alteradas ({d.alteradas.filter((x) => mudancasVisiveis(x).length).length})</b></summary>{lista(d.alteradas.filter((x) => mudancasVisiveis(x).length), (x) => `${x.wbs} ${x.nome}: ` + mudancasVisiveis(x).map((m) => `${m.campo} ${fmtV(m.campo, m.de)} → ${fmtV(m.campo, m.para)}`).join("; "))}</details>}
           </>
         )}
         <div className="gf-row-actions">
           <button className="gf-btn gf-btn-ghost" onClick={onCancel}>Cancelar</button>
-          <button className="gf-btn gf-btn-primary" onClick={onConfirm} disabled={bloqueado || salvando}>{salvando ? "Salvando…" : d ? "Confirmar e salvar como nova versão" : "Confirmar importação"}</button>
+          <button className="gf-btn gf-btn-primary" onClick={() => onConfirm(modo)} disabled={bloqueado || salvando}>{salvando ? "Salvando…" : `${d ? "Confirmar e salvar como nova versão" : "Confirmar importação"} (${relModoRotulo(modo)})`}</button>
         </div>
       </div>
     </Modal>
   );
 }
 
-function RelAtividadesModal({ obraId, versaoInfo, onClose }) {
+function RelAtividadesModal({ obraId, versaoInfo, verValores, onClose }) {
   const [versao, setVersao] = useState(null);
   const [erro, setErro] = useState("");
   useEffect(() => { relCarregarVersao(obraId, versaoInfo.id).then(setVersao).catch((e) => setErro(e.message)); }, [obraId, versaoInfo.id]);
   const dados = useMemo(() => {
     if (!versao) return null;
-    const ex = relExecutaveis(versao.tarefas);
+    const ex = relAtividadesCalc(versao);
     const pesos = relPesos(ex);
     const idx = new Map(ex.map((t, i) => [t.chave, i]));
-    return { pesos, idx, integr: relVerificarIntegridade(versao) };
+    return { pesos, idx, integr: relVerificarIntegridade(versao), fisfin: relModo(versao) === REL_MODO_FISFIN };
   }, [versao]);
+  const fmtR = (v) => "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return (
     <Modal title={`Atividades e pesos — versão v${versaoInfo.numero}`} onClose={onClose} width={900}>
       {erro && <div className="gf-rel-aviso gf-rel-aviso-erro">{erro}</div>}
       {!versao ? <p className="gf-field-hint">Carregando…</p> : (
         <>
           <p className="gf-field-hint">
-            Peso automático = duração ÷ soma das durações das atividades executáveis (menor nível da EAP). Resumos e marcos não entram na soma.
-            Soma dos pesos: <b>{relFmtNum(dados.integr.somaPesosBp / 100, 2)}%</b> {dados.integr.ok ? "(OK)" : "(ATENÇÃO)"} | {dados.integr.n} atividades | {relFmtDias(dados.integr.totalMin, versao.projeto.minPorDia)} dias de trabalho acumulados ({relFmtNum(versao.projeto.minPorDia / 60, 2)} h/dia).
+            <b>Critério: {relModoRotulo(relModo(versao))}.</b>{" "}
+            {dados.fisfin
+              ? "Peso automático = valor da atividade ÷ valor total das atividades com valor (menor nível da EAP). Atividades com valor zero ficam fora do escopo e não entram no cálculo. Resumos e marcos não entram na soma."
+              : "Peso automático = duração ÷ soma das durações das atividades executáveis (menor nível da EAP). Resumos e marcos não entram na soma."}
+            {" "}Soma dos pesos: <b>{relFmtNum(dados.integr.somaPesosBp / 100, 2)}%</b> {dados.integr.ok ? "(OK)" : "(ATENÇÃO)"} | {dados.integr.n} atividades{dados.fisfin && verValores ? <> | valor total {fmtR(dados.integr.totalW)}</> : null} | {relFmtDias(dados.integr.totalMin, versao.projeto.minPorDia)} dias de trabalho acumulados ({relFmtNum(versao.projeto.minPorDia / 60, 2)} h/dia).
           </p>
           <div className="gf-table-wrap" style={{ maxHeight: "60vh" }}>
             <table className="gf-table">
-              <thead><tr><th>EAP</th><th>Atividade</th><th>Tipo</th><th className="num">Duração (dias)</th><th className="num">Peso</th></tr></thead>
+              <thead><tr><th>EAP</th><th>Atividade</th><th>Tipo</th><th className="num">Duração (dias)</th>{dados.fisfin && verValores && <th className="num">Valor (R$)</th>}<th className="num">Peso</th></tr></thead>
               <tbody>
                 {versao.tarefas.map((t) => {
                   const i = dados.idx.get(t.chave);
@@ -12364,8 +12453,9 @@ function RelAtividadesModal({ obraId, versaoInfo, onClose }) {
                     <tr key={t.chave} className={t.resumo ? "gf-rel-tr-resumo" : ""}>
                       <td className="mono">{t.wbs}</td>
                       <td style={{ paddingLeft: 10 + (t.nivel - 1) * 16, fontWeight: t.resumo ? 700 : 400 }}>{t.nome}</td>
-                      <td>{t.resumo ? "Resumo (não soma)" : t.marco ? "Marco (não soma)" : t.executavel ? "Executável" : "Excluída"}</td>
+                      <td>{t.resumo ? "Resumo (não soma)" : t.marco ? "Marco (não soma)" : t.executavel ? (dados.fisfin && !(t.custo > 0) ? "Fora do escopo (valor zero)" : "Executável") : "Excluída"}</td>
                       <td className="num mono">{t.durMin != null ? relFmtDias(t.durMin, versao.projeto.minPorDia) : "—"}</td>
+                      {dados.fisfin && verValores && <td className="num mono">{t.executavel && t.custo > 0 ? fmtR(t.custo) : "—"}</td>}
                       <td className="num mono">{i !== undefined ? `${relFmtNum(dados.pesos.bp[i] / 100, 2)}%` : "—"}</td>
                     </tr>
                   );
@@ -12629,7 +12719,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
     if (rel.analise && rel.analise.trim() && !window.confirm("Substituir o texto atual da análise técnica pela sugestão automática?")) return;
     const ant = ctx.anteriores.filter((a) => a.ind && a.dataRef < rel.dataRef)[0];
     const texto = relGerarAnaliseTexto({
-      obraNome: obra.nome, ind: cons.geral, dataRef: rel.dataRef, macros: cons.macros, linhas: cons.linhas, nNao: cons.nNao,
+      obraNome: obra.nome, ind: cons.geral, dataRef: rel.dataRef, macros: cons.macros, linhas: cons.linhas, nNao: cons.nNao, modo: cons.modo,
       principais: relLinhasLista(rel.principais), anterior: ant ? { real: ant.ind.real, dataRef: ant.dataRef } : null,
     });
     upd({ analise: texto });
@@ -12656,7 +12746,9 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
   const atualizarFoto = (id, campos) => setRel((r) => ({ ...r, fotos: r.fotos.map((f) => (f.id === id ? { ...f, ...campos } : f)) }));
   const removerFoto = (id) => { if (!window.confirm("Remover esta fotografia do relatório?")) return; setRel((r) => ({ ...r, fotos: r.fotos.filter((f) => f.id !== id) })); };
 
-  const abas = [["dados", "Dados"], ["intro", "Introdução"], ["afericao", "Avanço Físico"], ["curva", "Previsto x Realizado"], ["fotos", "Fotos"], ["analise", "Análise Técnica"]];
+  const modoRel = cons && cons.modo === REL_MODO_FISFIN ? REL_MODO_FISFIN : REL_MODO_FISICO;
+  const fisfinRel = modoRel === REL_MODO_FISFIN;
+  const abas = [["dados", "Dados"], ["intro", "Introdução"], ["afericao", fisfinRel ? "Avanço Físico-Financeiro" : "Avanço Físico"], ["curva", "Previsto x Realizado"], ["fotos", "Fotos"], ["analise", "Análise Técnica"]];
   const periodoOk = rel.periodoIni && rel.periodoFim && rel.periodoFim >= rel.periodoIni;
   const nomesResp = (usuarios || []).filter((u) => u.ativo && !isInvestidor(u)).map((u) => u.nome);
 
@@ -12720,6 +12812,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
             <div><span>Criado</span><b>{new Date(rel.criadoEm).toLocaleString("pt-BR")} — {rel.criadoPor}</b></div>
             <div><span>Última edição</span><b>{new Date(rel.editadoEm).toLocaleString("pt-BR")} — {rel.editadoPor}</b></div>
             <div><span>Versão do cronograma</span><b>{vInfo ? `v${vInfo.numero} — ${vInfo.arquivo}` : "Nenhum cronograma associado"}</b></div>
+            {vInfo && <div><span>Critério de aferição</span><b>{relModoRotulo(vInfo.modo)}</b></div>}
           </div>
           {ctx.meta.atualId && ctx.meta.atualId !== rel.cronVersaoId && !somenteLeitura && (
             <div className="gf-rel-aviso gf-rel-aviso-atencao" style={{ marginTop: 12 }}>
@@ -12754,11 +12847,11 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
       {aba === "afericao" && (
         <div className="gf-stack" style={{ gap: 14 }}>
           {!cons ? (
-            <div className="gf-card"><EmptyState icon={CalendarRange} title="Cronograma não disponível" body="Importe o cronograma XML do Microsoft Project na página da obra e vincule-o a este relatório para aferir o avanço físico." /></div>
+            <div className="gf-card"><EmptyState icon={CalendarRange} title="Cronograma não disponível" body="Importe o cronograma XML do Microsoft Project na página da obra e vincule-o a este relatório para aferir o avanço." /></div>
           ) : (
             <>
               <div className="gf-rel-kpis">
-                <div><span>Avanço realizado</span><b>{relFmtPct(cons.geral.real, 2)}</b></div>
+                <div><span>{fisfinRel ? "Avanço físico-financeiro realizado" : "Avanço realizado"}</span><b>{relFmtPct(cons.geral.real, 2)}</b></div>
                 <div><span>Avanço previsto (em {relFmtData(rel.dataRef)})</span><b>{relFmtPct(cons.geral.prev, 2)}</b></div>
                 <div><span>Dias de trabalho acumulados</span><b>{relFmtNum(cons.geral.totalDias, 2)}</b></div>
                 <div><span>Não aferidas / 0% / parciais / concluídas</span><b>{cons.contagem.nao} / {cons.contagem.zero} / {cons.contagem.parcial} / {cons.contagem.completa}</b></div>
@@ -12766,9 +12859,10 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
               {cons.nNao > 0 && <div className="gf-rel-aviso gf-rel-aviso-atencao">{cons.nNao} atividade(s) ainda não aferida(s): entram no cálculo como 0%, mas não são tratadas como executadas nem como concluídas.</div>}
               {aferOrfas > 0 && <div className="gf-rel-aviso gf-rel-aviso-info">{aferOrfas} aferição(ões) pertencem a atividades que não constam mais na versão do cronograma vinculada; foram preservadas, mas não entram no cálculo.</div>}
               {!cons.pesosOk && <div className="gf-rel-aviso gf-rel-aviso-erro">Os pesos das atividades não somam 100%. Verifique o cronograma.</div>}
+              {fisfinRel && <div className="gf-rel-aviso gf-rel-aviso-info">Critério físico-financeiro: cada atividade pesa pelo seu valor no cronograma.{cons.nForaEscopo ? ` ${cons.nForaEscopo} atividade(s) com valor zero (fora do escopo contratual) não aparecem para aferição e não entram no cálculo.` : ""}</div>}
               <RelAvisosLista avisos={cons.avisos} />
               <div className="gf-card">
-                <div className="gf-card-head"><h2>Avanço físico por atividade macro</h2></div>
+                <div className="gf-card-head"><h2>{fisfinRel ? "Avanço físico-financeiro por atividade macro" : "Avanço físico por atividade macro"}</h2></div>
                 <div className="gf-rel-macros">
                   {cons.macros.map((m) => (
                     <div className="gf-rel-macro-row" key={m.chave}>
@@ -12778,7 +12872,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
                     </div>
                   ))}
                 </div>
-                <p className="gf-field-hint">Barra = realizado; marcador = previsto. Percentual da macro = Σ (duração × % realizado) ÷ Σ duração (sem média simples).</p>
+                <p className="gf-field-hint">Barra = realizado; marcador = previsto. Percentual da macro = {fisfinRel ? "Σ (valor × % realizado) ÷ Σ valor" : "Σ (duração × % realizado) ÷ Σ duração"} (sem média simples).</p>
               </div>
               <div className="gf-card">
                 <div className="gf-card-head">
@@ -12801,7 +12895,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
                       <button className="gf-rel-grupo-cab" onClick={() => setFiltro((f) => ({ ...f, aberto: { ...f.aberto, [macro.chave]: !aberto } }))}>
                         <ChevronRight size={14} className={aberto ? "gf-rot90" : ""} />
                         <span className="gf-rel-grupo-nome">{macro.wbs} {macro.nome}</span>
-                        <span className="gf-rel-grupo-info">{relFmtNum(macro.durDias, 2)} dias | realizado {relFmtPct(macro.pctReal)} | previsto {relFmtPct(macro.pctPrev)}</span>
+                        <span className="gf-rel-grupo-info">{relFmtNum(macro.durDias, 2)} dias{fisfinRel && macro.pesoMacro !== undefined ? ` | peso ${relFmtPct(macro.pesoMacro, 2)}` : ""} | realizado {relFmtPct(macro.pctReal)} | previsto {relFmtPct(macro.pctPrev)}</span>
                       </button>
                       {aberto && (
                         <div className="gf-table-wrap">
@@ -13301,6 +13395,14 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
 .gf-rel-item-info{ flex:1; min-width:240px; display:flex; flex-direction:column; gap:6px; }
 .gf-rel-item-titulo{ font-weight:700; color:var(--gf-primary); font-size:14px; }
 .gf-rel-item-acoes{ flex:0 0 auto; }
+.gf-rel-modo{ border:1px solid var(--gf-border); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+.gf-rel-modo-op{ display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-radius:10px; border:1px solid var(--gf-border); cursor:pointer; background:#fff; }
+.gf-rel-modo-op input{ margin-top:3px; accent-color:var(--gf-primary); }
+.gf-rel-modo-op > div{ display:flex; flex-direction:column; gap:3px; }
+.gf-rel-modo-op b{ font-size:13px; }
+.gf-rel-modo-op span{ font-size:12px; color:var(--gf-muted); line-height:1.4; }
+.gf-rel-modo-op.is-sel{ border-color:var(--gf-primary); background:#EEF4F0; }
+.gf-rel-modo-op.is-off{ opacity:.6; cursor:not-allowed; }
 .gf-rel-ref{ font-size:12.5px; background:var(--gf-gray-100); border-radius:10px; padding:10px 14px; margin-bottom:12px; color:var(--gf-ink); }
 .gf-rel-resumo-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
 .gf-rel-resumo-grid > div{ background:var(--gf-gray-100); border-radius:10px; padding:9px 12px; display:flex; flex-direction:column; gap:3px; }
