@@ -252,8 +252,8 @@ const PERMISSION_GROUPS = [
     { key: "progpag_criar", label: "Criar/editar ordens de pagamento e contratos" },
     { key: "progpag_pagar", label: "Efetuar pagamentos programados (somente administrador/operacional)" },
   ] },
-  { group: "Fechamento Quinzenas Funcionários", keys: [
-    { key: "quinzenas_visualizar", label: "Acessar Fechamento Quinzenas Funcionários" },
+  { group: "Quinzena Funcionários", keys: [
+    { key: "quinzenas_visualizar", label: "Acessar Quinzena Funcionários" },
     { key: "quinzenas_gerenciar", label: "Cadastrar funcionários, apontar dias e fechar quinzenas" },
     { key: "quinzenas_pagar", label: "Registrar pagamento de quinzenas (somente administrador/operacional)" },
   ] },
@@ -2015,7 +2015,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "dividasinvestimentos", label: "Dívidas e Investimentos", icon: TrendingUp, perm: "relatorios_acessar" },
     { id: "planejamentosemanal", label: "Planejamento Semanal", icon: CalendarRange, perm: "planejamento_visualizar" },
     { id: "programacaopagamentos", label: "Programação de Pagamentos", icon: CalendarClock, perm: "progpag_visualizar" },
-    { id: "fechamentoquinzenas", label: "Fechamento quinzenas funcionários", icon: HardHat, perm: "quinzenas_visualizar" },
+    { id: "fechamentoquinzenas", label: "Quinzena Funcionários", icon: HardHat, perm: "quinzenas_visualizar" },
     { id: "faturamentodireto", label: "Faturamento Direto", icon: Handshake, perm: "fatdireto_visualizar" },
     { id: "relatoriosobra", label: "Relatórios de Obra", icon: FileText, perm: "relatorios_obra_visualizar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
@@ -13575,7 +13575,7 @@ function FechamentoQuinzenasPage({
   return (
     <div className="gf-stack">
       <div className="gf-toolbar">
-        <h2>Fechamento quinzenas funcionários</h2>
+        <h2>Quinzena Funcionários</h2>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {podeGerenciar && <button className="gf-btn gf-btn-ghost" onClick={() => setModalFunc("novo")}><Plus size={15} /> Novo funcionário</button>}
           {podePagar && <button className="gf-btn gf-btn-ghost" onClick={() => setShowAdiant(true)}><CircleDollarSign size={15} /> Adiantamento</button>}
