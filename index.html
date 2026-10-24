@@ -1916,7 +1916,12 @@ export default function App() {
             />
           )}
           {page === "custosinternos" && (
-            <CustosInternosPage entries={entries} apropriacoes={apropriacoes} accounts={accounts} />
+            <CustosInternosPage
+              entries={entries} setEntries={setEntries} apropriacoes={apropriacoes} accounts={accounts}
+              obras={obras} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens}
+              fornecedoresCadastro={fornecedoresCadastro} contasInvestidores={contasInvestidores}
+              currentUser={currentUser} logAudit={logAudit}
+            />
           )}
           {page === "dividasinvestimentos" && (
             <DividasInvestimentosPage
@@ -7674,8 +7679,80 @@ function ObrasGerenciamentoPage({ obras, entries, gerContasPagar, setGerContasPa
    Página: Custos Internos
 --------------------------------------------------------------- */
 
-function CustosInternosPage({ entries, apropriacoes, accounts }) {
+function CustoInternoEditModal({ entry, accounts, contasInvestidores = [], obras, apropriacoes, fornecedorOptions = [], orcamentoItens = [], fornecedoresCadastro = [], onClose, onSave }) {
+  const investidor = entry.origemTipo === "CONTA_INVESTIDOR";
+  const [f, setF] = useState({
+    contaId: entry.contaId || "", contaInvestidorId: entry.contaInvestidorId || "", obraId: entry.obraId || SEM_OBRA,
+    data: entry.data, valor: String(entry.valor), fornecedor: entry.fornecedor || "", apropriacao: entry.apropriacao || "", descricao: entry.descricao || "",
+  });
+  const upd = (p) => setF((s) => ({ ...s, ...p }));
+  const disp = computeApropriacoesDisponiveis(entry.obraId, entry.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
+  const [excecoes, setExcecoes] = useState(entry.apropriacao && !disp.includes(entry.apropriacao) ? [entry.apropriacao] : []);
+  const fornecedorSelectOptions = [{ value: "Não se aplica", label: "Não se aplica" }, ...fornecedorOptions.map((x) => ({ value: x, label: x }))];
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.data || !(Number(f.valor) > 0) || !f.apropriacao) return;
+    if (investidor ? !f.contaInvestidorId : !f.contaId) return;
+    onSave({
+      ...(investidor ? { contaInvestidorId: f.contaInvestidorId } : { contaId: f.contaId }),
+      obraId: f.obraId || SEM_OBRA, data: f.data, valor: Number(f.valor), fornecedor: f.fornecedor.trim(), apropriacao: f.apropriacao, descricao: f.descricao.trim(),
+    });
+  };
+  return (
+    <Modal title="Editar lançamento" onClose={onClose} width={620}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        {investidor ? (
+          <Field label="Conta Investidor">
+            <select required value={f.contaInvestidorId} onChange={(e) => upd({ contaInvestidorId: e.target.value })}>
+              {contasInvestidores.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+            </select>
+          </Field>
+        ) : (
+          <Field label="Conta bancária">
+            <select required value={f.contaId} onChange={(e) => upd({ contaId: e.target.value })}>
+              {accounts.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+            </select>
+          </Field>
+        )}
+        <Field label="Data"><input type="date" required value={f.data} onChange={(e) => upd({ data: e.target.value })} /></Field>
+        <Field label="Valor (R$)"><input type="number" min="0.01" step="0.01" required value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
+        <Field label="Centro de custo" hint="Mudar para uma obra tira o lançamento desta página">
+          <select value={f.obraId} onChange={(e) => upd({ obraId: e.target.value })}>
+            <option value={SEM_OBRA}>Administrativo / Custos internos</option>
+            {obras.filter((o) => !o.arquivada).map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+          </select>
+        </Field>
+        <Field label="Fornecedor">
+          <SearchableSelect value={f.fornecedor} onChange={(v) => upd({ fornecedor: v })} options={fornecedorSelectOptions} placeholder="Buscar fornecedor…" />
+        </Field>
+        <Field label="Apropriação">
+          <ApropriacaoField
+            value={f.apropriacao} onChange={(v) => upd({ apropriacao: v })}
+            centroCustoId={f.obraId} centroCustoPreenchido={!!f.obraId} fornecedorNome={f.fornecedor}
+            apropriacoesGlobais={apropriacoes} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+            excecoes={excecoes} onAddExcecao={(nome) => setExcecoes((prev) => [...new Set([...prev, nome])])}
+          />
+        </Field>
+        <Field label="Descrição" className="gf-span-2"><input value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
+        <div className="gf-form-actions gf-span-2"><button type="submit" className="gf-btn gf-btn-primary">Salvar alterações</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function CustosInternosPage({ entries, setEntries, apropriacoes, accounts, obras = [], fornecedorOptions = [], orcamentoItens = [], fornecedoresCadastro = [], contasInvestidores = [], currentUser, logAudit }) {
   const [filters, setFilters] = useState({ apropriacao: "", de: "", ate: "" });
+  const [editando, setEditando] = useState(null);
+  const podeEditar = can(currentUser, "lancamentos_editar");
+  const salvarEdicao = (patch) => {
+    if (!podeEditar || !editando) return;
+    const anterior = editando;
+    setEntries((prev) => prev.map((x) => (x.id === anterior.id ? { ...x, ...patch, ...carimbarEdicao(currentUser) } : x)));
+    if (anterior.valor !== patch.valor) {
+      logAudit?.({ tipoOperacao: "Alteração de valor de lançamento", registroAlterado: patch.descricao || patch.fornecedor || "Lançamento", valorAnterior: BRL(anterior.valor), valorNovo: BRL(patch.valor), centroCusto: patch.obraId });
+    }
+    setEditando(null);
+  };
   const accountName = (id) => accounts.find((a) => a.id === id)?.nome || "—";
 
   const internos = useMemo(
@@ -7791,16 +7868,17 @@ function CustosInternosPage({ entries, apropriacoes, accounts }) {
             <div className="gf-card-head"><h2>Lançamentos de custos internos</h2></div>
             <div className="gf-table-wrap">
               <table className="gf-table gf-table-ledger">
-                <thead><tr><th>Data</th><th>Conta</th><th>Apropriação</th><th>Fornecedor</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
+                <thead><tr><th>Data</th><th>Conta</th><th>Apropriação</th><th>Fornecedor</th><th>Descrição</th><th className="num">Valor</th><th></th></tr></thead>
                 <tbody>
                   {filtered.map((e) => (
                     <tr key={e.id} className="row-neg">
                       <td>{fmtDate(e.data)}</td>
-                      <td>{accountName(e.contaId)}</td>
+                      <td>{e.origemTipo === "CONTA_INVESTIDOR" ? (contasInvestidores.find((c) => c.id === e.contaInvestidorId)?.nome || "—") : accountName(e.contaId)}</td>
                       <td>{e.apropriacao}</td>
                       <td>{e.fornecedor || "—"}</td>
                       <td className="gf-td-desc" title={e.descricao}>{e.descricao || "—"}</td>
                       <td className="num mono neg">{BRL(e.valor)}</td>
+                      <td>{podeEditar && <button className="gf-icon-btn" title="Editar" onClick={() => setEditando(e)}><Pencil size={14} /></button>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -7813,6 +7891,13 @@ function CustosInternosPage({ entries, apropriacoes, accounts }) {
       <p className="gf-field-hint">
         Pró-labore dos sócios é controlado separadamente na página Sócios e não entra nestes totais.
       </p>
+      {editando && (
+        <CustoInternoEditModal
+          entry={editando} accounts={accounts.filter((a) => a.status === "Ativa" || a.id === editando.contaId)} contasInvestidores={contasInvestidores} obras={obras}
+          apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro}
+          onClose={() => setEditando(null)} onSave={salvarEdicao}
+        />
+      )}
     </div>
   );
 }
