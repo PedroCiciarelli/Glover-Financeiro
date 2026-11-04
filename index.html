@@ -2787,7 +2787,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
         </div>
 
         <div className="gf-table-wrap">
-          <table className="gf-table gf-table-ledger">
+          <ExportableTable className="gf-table gf-table-ledger">
             <thead>
               <tr>
                 <th>Data</th><th>Tipo</th><th>Conta</th><th>Centro de custo</th><th>Fornecedor</th>
@@ -2842,7 +2842,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       </section>
     </div>
@@ -3080,7 +3080,7 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
         <span>Saldo atual <b className={running >= 0 ? "pos" : "neg"}>{BRL(running)}</b></span>
       </div>
       <div className="gf-table-wrap">
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead>
             <tr><th>Data</th><th>Tipo</th><th>Centro de custo / Origem-destino</th><th>Descrição</th><th className="num">Valor</th><th className="num">Saldo após</th><th></th></tr>
           </thead>
@@ -3102,7 +3102,7 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -3446,7 +3446,7 @@ function ContaInvestidorLancamentosModal({ conta, entries, aportes, retiradas, t
         </p>
       )}
       <div className="gf-table-wrap">
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead>
             <tr>
               <th>Data</th><th>Tipo</th><th>Descrição</th><th>Fornecedor</th><th>Centro de Custo</th><th>Apropriação</th>
@@ -3483,7 +3483,7 @@ function ContaInvestidorLancamentosModal({ conta, entries, aportes, retiradas, t
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -4169,7 +4169,7 @@ function ObraLancamentosTab({ entries, accounts, contasInvestidores }) {
 
   return (
     <div className="gf-table-wrap">
-      <table className="gf-table gf-table-ledger">
+      <ExportableTable className="gf-table gf-table-ledger">
         <thead>
           <tr><th>Data</th><th>Tipo</th><th>Conta</th><th>Fornecedor</th><th className="num">Valor</th><th>Descrição</th></tr>
         </thead>
@@ -4193,7 +4193,7 @@ function ObraLancamentosTab({ entries, accounts, contasInvestidores }) {
             </tr>
           ))}
         </tbody>
-      </table>
+      </ExportableTable>
     </div>
   );
 }
@@ -4227,7 +4227,7 @@ function ParticipacaoTab({ obra, entries, contasInvestidores, participacao, inve
       </div>
 
       <div className="gf-table-wrap">
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Participante</th><th className="num">Valor</th><th className="num">Participação</th></tr></thead>
           <tbody>
             {linhas.map((l) => (
@@ -4246,7 +4246,7 @@ function ParticipacaoTab({ obra, entries, contasInvestidores, participacao, inve
               <td className="num mono">100,00%</td>
             </tr>
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       {pieData.length > 0 && (
@@ -4295,7 +4295,7 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
 
       <h4 className="gf-chart-title">Gastos pagos diretamente pela Glover ({gastosDiretos.length})</h4>
       <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {gastosDiretos.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
@@ -4303,12 +4303,12 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               <tr key={e.id}><td>{fmtDate(e.data)}</td><td>{e.fornecedor || "—"}</td><td>{e.apropriacao || "—"}</td><td className="num mono neg">{BRL(e.valor)}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Gastos pagos por Contas Investidoras ({gastosInvestidor.length})</h4>
       <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Conta Investidor</th><th>Fornecedor</th><th className="num">Valor</th><th className="num">Parte Glover</th><th className="num">Parte Investidor</th></tr></thead>
           <tbody>
             {gastosInvestidor.length === 0 && <tr><td colSpan={6} className="gf-field-hint">Nenhum</td></tr>}
@@ -4324,12 +4324,12 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               );
             })}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Aportes Glover em Contas Investidoras vinculados a esta obra ({aportesGlover.length})</h4>
       <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
           <tbody>
             {aportesGlover.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
@@ -4337,12 +4337,12 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               <tr key={m.id}><td>{fmtDate(m.data)}</td><td>{contaNome(m.contaInvestidorId)}</td><td className="num mono pos">{BRL(m.valor)}</td><td>{m.descricao || "—"}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Retiradas Glover vinculadas a esta obra ({retiradasGlover.length})</h4>
       <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
           <tbody>
             {retiradasGlover.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhuma</td></tr>}
@@ -4350,12 +4350,12 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               <tr key={r.id}><td>{fmtDate(r.data)}</td><td>{contaNome(r.contaInvestidorId)}</td><td className="num mono neg">{BRL(r.valor)}</td><td>{r.descricao || "—"}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Aportes de investidores vinculados a esta obra ({aportesInvestidor.length})</h4>
       <div className="gf-table-wrap" style={{ marginBottom: 16 }}>
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
           <tbody>
             {aportesInvestidor.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhum</td></tr>}
@@ -4363,12 +4363,12 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               <tr key={m.id}><td>{fmtDate(m.data)}</td><td>{contaNome(m.contaInvestidorId)}</td><td className="num mono pos">{BRL(m.valor)}</td><td>{m.descricao || "—"}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Retiradas de investidores vinculadas a esta obra ({retiradasInvestidor.length})</h4>
       <div className="gf-table-wrap">
-        <table className="gf-table gf-table-ledger">
+        <ExportableTable className="gf-table gf-table-ledger">
           <thead><tr><th>Data</th><th>Conta Investidor</th><th className="num">Valor</th><th>Descrição</th></tr></thead>
           <tbody>
             {retiradasInvestidor.length === 0 && <tr><td colSpan={4} className="gf-field-hint">Nenhuma</td></tr>}
@@ -4376,7 +4376,7 @@ function ParticipacaoHistoricoModal({ obra, entries, contasInvestidores, porGast
               <tr key={r.id}><td>{fmtDate(r.data)}</td><td>{contaNome(r.contaInvestidorId)}</td><td className="num mono neg">{BRL(r.valor)}</td><td>{r.descricao || "—"}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -4458,7 +4458,7 @@ function OrcamentoTab({ obra, contasPagar, orcamentoItens, setOrcamentoItens, al
 
           <h4 className="gf-chart-title">Controle orçamentário por apropriação</h4>
           <div className="gf-table-wrap">
-            <table className="gf-table gf-table-orcamento">
+            <ExportableTable className="gf-table gf-table-orcamento">
               <thead>
                 <tr><th>Apropriação</th><th className="num">Orçado</th><th className="num">Comprometido</th><th className="num">Realizado</th><th className="num">Saldo</th><th className="num">% Utilizado</th><th>Status</th></tr>
               </thead>
@@ -4475,7 +4475,7 @@ function OrcamentoTab({ obra, contasPagar, orcamentoItens, setOrcamentoItens, al
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </>
       )}
@@ -4611,7 +4611,7 @@ function ImportOrcamentoModal({ obra, onClose, onConfirm }) {
 
           <h4 className="gf-chart-title" style={{ marginTop: 0 }}>Prévia da importação</h4>
           <div className="gf-table-wrap" style={{ maxHeight: 240, marginBottom: 12 }}>
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th>Apropriação</th><th>Descrição</th><th className="num">Qtd.</th><th className="num">Vlr. unitário</th><th className="num">Verba orçada</th></tr></thead>
               <tbody>
                 {previewItens.slice(0, 12).map((it, i) => (
@@ -4623,7 +4623,7 @@ function ImportOrcamentoModal({ obra, onClose, onConfirm }) {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
           <div className="gf-summary-inline" style={{ marginBottom: 14 }}>
             <span>Linhas a importar <b>{previewItens.length}</b></span>
@@ -4676,7 +4676,7 @@ function ApropriacaoOrcamentoModal({ linha, obra, contasPagar, allEntries, onClo
 
       <h4 className="gf-chart-title">Contas a pagar vinculadas</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 200, marginBottom: 14 }}>
-        <table className="gf-table">
+        <ExportableTable exportavel={false} className="gf-table">
           <thead><tr><th>Fornecedor</th><th>Vencimento</th><th className="num">Valor</th><th>Status</th></tr></thead>
           <tbody>
             {contasRelacionadas.length === 0 && <tr><td colSpan={4}><EmptyState icon={CalendarClock} title="Nenhuma conta vinculada" body="Nenhuma conta a pagar lançada para esta apropriação ainda." /></td></tr>}
@@ -4692,12 +4692,12 @@ function ApropriacaoOrcamentoModal({ linha, obra, contasPagar, allEntries, onClo
               );
             })}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <h4 className="gf-chart-title">Lançamentos realizados</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
-        <table className="gf-table">
+        <ExportableTable exportavel={false} className="gf-table">
           <thead><tr><th>Data</th><th>Fornecedor</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {lancamentosRelacionados.length === 0 && <tr><td colSpan={4}><EmptyState icon={Receipt} title="Nenhum lançamento" body="Nenhuma saída lançada para esta apropriação ainda." /></td></tr>}
@@ -4709,7 +4709,7 @@ function ApropriacaoOrcamentoModal({ linha, obra, contasPagar, allEntries, onClo
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -4775,7 +4775,7 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
           <EmptyState icon={Users} title="Nenhum fornecedor cadastrado" body="Cadastre um fornecedor para poder selecioná-lo nos lançamentos e contas a pagar." />
         ) : (
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable className="gf-table">
               <thead><tr><th>Nome</th><th>Documento</th><th>Telefone</th><th>Status</th><th></th></tr></thead>
               <tbody>
                 {cadastroFiltrado.map((f) => (
@@ -4797,7 +4797,7 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         )}
         <p className="gf-field-hint" style={{ marginTop: 10 }}>
@@ -4811,7 +4811,7 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
           <EmptyState icon={Users} title="Nenhum fornecedor com pagamentos" body="Fornecedores aparecem aqui automaticamente ao lançar saídas com o campo Fornecedor preenchido." />
         ) : (
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable className="gf-table">
               <thead>
                 <tr><th>Fornecedor</th><th className="num">Total pago</th><th className="num">Pagamentos</th><th>Obras relacionadas</th><th>Último pagamento</th><th></th></tr>
               </thead>
@@ -4833,7 +4833,7 @@ function FornecedoresPage({ supplierNames, supplierStats, entries, obras, fornec
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         )}
       </section>
@@ -4965,7 +4965,7 @@ function FornecedorDetail({ nome, entries, obras, onClose }) {
       </div>
 
       <div className="gf-table-wrap" style={{ maxHeight: 260 }}>
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Data</th><th>Centro de custo</th><th>Apropriação</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {filtered.length === 0 && <tr><td colSpan={5}><EmptyState icon={Receipt} title="Nenhum pagamento no período" body="Ajuste os filtros para ver mais resultados." /></td></tr>}
@@ -4977,7 +4977,7 @@ function FornecedorDetail({ nome, entries, obras, onClose }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       <div className="gf-fornecedor-summary">
@@ -5243,7 +5243,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
           <EmptyState icon={CalendarClock} title="Nada vencendo esta semana" body="Nenhuma conta em aberto com vencimento entre segunda e domingo." />
         ) : (
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable className="gf-table">
               <thead><tr><th>Vencimento</th><th>Fornecedor</th><th>Centro de custo</th><th>Apropriação</th><th>Descrição</th><th className="num">Valor</th><th>Status</th></tr></thead>
               <tbody>
                 {semana.itens.map((c) => (
@@ -5255,7 +5255,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         )}
       </section>
@@ -5323,7 +5323,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
         </div>
 
         <div className="gf-table-wrap">
-          <table className="gf-table gf-table-ledger">
+          <ExportableTable className="gf-table gf-table-ledger">
             <thead>
               <tr>
                 <th>Vencimento</th><th>Status</th><th>Fornecedor</th><th>Centro de custo</th><th>Apropriação</th>
@@ -5399,7 +5399,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       </section>
 
@@ -5837,7 +5837,7 @@ function BaixaModal({ conta, accounts, contasInvestidores = [], centroCustoName,
           <div className="gf-span-2">
             <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Distribuição por centro de custo (rateio proporcional)</span>
             <div className="gf-table-wrap">
-              <table className="gf-table">
+              <ExportableTable exportavel={false} className="gf-table">
                 <thead><tr><th>Centro de custo</th><th className="num">%</th><th className="num">Valor original</th><th className="num">Acréscimo/desc.</th><th className="num">Valor final</th></tr></thead>
                 <tbody>
                   {rateioPreview.map((r) => (
@@ -5850,7 +5850,7 @@ function BaixaModal({ conta, accounts, contasInvestidores = [], centroCustoName,
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ExportableTable>
             </div>
             <p className="gf-field-hint">O boleto continua sendo um único pagamento bancário; o sistema apenas gera um lançamento por centro de custo, proporcional ao rateio original.</p>
           </div>
@@ -5926,7 +5926,7 @@ function GrupoModal({ itens, centroCustoName, onClose, onBaixar, onEditar }) {
         <div><span>Pagas / em aberto</span><b className="mono">{pagos.length} / {emAberto.length}</b></div>
       </div>
       <div className="gf-table-wrap" style={{ marginTop: 14, maxHeight: 320 }}>
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Parcela</th><th>Vencimento</th><th>Centro de custo</th><th className="num">Valor</th><th>Status</th><th></th></tr></thead>
           <tbody>
             {itens.map((c) => {
@@ -5952,7 +5952,7 @@ function GrupoModal({ itens, centroCustoName, onClose, onBaixar, onEditar }) {
               );
             })}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -5972,7 +5972,7 @@ function RateioViewModal({ conta, centroCustoName, onClose }) {
         Este é um único título/boleto, apenas apropriado entre {conta.rateio.length} centros de custo. Veja abaixo o valor original de cada um e, se já pago, quanto foi efetivamente desembolsado (incluindo a parte proporcional de multas/juros/descontos).
       </p>
       <div className="gf-table-wrap">
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead>
             <tr>
               <th>Centro de custo</th><th className="num">%</th><th className="num">Valor original</th>
@@ -6001,7 +6001,7 @@ function RateioViewModal({ conta, centroCustoName, onClose }) {
               {pago && <td className="num mono"><b>{BRL(conta.pagamento.valorFinal)}</b></td>}
             </tr>
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -6225,7 +6225,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
               <EmptyState icon={CreditCard} title="Nenhuma compra lançada" body='Clique em "Nova compra" para registrar uma compra feita no cartão de crédito.' />
             ) : (
               <div className="gf-table-wrap">
-                <table className="gf-table gf-table-ledger">
+                <ExportableTable className="gf-table gf-table-ledger">
                   <thead>
                     <tr>
                       <th>Cartão</th><th>Data</th><th>Descrição</th><th>Fornecedor</th><th className="num">Valor</th>
@@ -6265,7 +6265,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
                       );
                     })}
                   </tbody>
-                </table>
+                </ExportableTable>
               </div>
             )}
           </section>
@@ -6324,7 +6324,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
           ) : (
             <section className="gf-card">
               <div className="gf-table-wrap">
-                <table className="gf-table">
+                <ExportableTable className="gf-table">
                   <thead><tr><th>Nome</th><th>Banco</th><th>Titular</th><th className="num">Limite</th><th>Fechamento</th><th>Vencimento</th><th>Status</th><th></th></tr></thead>
                   <tbody>
                     {cartoesCredito.map((c) => (
@@ -6344,7 +6344,7 @@ function CartoesCreditoPage({ cartoesCredito, setCartoesCredito, lancamentosCart
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </ExportableTable>
               </div>
             </section>
           )}
@@ -6649,7 +6649,7 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
 
       <h4 className="gf-chart-title">{quitada ? "Compras desta fatura" : "Selecione as compras desta fatura"}</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 280, marginBottom: 14 }}>
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr>{!quitada && <th></th>}<th>Data</th><th>Descrição</th><th>Centro de custo</th><th>Situação</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {listaExibida.length === 0 && (
@@ -6669,7 +6669,7 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
               );
             })}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
 
       {pagamentos.length > 0 && (
@@ -6677,7 +6677,7 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
           <h4 className="gf-chart-title">Pagamentos registrados</h4>
           {pagamentos.map((pg) => (
             <div key={pg.id} className="gf-table-wrap" style={{ marginBottom: 10 }}>
-              <table className="gf-table">
+              <ExportableTable className="gf-table">
                 <thead><tr><th>Conta de origem</th><th>Data</th><th className="num">Valor debitado</th></tr></thead>
                 <tbody>
                   {(pg.contas || []).length === 0 && <tr><td colSpan={3}>Sem detalhes de conta registrados para este pagamento.</td></tr>}
@@ -6689,7 +6689,7 @@ function FaturaDetailModal({ fatura, cartaoName, obraName, accounts, accountsTod
                   <td colSpan={2}><span className="gf-hint">{(pg.entriesGeradas || []).length} lançamento(s) gerado(s) · registrado em {pg.processadoEm ? nowStampFromTs(pg.processadoEm) : "—"}</span></td>
                   <td className="num mono neg"><b>− {BRL(pg.valor)}</b>{podeLancar && <button className="gf-btn gf-btn-ghost" style={{ marginLeft: 8 }} onClick={() => onEstornar(fatura, pg.id)}><Undo2 size={14} /> Estornar</button>}</td>
                 </tr></tfoot>
-              </table>
+              </ExportableTable>
             </div>
           ))}
         </>
@@ -7100,7 +7100,7 @@ function GerContasPagarTab({ obraId, gerContasPagar, setGerContasPagar, apropria
         <EmptyState icon={CalendarClock} title="Nenhuma conta a pagar" body="Cadastre os boletos e documentos que o cliente deverá pagar diretamente." />
       ) : (
         <div className="gf-table-wrap">
-          <table className="gf-table">
+          <ExportableTable className="gf-table">
             <thead><tr><th>Descrição</th><th>Fornecedor</th><th>Apropriação</th><th>Vencimento</th><th className="num">Valor</th><th>Anexos</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {itens.map((c) => (
@@ -7123,7 +7123,7 @@ function GerContasPagarTab({ obraId, gerContasPagar, setGerContasPagar, apropria
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       )}
       {(showNew || editing) && (
@@ -7175,7 +7175,7 @@ function GerDepositosTab({ obraId, gerDepositos, setGerDepositos, apropriacoes, 
         <EmptyState icon={Send} title="Nenhum depósito programado" body="Cadastre pagamentos que o cliente deverá realizar via PIX, depósito ou transferência." />
       ) : (
         <div className="gf-table-wrap">
-          <table className="gf-table">
+          <ExportableTable className="gf-table">
             <thead><tr><th>Descrição</th><th>Beneficiário</th><th>Apropriação</th><th>Vencimento</th><th className="num">Valor</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {itens.map((d) => (
@@ -7197,7 +7197,7 @@ function GerDepositosTab({ obraId, gerDepositos, setGerDepositos, apropriacoes, 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       )}
       {(showNew || editing) && (
@@ -7225,7 +7225,7 @@ function GerReembolsosTab({ obraId, entries, accounts, gerReembolsos }) {
         <EmptyState icon={Undo2} title="Nenhum gasto para reembolso" body="Quando a construtora pagar algo diretamente vinculado a esta obra em Lançamentos, ele aparecerá aqui automaticamente." />
       ) : (
         <div className="gf-table-wrap">
-          <table className="gf-table gf-table-ledger">
+          <ExportableTable className="gf-table gf-table-ledger">
             <thead><tr><th>Data</th><th>Descrição</th><th>Fornecedor</th><th>Apropriação</th><th>Conta bancária</th><th className="num">Valor</th><th>Status</th></tr></thead>
             <tbody>
               {itens.map((e) => (
@@ -7240,7 +7240,7 @@ function GerReembolsosTab({ obraId, entries, accounts, gerReembolsos }) {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       )}
     </div>
@@ -7303,7 +7303,7 @@ function GerResumoTab({ obraId, gerContasPagar, gerDepositos, entries, gerReembo
       </div>
 
       <div className="gf-table-wrap">
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Apropriação</th><th className="num">Boletos</th><th className="num">Depósitos</th><th className="num">Reembolsos</th><th className="num">Total</th></tr></thead>
           <tbody>
             {porApropriacao.length === 0 && <tr><td colSpan={5}><EmptyState icon={FolderKanban} title="Nada por aqui ainda" body="Cadastre contas a pagar, depósitos, ou lance gastos vinculados a esta obra." /></td></tr>}
@@ -7328,7 +7328,7 @@ function GerResumoTab({ obraId, gerContasPagar, gerDepositos, entries, gerReembo
               </tr>
             </tfoot>
           )}
-        </table>
+        </ExportableTable>
       </div>
     </div>
   );
@@ -7396,7 +7396,7 @@ function GerRemessasTab({ obra, gerContasPagar, setGerContasPagar, gerDepositos,
         <EmptyState icon={Send} title="Nenhuma remessa gerada" body="Selecione contas a pagar, depósitos e reembolsos pendentes para montar a primeira remessa." />
       ) : (
         <div className="gf-table-wrap">
-          <table className="gf-table">
+          <ExportableTable className="gf-table">
             <thead><tr><th>Remessa</th><th>Período</th><th>Data</th><th>Responsável</th><th className="num">Total</th><th>Status</th><th></th></tr></thead>
             <tbody>
               {remessasObra.map((r) => (
@@ -7411,7 +7411,7 @@ function GerRemessasTab({ obra, gerContasPagar, setGerContasPagar, gerDepositos,
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       )}
       {showNova && (
@@ -7462,7 +7462,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
         <>
           <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Contas a pagar disponíveis</h4>
           <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th></th><th>Descrição</th><th>Fornecedor</th><th>Vencimento</th><th className="num">Valor</th></tr></thead>
               <tbody>
                 {contasDisponiveis.map((c) => (
@@ -7475,7 +7475,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </>
       )}
@@ -7484,7 +7484,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
         <>
           <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Depósitos disponíveis</h4>
           <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th></th><th>Descrição</th><th>Beneficiário</th><th>Vencimento</th><th className="num">Valor</th></tr></thead>
               <tbody>
                 {depositosDisponiveis.map((d) => (
@@ -7497,7 +7497,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </>
       )}
@@ -7506,7 +7506,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
         <>
           <h4 className="gf-chart-title" style={{ marginTop: 14 }}>Reembolsos disponíveis</h4>
           <div className="gf-table-wrap" style={{ maxHeight: 200 }}>
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th></th><th>Data</th><th>Descrição</th><th>Fornecedor</th><th className="num">Valor</th></tr></thead>
               <tbody>
                 {reembolsosDisponiveis.map((e) => (
@@ -7519,7 +7519,7 @@ function NovaRemessaModal({ obra, gerContasPagar, gerDepositos, entries, gerReem
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
           <Field label="Dados bancários da construtora (para o reembolso)" className="gf-span-2" hint="Aparecem no e-mail para o cliente saber onde depositar">
             <input value={dadosBancariosConstrutora} onChange={(e) => setDadosBancariosConstrutora(e.target.value)} placeholder="Banco, agência, conta, titular…" />
@@ -7867,7 +7867,7 @@ function CustosInternosPage({ entries, setEntries, apropriacoes, accounts, obras
           <section className="gf-card">
             <div className="gf-card-head"><h2>Lançamentos de custos internos</h2></div>
             <div className="gf-table-wrap">
-              <table className="gf-table gf-table-ledger">
+              <ExportableTable className="gf-table gf-table-ledger">
                 <thead><tr><th>Data</th><th>Conta</th><th>Apropriação</th><th>Fornecedor</th><th>Descrição</th><th className="num">Valor</th><th></th></tr></thead>
                 <tbody>
                   {filtered.map((e) => (
@@ -7882,7 +7882,7 @@ function CustosInternosPage({ entries, setEntries, apropriacoes, accounts, obras
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ExportableTable>
             </div>
           </section>
         </>
@@ -8016,7 +8016,7 @@ function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasP
           <EmptyState icon={ClipboardCheck} title="Nada pendente" body="Todos os lançamentos, contas a pagar e movimentos de sócios criados por outros usuários já foram aprovados." />
         ) : (
           <div className="gf-table-wrap">
-            <table className="gf-table gf-table-ledger">
+            <ExportableTable className="gf-table gf-table-ledger">
               <thead>
                 <tr>
                   <th>Origem</th><th>Data</th><th>Centro de custo</th><th>Conta bancária</th><th>Fornecedor/beneficiário</th>
@@ -8044,7 +8044,7 @@ function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasP
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         )}
         <p className="gf-field-hint" style={{ marginTop: 10 }}>
@@ -8471,14 +8471,14 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
         <section className="gf-card">
           <div className="gf-card-head"><h2>Resumo por obra</h2></div>
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable className="gf-table">
               <thead><tr><th>Obra</th><th className="num">Faturado direto (entrada)</th><th className="num">Gasto direto (saída)</th></tr></thead>
               <tbody>
                 {resumoObras.map(({ obra, fat, gasto }) => (
                   <tr key={obra.id}><td>{obra.nome}</td><td className="num mono pos">{BRL(fat)}</td><td className="num mono neg">{BRL(gasto)}</td></tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </section>
       )}
@@ -8503,7 +8503,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
           </div>
         </div>
         <div className="gf-table-wrap">
-          <table className="gf-table gf-table-ledger">
+          <ExportableTable className="gf-table gf-table-ledger">
             <thead>
               <tr><th>Data</th><th>Obra faturada</th><th>Obra do gasto</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Descrição</th><th>Anexos</th><th></th></tr>
             </thead>
@@ -8536,7 +8536,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       </section>
       {verAnexos && <FdAnexosModal registro={verAnexos} onClose={() => setVerAnexos(null)} />}
@@ -8598,7 +8598,7 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
         </div>
       </form>
       <div className="gf-table-wrap">
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Obra</th><th>Fornecedor</th><th className="num">Valor total</th><th className="num">Medido</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
           <tbody>
             {lista.length === 0 && <tr><td colSpan={7}><EmptyState icon={FileText} title="Nenhum contrato cadastrado" body="Cadastre acima ou ao criar uma ordem de pagamento." /></td></tr>}
@@ -8614,7 +8614,7 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
               );
             })}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -8864,7 +8864,7 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
         <section className="gf-card">
           <div className="gf-card-head"><h2>Ordens programadas</h2><div className="gf-summary-inline"><span>Total a pagar <b className="neg">{BRL(totalPend)}</b></span></div></div>
           <div className="gf-table-wrap">
-            <table className="gf-table gf-table-ledger">
+            <ExportableTable className="gf-table gf-table-ledger">
               <thead><tr><th>Pagar em</th><th>Obra</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th className="num">Contrato</th><th className="num">Saldo após medição</th><th>Descrição</th><th></th></tr></thead>
               <tbody>
                 {pendentes.length === 0 && <tr><td colSpan={9}><EmptyState icon={CalendarClock} title="Nenhuma ordem programada" body={podeCriar ? "Crie uma nova ordem de pagamento." : "Não há pagamentos pendentes."} /></td></tr>}
@@ -8886,14 +8886,14 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </section>
       ) : (
         <section className="gf-card">
           <div className="gf-card-head"><h2>Pagamentos Concluídos</h2><div className="gf-summary-inline"><span>Total pago <b>{BRL(totalConc)}</b></span></div></div>
           <div className="gf-table-wrap">
-            <table className="gf-table gf-table-ledger">
+            <ExportableTable className="gf-table gf-table-ledger">
               <thead><tr><th>Pago em</th><th>Obra</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Conta(s)</th><th>Descrição</th><th></th></tr></thead>
               <tbody>
                 {concluidos.length === 0 && <tr><td colSpan={8}><EmptyState icon={CircleDollarSign} title="Nenhum pagamento concluído" body="Os pagamentos efetuados aparecem aqui." /></td></tr>}
@@ -8907,7 +8907,7 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </section>
       )}
@@ -9013,7 +9013,7 @@ function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit, 
             </select>
           </div>
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable className="gf-table">
               <thead><tr><th>Data/hora</th><th>Usuário</th><th>Operação</th><th>Registro</th><th>Anterior</th><th>Novo</th></tr></thead>
               <tbody>
                 {auditFiltrado.length === 0 && (
@@ -9030,7 +9030,7 @@ function UsuariosPage({ usuarios, setUsuarios, currentUser, auditLog, logAudit, 
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </section>
       )}
@@ -9434,7 +9434,7 @@ function DividaDetailModal({ divida, obraName, accounts, onClose }) {
 
       <h4 className="gf-chart-title">Histórico de parcelas pagas</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 260 }}>
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Data</th><th>Conta</th><th className="num">Amortização</th><th className="num">Juros</th><th className="num">Encargos</th><th className="num">Valor total</th></tr></thead>
           <tbody>
             {s.pagamentos.length === 0 && <tr><td colSpan={6}><EmptyState icon={Receipt} title="Nenhum pagamento registrado" body="Nenhuma parcela paga ainda para esta dívida." /></td></tr>}
@@ -9448,7 +9448,7 @@ function DividaDetailModal({ divida, obraName, accounts, onClose }) {
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -9481,7 +9481,7 @@ function InvestimentoDetailModal({ investimento, obraName, accounts, onClose }) 
 
       <h4 className="gf-chart-title">Movimentações</h4>
       <div className="gf-table-wrap" style={{ maxHeight: 260 }}>
-        <table className="gf-table">
+        <ExportableTable className="gf-table">
           <thead><tr><th>Data</th><th>Tipo</th><th>Conta</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {s.relacionados.length === 0 && <tr><td colSpan={4}><EmptyState icon={TrendingUp} title="Nenhuma movimentação" body="Nenhum aporte, resgate ou rendimento registrado ainda." /></td></tr>}
@@ -9494,7 +9494,7 @@ function InvestimentoDetailModal({ investimento, obraName, accounts, onClose }) 
               </tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
     </Modal>
   );
@@ -9608,7 +9608,7 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
           </div>
         )}
         <div className="gf-table-wrap" style={{ marginTop: 12 }}>
-          <table className="gf-table">
+          <ExportableTable className="gf-table">
             <thead><tr><th>Sócio</th><th className="num">Participação</th><th className="num">Retirado (real)</th><th className="num">Retirada ideal</th><th className="num">Diferença</th></tr></thead>
             <tbody>
               {balanco.map((r) => (
@@ -9623,7 +9623,7 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
         <p className="gf-field-hint" style={{ marginTop: 10 }}>
           Cálculo baseado apenas nas retiradas (não considera aportes nem pró-labore, que não entram na divisão societária).
@@ -9695,7 +9695,7 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
           <input type="date" title="Até" value={filters.ate} onChange={(e) => setFilters((f) => ({ ...f, ate: e.target.value }))} />
         </div>
         <div className="gf-table-wrap">
-          <table className="gf-table gf-table-ledger">
+          <ExportableTable className="gf-table gf-table-ledger">
             <thead>
               <tr><th>Data</th><th>Tipo</th><th>Sócio</th><th>Conta</th><th>Descrição</th><th className="num">Valor</th><th></th></tr>
             </thead>
@@ -9740,7 +9740,7 @@ function SociosPage({ socios, setSocios, socioStats, movimentos, setMovimentos, 
                 </tr>
               ))}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       </section>
 
@@ -12434,7 +12434,7 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
             )}
           </div>
           <div className="gf-table-wrap">
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th>Versão</th><th>Arquivo</th><th>Importado em</th><th>Critério</th><th className="num">Atividades exec.</th><th className="num">Dias de trabalho acum.</th><th>Linha de base</th><th>Mudanças vs. anterior</th></tr></thead>
               <tbody>
                 {[...versoes].reverse().map((v) => (
@@ -12450,7 +12450,7 @@ function RelCronogramaSecao({ obra, meta, setMeta, podeGerenciar, currentUser, l
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </>
       )}
@@ -12574,7 +12574,7 @@ function RelAtividadesModal({ obraId, versaoInfo, verValores, onClose }) {
             {" "}Soma dos pesos: <b>{relFmtNum(dados.integr.somaPesosBp / 100, 2)}%</b> {dados.integr.ok ? "(OK)" : "(ATENÇÃO)"} | {dados.integr.n} atividades{dados.fisfin && verValores ? <> | valor total {fmtR(dados.integr.totalW)}</> : null} | {relFmtDias(dados.integr.totalMin, versao.projeto.minPorDia)} dias de trabalho acumulados ({relFmtNum(versao.projeto.minPorDia / 60, 2)} h/dia).
           </p>
           <div className="gf-table-wrap" style={{ maxHeight: "60vh" }}>
-            <table className="gf-table">
+            <ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th>EAP</th><th>Atividade</th><th>Tipo</th><th className="num">Duração (dias)</th>{dados.fisfin && verValores && <th className="num">Valor (R$)</th>}<th className="num">Peso</th></tr></thead>
               <tbody>
                 {versao.tarefas.map((t) => {
@@ -12591,7 +12591,7 @@ function RelAtividadesModal({ obraId, versaoInfo, verValores, onClose }) {
                   );
                 })}
               </tbody>
-            </table>
+            </ExportableTable>
           </div>
         </>
       )}
@@ -13029,7 +13029,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
                       </button>
                       {aberto && (
                         <div className="gf-table-wrap">
-                          <table className="gf-table gf-rel-tabela-afer">
+                          <ExportableTable exportavel={false} className="gf-table gf-rel-tabela-afer">
                             <thead><tr><th>Atividade</th><th className="num">Duração (dias)</th><th className="num">Peso</th><th className="num">Previsto</th><th>Realizado (%)</th><th>Sugestão anterior</th><th>Situação</th><th className="num">Dias equiv.</th></tr></thead>
                             <tbody>
                               {linhas.map((l) => {
@@ -13055,7 +13055,7 @@ function RelEditor({ obra, relId, podeGerenciar, currentUser, logAudit, discipli
                                 );
                               })}
                             </tbody>
-                          </table>
+                          </ExportableTable>
                         </div>
                       )}
                     </div>
@@ -13303,7 +13303,7 @@ function QzDiaModal({ data, funcionarios, obrasEmCurso, obras, apontamentos, set
         <EmptyState icon={Users} title="Nenhum funcionário cadastrado" body="Cadastre funcionários no topo da página para poder apontar os dias trabalhados." />
       ) : (
         <div className="gf-table-wrap" style={{ maxHeight: 460 }}>
-          <table className="gf-table">
+          <ExportableTable exportavel={false} className="gf-table">
             <thead><tr><th>Funcionário</th><th>Obra / Falta</th><th>Meia diária</th><th>Noturna</th><th className="num">Valor do dia</th></tr></thead>
             <tbody>
               {lista.map((fn) => {
@@ -13330,7 +13330,7 @@ function QzDiaModal({ data, funcionarios, obrasEmCurso, obras, apontamentos, set
                 );
               })}
             </tbody>
-          </table>
+          </ExportableTable>
         </div>
       )}
       <p className="gf-field-hint" style={{ marginTop: 10 }}>As alterações são salvas na hora. Dias já incluídos em um fechamento de quinzena ficam travados para aquele funcionário.</p>
@@ -13406,11 +13406,11 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
                 <p className="gf-warn">Nenhum dia trabalhado apontado para este funcionário no período.</p>
               ) : (
                 <div className="gf-table-wrap">
-                  <table className="gf-table">
+                  <ExportableTable exportavel={false} className="gf-table">
                     <thead><tr><th>Obra</th><th className="num">Diárias do período</th></tr></thead>
                     <tbody>{obrasLinhas.map(([oid, v]) => <tr key={oid}><td>{nomeObra(oid)}</td><td className="num mono">{BRL(v)}</td></tr>)}</tbody>
                     <tfoot><tr><td><b>Total das diárias</b></td><td className="num mono"><b>{BRL(calc.bruto)}</b></td></tr></tfoot>
-                  </table>
+                  </ExportableTable>
                 </div>
               )}
             </div>
@@ -13424,7 +13424,7 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
               <p className="gf-hint" style={{ margin: 0 }}>Nenhum adiantamento pendente até {fmtDate(fim)}. Lance adiantamentos pelo botão "Adiantamento" no topo da página.</p>
             ) : (
               <div className="gf-table-wrap">
-                <table className="gf-table">
+                <ExportableTable exportavel={false} className="gf-table">
                   <thead><tr><th></th><th>Data</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
                   <tbody>
                     {adiantDisponiveis.map((ad) => (
@@ -13435,7 +13435,7 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
                     ))}
                   </tbody>
                   <tfoot><tr><td colSpan={3}><b>Adiantamentos incluídos</b></td><td className="num mono neg"><b>− {BRL(somaAdiant)}</b></td></tr></tfoot>
-                </table>
+                </ExportableTable>
                 <p className="gf-field-hint" style={{ marginTop: 6 }}>Desmarque um adiantamento para levá-lo ao próximo fechamento.</p>
               </div>
             )}
@@ -13483,14 +13483,14 @@ function QzPagarModal({ fechamento, accounts, contasInvestidores = [], obras, on
         <div><span>Adiantamentos descontados</span><b className="mono">{BRL(fechamento.adiantamentos)}</b></div>
       </div>
       <div className="gf-table-wrap" style={{ margin: "12px 0" }}>
-        <table className="gf-table">
+        <ExportableTable exportavel={false} className="gf-table">
           <thead><tr><th>Custo da quinzena por obra (proporcional às diárias)</th><th className="num">%</th><th className="num">Valor</th></tr></thead>
           <tbody>
             {computeRateioValores(Object.entries(fechamento.porObra).map(([oid, v]) => ({ centroCusto: oid, percentual: (v / pesoTotal) * 100 })), qzRound(total + (fechamento.adiantamentos || 0))).map((r) => (
               <tr key={r.centroCusto}><td>{nomeObra(r.centroCusto)}</td><td className="num mono">{r.percentual.toFixed(1)}%</td><td className="num mono">{BRL(r.valor)}</td></tr>
             ))}
           </tbody>
-        </table>
+        </ExportableTable>
       </div>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
         <Field label="Data do pagamento"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
@@ -13709,7 +13709,7 @@ function FechamentoQuinzenasPage({
             <EmptyState icon={ClipboardCheck} title="Nenhum fechamento" body='Use "Fechamento de quinzena" no topo para calcular o depósito de um funcionário.' />
           ) : (
             <div className="gf-table-wrap">
-              <table className="gf-table">
+              <ExportableTable className="gf-table">
                 <thead><tr><th>Funcionário</th><th>Período</th><th>Obras</th><th className="num">Diárias</th><th className="num">Bônus</th><th className="num">Reemb.</th><th className="num">Adiant.</th><th className="num">Depósito</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                   {fechamentosOrd.map((q) => (
@@ -13737,7 +13737,7 @@ function FechamentoQuinzenasPage({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ExportableTable>
             </div>
           )}
         </section>
@@ -13750,7 +13750,7 @@ function FechamentoQuinzenasPage({
             <EmptyState icon={CircleDollarSign} title="Nenhum adiantamento" body='Use "Adiantamento" no topo. O valor sai da conta na hora e é descontado no fechamento da quinzena.' />
           ) : (
             <div className="gf-table-wrap">
-              <table className="gf-table">
+              <ExportableTable className="gf-table">
                 <thead><tr><th>Data</th><th>Funcionário</th><th>Conta</th><th>Descrição</th><th className="num">Valor</th><th>Situação</th><th></th></tr></thead>
                 <tbody>
                   {[...adiantamentos].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0))).map((ad) => {
@@ -13765,7 +13765,7 @@ function FechamentoQuinzenasPage({
                     );
                   })}
                 </tbody>
-              </table>
+              </ExportableTable>
             </div>
           )}
         </section>
@@ -13778,7 +13778,7 @@ function FechamentoQuinzenasPage({
             <EmptyState icon={Users} title="Nenhum funcionário cadastrado" body='Use "Novo funcionário" no topo da página.' />
           ) : (
             <div className="gf-table-wrap">
-              <table className="gf-table">
+              <ExportableTable className="gf-table">
                 <thead><tr><th>Nome</th><th>Função</th><th className="num">Diária</th><th className="num">Diária noturna</th><th className="num">Bônus feriado</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                   {[...funcionarios].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" })).map((f) => (
@@ -13795,7 +13795,7 @@ function FechamentoQuinzenasPage({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ExportableTable>
             </div>
           )}
         </section>
@@ -13812,6 +13812,300 @@ function FechamentoQuinzenasPage({
       {showAdiant && <QzAdiantamentoModal funcionarios={funcionarios} accounts={accounts} onClose={() => setShowAdiant(false)} onSave={salvarAdiantamento} />}
       {showFech && <QzFechamentoModal funcionarios={funcionarios} apontamentos={apontamentos} feriados={feriados} fechamentos={fechamentos} adiantamentos={adiantamentos} obras={obras} onClose={() => setShowFech(false)} onSave={salvarFechamento} />}
       {pagarQ && <QzPagarModal fechamento={pagarQ} accounts={accounts} contasInvestidores={contasInvestidores} obras={obras} onClose={() => setPagarId(null)} onConfirm={(p) => pagar(pagarQ, p)} />}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Exportação de listas (Excel / PDF)
+   <ExportableTable> envolve qualquer <table> de listagem e adiciona um ícone de exportação.
+   Lê o que está na tela (respeitando filtros) e gera .xlsx ou .pdf.
+--------------------------------------------------------------- */
+const EXP_BRL_RE = /^([-−–+]\s*)?(R\$\s*)?([-−–]\s*)?\d{1,3}(\.\d{3})*,\d{2}$|^([-−–+]\s*)?R\$\s*\d+,\d{2}$/;
+function expParseCell(txt) {
+  const t = (txt || "").trim();
+  if (!t) return { tipo: "texto", v: "" };
+  if (/^R\$/.test(t) || /^[-−–]\s*R\$/.test(t)) {
+    const neg = /^[-−–]/.test(t);
+    const n = Number(t.replace(/[^\d,]/g, "").replace(",", "."));
+    if (!isNaN(n) && /\d,\d{2}$/.test(t)) return { tipo: "moeda", v: neg ? -n : n };
+  }
+  const md = t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (md) return { tipo: "data", v: new Date(Date.UTC(+md[3], +md[2] - 1, +md[1])), txt: t };
+  return { tipo: "texto", v: t };
+}
+function expCelulaTexto(el) {
+  if (!el) return "";
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll("button, svg, script, style").forEach((n) => n.remove());
+  clone.querySelectorAll("input, select, textarea").forEach((n) => {
+    let v = "";
+    if (n.tagName === "SELECT") v = n.options[n.selectedIndex]?.text || "";
+    else if (n.type === "checkbox" || n.type === "radio") v = n.checked ? "Sim" : "";
+    else v = n.value || "";
+    n.replaceWith(document.createTextNode(v));
+  });
+  clone.querySelectorAll("br, div, p, li").forEach((n) => n.appendChild(document.createTextNode(" | ")));
+  return (clone.textContent || "").replace(/\s+/g, " ").replace(/(\s*\|\s*)+$/, "").replace(/^(\s*\|\s*)+/, "").trim();
+}
+function expLerTabela(table) {
+  const linhasThead = [...table.querySelectorAll("thead tr")];
+  const headers = linhasThead.length ? [...linhasThead[linhasThead.length - 1].children].map((c) => expCelulaTexto(c)) : [];
+  const corpo = [...table.querySelectorAll("tbody tr")].map((tr) => [...tr.children].map((c) => ({ txt: expCelulaTexto(c), span: Number(c.getAttribute("colspan")) || 1 })));
+  const rodape = [...table.querySelectorAll("tfoot tr")].map((tr) => [...tr.children].map((c) => ({ txt: expCelulaTexto(c), span: Number(c.getAttribute("colspan")) || 1 })));
+  const nCols = Math.max(headers.length, ...corpo.map((r) => r.reduce((s, c) => s + c.span, 0)), ...rodape.map((r) => r.reduce((s, c) => s + c.span, 0)), 0);
+  const expande = (cells) => { const out = []; cells.forEach((c) => { out.push(c.txt); for (let i = 1; i < c.span; i++) out.push(""); }); while (out.length < nCols) out.push(""); return out.slice(0, nCols); };
+  // ignora linhas "vazias" (mensagem de lista vazia em uma única célula larga)
+  const dados = corpo.filter((r) => !(r.length === 1 && r[0].span >= Math.max(2, nCols))).map(expande);
+  const rod = rodape.map(expande);
+  const hdr = headers.concat(Array(Math.max(0, nCols - headers.length)).fill(""));
+  // remove colunas totalmente vazias (ex.: coluna só de ícones de ação)
+  const keep = [];
+  for (let c = 0; c < nCols; c++) { if (hdr[c] || dados.some((r) => r[c]) || rod.some((r) => r[c])) keep.push(c); }
+  const pick = (r) => keep.map((c) => r[c]);
+  return { colunas: pick(hdr), linhas: dados.map(pick), rodape: rod.map(pick) };
+}
+function expContexto(table) {
+  const card = table.closest(".gf-card");
+  const modal = table.closest(".gf-modal");
+  let titulo = "";
+  const sec = (card && card.querySelector(".gf-card-head h2")?.textContent) || "";
+  const modalT = (modal && modal.querySelector(".gf-modal-head h3")?.textContent) || "";
+  const pagina = document.querySelector(".gf-toolbar h2")?.textContent || document.querySelector(".gf-main h1, .gf-topbar h1, h1")?.textContent || "";
+  if (modalT) titulo = sec && sec !== modalT ? `${modalT} — ${sec}` : modalT;
+  else titulo = sec && pagina && sec !== pagina ? `${pagina} — ${sec}` : (sec || pagina || "Lista");
+  return titulo.trim();
+}
+function expBaixar(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function expNomeArquivo(titulo, ext) {
+  const base = titulo.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase().slice(0, 60) || "lista";
+  const d = new Date();
+  return `${base}-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}.${ext}`;
+}
+function expGerarXlsx(titulo, dados) {
+  const parsed = dados.linhas.map((r) => r.map(expParseCell));
+  const parsedRod = dados.rodape.map((r) => r.map(expParseCell));
+  const aoa = [dados.colunas, ...parsed.map((r) => r.map((c) => (c.tipo === "texto" ? c.v : c.v))), ...parsedRod.map((r) => r.map((c) => (c.tipo === "texto" ? c.v : c.v)))];
+  const ws = XLSX.utils.aoa_to_sheet(aoa, { cellDates: true });
+  const todas = [...parsed, ...parsedRod];
+  todas.forEach((r, ri) => r.forEach((c, ci) => {
+    const ref = XLSX.utils.encode_cell({ r: ri + 1, c: ci });
+    const cell = ws[ref];
+    if (!cell) return;
+    if (c.tipo === "moeda") { cell.t = "n"; cell.z = '"R$" #,##0.00;[Red]-"R$" #,##0.00'; }
+    else if (c.tipo === "data") { cell.t = "d"; cell.z = "dd/mm/yyyy"; }
+  }));
+  ws["!cols"] = dados.colunas.map((h, ci) => ({ wch: Math.min(60, Math.max(String(h).length + 2, ...aoa.slice(1, 200).map((r) => String(r[ci] instanceof Date ? "00/00/0000" : (r[ci] ?? "")).length + 2))) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, titulo.replace(/[\\/?*\[\]:]/g, " ").slice(0, 31) || "Lista");
+  const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  expBaixar(new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), expNomeArquivo(titulo, "xlsx"));
+}
+
+// ---- PDF (texto vetorial, Helvetica / WinAnsi, gerado sem bibliotecas) ----
+const EXP_CP1252 = { "€": 0x80, "‚": 0x82, "ƒ": 0x83, "„": 0x84, "…": 0x85, "†": 0x86, "‡": 0x87, "ˆ": 0x88, "‰": 0x89, "Š": 0x8a, "‹": 0x8b, "Œ": 0x8c, "Ž": 0x8e, "‘": 0x91, "’": 0x92, "“": 0x93, "”": 0x94, "•": 0x95, "–": 0x96, "—": 0x97, "˜": 0x98, "™": 0x99, "š": 0x9a, "›": 0x9b, "œ": 0x9c, "ž": 0x9e, "Ÿ": 0x9f };
+function expHex(str) {
+  let out = "";
+  for (const ch of str) {
+    let code = ch.codePointAt(0);
+    if (ch === "−") code = 0x2d;
+    else if (ch === "→") { out += "2d3e"; continue; }
+    else if (ch === "✓") code = 0x78;
+    else if (code > 255 || (code >= 0x80 && code <= 0x9f)) code = EXP_CP1252[ch] || 0x3f;
+    out += code.toString(16).padStart(2, "0");
+  }
+  return out;
+}
+let __expCtx = null;
+function expMedir(txt, size, bold) {
+  try {
+    if (!__expCtx) __expCtx = document.createElement("canvas").getContext("2d");
+    __expCtx.font = `${bold ? "bold " : ""}${size}px Helvetica, Arial, sans-serif`;
+    const w = __expCtx.measureText(txt).width;
+    if (w > 0) return w;
+  } catch (e) { /* ignora */ }
+  return txt.length * size * 0.52;
+}
+function expQuebrar(txt, largura, size, bold) {
+  const palavras = String(txt).split(/\s+/).filter(Boolean);
+  if (!palavras.length) return [""];
+  const linhas = []; let atual = "";
+  const empurra = (p) => {
+    // palavra maior que a coluna: quebra por caractere
+    let resto = p;
+    while (expMedir(resto, size, bold) > largura && resto.length > 1) {
+      let n = resto.length - 1;
+      while (n > 1 && expMedir(resto.slice(0, n), size, bold) > largura) n--;
+      linhas.push(resto.slice(0, n)); resto = resto.slice(n);
+    }
+    atual = resto;
+  };
+  palavras.forEach((p) => {
+    const tenta = atual ? `${atual} ${p}` : p;
+    if (expMedir(tenta, size, bold) <= largura) atual = tenta;
+    else { if (atual) linhas.push(atual); atual = ""; if (expMedir(p, size, bold) > largura) empurra(p); else atual = p; }
+  });
+  if (atual) linhas.push(atual);
+  return linhas.length ? linhas : [""];
+}
+function expGerarPdf(titulo, dados) {
+  const nCols = dados.colunas.length;
+  const paisagem = nCols > 5;
+  const PW = paisagem ? 841.89 : 595.28, PH = paisagem ? 595.28 : 841.89;
+  const M = 28, SZ = 7.5, LH = 10, PAD = 3;
+  const larguraUtil = PW - 2 * M;
+  const todasLinhas = [...dados.linhas, ...dados.rodape];
+  const ehNum = dados.colunas.map((_, c) => {
+    const vals = dados.linhas.map((r) => r[c]).filter(Boolean);
+    return vals.length > 0 && vals.filter((v) => expParseCell(v).tipo === "moeda" || /^-?[\d.,]+%?$/.test(v)).length / vals.length >= 0.7;
+  });
+  // larguras: proporcionais ao conteúdo (limitadas), ajustadas à página
+  const ideal = dados.colunas.map((h, c) => {
+    const ws = todasLinhas.slice(0, 300).map((r) => expMedir(r[c] || "", SZ, false));
+    ws.sort((a, b) => a - b);
+    const tipico = ws.length ? ws[Math.min(ws.length - 1, Math.floor(ws.length * 0.9))] : 0;
+    const palavraMax = Math.max(0, ...String(h).split(/\s+/).map((p) => expMedir(p, SZ, true)));
+    return Math.max(tipico, palavraMax, 28) + 2 * PAD;
+  });
+  const somaIdeal = ideal.reduce((s, x) => s + x, 0);
+  let larg;
+  if (somaIdeal <= larguraUtil) { const extra = (larguraUtil - somaIdeal) / nCols; larg = ideal.map((x) => x + extra); }
+  else {
+    const minimo = dados.colunas.map((h) => Math.max(34, Math.max(0, ...String(h).split(/\s+/).map((p) => expMedir(p, SZ, true))) + 2 * PAD));
+    const fator = larguraUtil / somaIdeal;
+    larg = ideal.map((x, i) => Math.max(minimo[i], x * fator));
+    const s2 = larg.reduce((s, x) => s + x, 0);
+    if (s2 > larguraUtil) larg = larg.map((x) => (x * larguraUtil) / s2);
+  }
+  const preparaLinha = (cells, bold) => {
+    const linhas = cells.map((t, c) => expQuebrar(t, larg[c] - 2 * PAD, SZ, bold));
+    const n = Math.max(1, ...linhas.map((l) => l.length));
+    return { linhas, h: n * LH + 2 * PAD };
+  };
+  const cab = preparaLinha(dados.colunas, true);
+  const corpo = dados.linhas.map((r) => preparaLinha(r, false));
+  const rodape = dados.rodape.map((r) => preparaLinha(r, true));
+  const topoCab = 56, topoOutras = M + 14, base = M + 16;
+  const paginas = [];
+  let pag = { itens: [], y: PH - topoCab - cab.h - 4 };
+  const novaPagina = () => { paginas.push(pag); pag = { itens: [], y: PH - topoOutras - cab.h }; };
+  const alturaRod = rodape.reduce((s, r) => s + r.h, 0);
+  const pushLinha = (r, estilo, idx) => {
+    if (pag.y - r.h < base) novaPagina();
+    pag.itens.push({ r, estilo, idx, y: pag.y }); pag.y -= r.h;
+  };
+  corpo.forEach((r, i) => pushLinha(r, "corpo", i));
+  if (rodape.length) { if (pag.y - alturaRod < base) novaPagina(); rodape.forEach((r, i) => pushLinha(r, "rodape", i)); }
+  paginas.push(pag);
+
+  const geradoEm = (() => { const d = new Date(); return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; })();
+  const T = (txt, x, y, bold, size = SZ, cor = "0.12 0.14 0.16") => `BT /${bold ? "F2" : "F1"} ${size} Tf ${cor} rg ${x.toFixed(2)} ${y.toFixed(2)} Td <${expHex(txt)}> Tj ET\n`;
+  const xs = []; { let x = M; larg.forEach((w) => { xs.push(x); x += w; }); }
+  const desenhaLinha = (r, yTopo, bold, cor, fundo) => {
+    let s = "";
+    if (fundo) s += `${fundo} rg ${M} ${(yTopo - r.h).toFixed(2)} ${(larguraUtil).toFixed(2)} ${r.h.toFixed(2)} re f\n`;
+    r.linhas.forEach((ls, c) => {
+      ls.forEach((ln, li) => {
+        if (!ln) return;
+        const y = yTopo - PAD - SZ - li * LH + 1.5;
+        const w = expMedir(ln, SZ, bold);
+        const x = ehNum[c] ? xs[c] + larg[c] - PAD - w : xs[c] + PAD;
+        s += T(ln, x, y, bold, SZ, cor);
+      });
+    });
+    s += `0.85 0.87 0.89 RG 0.4 w ${M} ${(yTopo - r.h).toFixed(2)} m ${(M + larguraUtil).toFixed(2)} ${(yTopo - r.h).toFixed(2)} l S\n`;
+    return s;
+  };
+  const conteudos = paginas.map((p, pi) => {
+    let s = "";
+    let yCab;
+    if (pi === 0) {
+      s += T(titulo, M, PH - 34, true, 14, "0.08 0.30 0.20");
+      s += T(`Glover Engenharia  •  gerado em ${geradoEm}  •  ${dados.linhas.length} registro(s)`, M, PH - 47, false, 8, "0.45 0.48 0.50");
+      yCab = PH - topoCab - 4;
+    } else {
+      s += T(titulo, M, PH - M - 6, true, 9, "0.08 0.30 0.20");
+      yCab = PH - topoOutras;
+    }
+    s += desenhaLinha(cab, yCab, true, "1 1 1", "0.08 0.30 0.20");
+    p.itens.forEach((it) => {
+      const fundo = it.estilo === "rodape" ? "0.90 0.94 0.92" : (it.idx % 2 ? "0.965 0.972 0.975" : null);
+      s += desenhaLinha(it.r, it.y, it.estilo === "rodape", "0.12 0.14 0.16", fundo);
+    });
+    s += T(`Página ${pi + 1} de ${paginas.length}`, PW - M - expMedir(`Página ${pi + 1} de ${paginas.length}`, 7.5, false), M - 6, false, 7.5, "0.45 0.48 0.50");
+    return s;
+  });
+
+  // monta o arquivo PDF (somente ASCII; texto em strings hexadecimais)
+  const objs = [];
+  const add = (c) => { objs.push(c); return objs.length; };
+  const catalogId = add(""), pagesId = add("");
+  const f1 = add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+  const f2 = add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+  const pageIds = conteudos.map((c) => {
+    const cid = add(`<< /Length ${c.length} >>\nstream\n${c}endstream`);
+    return add(`<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 ${f1} 0 R /F2 ${f2} 0 R >> >> /Contents ${cid} 0 R >>`);
+  });
+  objs[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+  objs[pagesId - 1] = `<< /Type /Pages /Kids [${pageIds.map((i) => `${i} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
+  let pdf = "%PDF-1.4\n"; const offs = [];
+  objs.forEach((o, i) => { offs.push(pdf.length); pdf += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offs.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("")}`;
+  pdf += `trailer\n<< /Size ${objs.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  const bytes = new Uint8Array(pdf.length);
+  for (let i = 0; i < pdf.length; i++) bytes[i] = pdf.charCodeAt(i) & 0xff;
+  expBaixar(new Blob([bytes], { type: "application/pdf" }), expNomeArquivo(titulo, "pdf"));
+}
+
+function ExportBar({ tableRef, titulo }) {
+  const [aberto, setAberto] = useState(false);
+  const [erro, setErro] = useState("");
+  const boxRef = useRef(null);
+  useEffect(() => {
+    if (!aberto) return undefined;
+    const fecha = (e) => { if (boxRef.current && !boxRef.current.contains(e.target)) setAberto(false); };
+    document.addEventListener("mousedown", fecha);
+    return () => document.removeEventListener("mousedown", fecha);
+  }, [aberto]);
+  const gerar = (formato) => {
+    setAberto(false); setErro("");
+    try {
+      const table = tableRef.current;
+      if (!table) return;
+      const dados = expLerTabela(table);
+      const tit = titulo || expContexto(table);
+      if (!dados.linhas.length) { setErro("Não há itens na lista para exportar."); setTimeout(() => setErro(""), 3500); return; }
+      if (formato === "xlsx") expGerarXlsx(tit, dados); else expGerarPdf(tit, dados);
+    } catch (e) {
+      setErro("Não foi possível gerar o arquivo."); setTimeout(() => setErro(""), 3500);
+    }
+  };
+  return (
+    <div className="gf-export-bar" ref={boxRef}>
+      {erro && <span className="gf-export-erro">{erro}</span>}
+      <button type="button" className="gf-icon-btn gf-export-btn" title="Exportar lista (Excel ou PDF)" aria-label="Exportar lista" onClick={() => setAberto((v) => !v)}><Download size={15} /></button>
+      {aberto && (
+        <div className="gf-export-menu">
+          <button type="button" onClick={() => gerar("xlsx")}>Planilha Excel (.xlsx)</button>
+          <button type="button" onClick={() => gerar("pdf")}>Documento PDF</button>
+        </div>
+      )}
+    </div>
+  );
+}
+function ExportableTable({ children, exportavel = true, exportTitulo, ...props }) {
+  const ref = useRef(null);
+  if (!exportavel) return <table {...props}>{children}</table>;
+  return (
+    <div className="gf-export-host">
+      <ExportBar tableRef={ref} titulo={exportTitulo} />
+      <table ref={ref} {...props}>{children}</table>
     </div>
   );
 }
@@ -14114,6 +14408,14 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
 .gf-fornecedor-filters{ grid-template-columns:repeat(5,1fr); margin-bottom:14px; }
 
 /* Table */
+.gf-export-host{ position:relative; }
+.gf-export-bar{ position:sticky; left:0; display:flex; justify-content:flex-end; align-items:center; gap:8px; padding:2px 2px 4px; }
+.gf-export-btn{ border:1px solid var(--gf-border); background:#fff; }
+.gf-export-btn:hover{ border-color:var(--gf-primary); color:var(--gf-primary); }
+.gf-export-menu{ position:absolute; right:2px; top:30px; z-index:30; background:#fff; border:1px solid var(--gf-border); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.12); padding:4px; display:flex; flex-direction:column; min-width:190px; }
+.gf-export-menu button{ text-align:left; background:none; border:none; padding:8px 10px; border-radius:7px; font:inherit; font-size:13px; cursor:pointer; }
+.gf-export-menu button:hover{ background:var(--gf-bg, #F3F5F4); }
+.gf-export-erro{ font-size:12px; color:var(--gf-danger, #C0392B); }
 .gf-table-wrap{ overflow:auto; }
 .gf-table{ width:100%; border-collapse:collapse; font-size:13px; }
 .gf-table th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--gf-muted); padding:8px 10px; border-bottom:1px solid var(--gf-border); white-space:nowrap; }
@@ -14296,7 +14598,6 @@ input:focus, select:focus, textarea:focus{ outline:2px solid var(--gf-accent); o
   .gf-topbar{ padding:16px; }
 }
 `;
-
 const rootEl = document.getElementById("root");
 const root = createRoot(rootEl);
 root.render(<App />);
