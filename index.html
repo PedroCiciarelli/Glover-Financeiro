@@ -13196,18 +13196,22 @@ function qzValorDia(func, ap, feriado) {
 // Resumo de um período para um funcionário (usado no formulário de fechamento).
 function qzCalcularPeriodo(func, inicio, fim, apontamentos, feriados) {
   const fer = new Set(feriados || []);
-  const aps = apontamentos.filter((a) => a.funcId === func.id && a.data >= inicio && a.data <= fim);
+  // um dia pode ter dois apontamentos (turno diurno e turno noturno, cada um com sua obra: jornada dupla)
+  const aps = apontamentos.filter((a) => a.funcId === func.id && a.data >= inicio && a.data <= fim)
+    .sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : (a.noturna ? 1 : 0) - (b.noturna ? 1 : 0)));
   const porObra = {};
+  const feriadoJaPago = new Set(); // bônus de feriado: uma vez por dia, mesmo em jornada dupla
   let diasTrabalhados = 0, meias = 0, faltas = 0, noturnas = 0, feriadosTrab = 0, bruto = 0;
   aps.forEach((a) => {
     if (a.falta) { faltas += 1; return; }
     if (!a.obraId) return;
-    const v = qzValorDia(func, a, fer.has(a.data));
+    const bonus = fer.has(a.data) && !feriadoJaPago.has(a.data);
+    if (bonus) { feriadoJaPago.add(a.data); feriadosTrab += 1; }
+    const v = qzValorDia(func, a, bonus);
     porObra[a.obraId] = qzRound((porObra[a.obraId] || 0) + v);
     bruto += v;
     if (a.meia) { meias += 1; diasTrabalhados += 0.5; } else diasTrabalhados += 1;
     if (a.noturna) noturnas += 1;
-    if (fer.has(a.data)) feriadosTrab += 1;
   });
   return { porObra, bruto: qzRound(bruto), diasTrabalhados, meias, faltas, noturnas, feriadosTrab, nApontamentos: aps.length };
 }
@@ -13314,30 +13318,61 @@ function QzDiaModal({ data, funcionarios, obrasEmCurso, obras, apontamentos, set
   const [obraTodos, setObraTodos] = useState("");
   const dt = new Date(data + "T00:00:00");
   const ehFeriado = feriados.includes(data);
-  const apDe = (funcId) => apontamentos.find((a) => a.funcId === funcId && a.data === data);
+  const apsDe = (funcId) => apontamentos.filter((a) => a.funcId === funcId && a.data === data);
+  const apTurno = (funcId, noite) => apontamentos.find((a) => a.funcId === funcId && a.data === data && !!a.noturna === noite);
   const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "Obra não encontrada";
-  const lista = funcionarios.filter((f) => f.ativo || apDe(f.id));
+  const lista = funcionarios.filter((f) => f.ativo || apsDe(f.id).length > 0);
 
-  const setAp = (funcId, patch) => {
+  // turno diurno (noite = false) e noturno (noite = true): cada um é um apontamento próprio, com obra própria
+  const setAp = (funcId, noite, patch) => {
     if (!podeGerenciar) return;
     setApontamentos((prev) => {
-      const atual = prev.find((a) => a.funcId === funcId && a.data === data);
-      const resto = prev.filter((a) => !(a.funcId === funcId && a.data === data));
-      const novo = { funcId, data, obraId: null, falta: false, meia: false, noturna: false, ...(atual || {}), ...patch };
-      if (!novo.falta && !novo.obraId) return resto; // sem apontamento
-      if (novo.falta) { novo.obraId = null; novo.meia = false; novo.noturna = false; }
+      const atual = prev.find((a) => a.funcId === funcId && a.data === data && !!a.noturna === noite);
+      const resto = prev.filter((a) => !(a.funcId === funcId && a.data === data && !!a.noturna === noite));
+      const novo = { funcId, data, obraId: null, falta: false, meia: false, ...(atual || {}), ...patch, noturna: noite };
+      if (!novo.falta && !novo.obraId) return resto; // sem apontamento neste turno
+      if (novo.falta) { novo.obraId = null; novo.meia = false; }
       return [...resto, novo];
     });
   };
   const valorSelect = (ap) => (!ap ? "" : ap.falta ? "__falta" : ap.obraId || "");
-  const onSelect = (funcId, v) => {
-    if (v === "") setAp(funcId, { obraId: null, falta: false, meia: false, noturna: false });
-    else if (v === "__falta") setAp(funcId, { falta: true });
-    else setAp(funcId, { falta: false, obraId: v });
+  const onSelect = (funcId, noite, v) => {
+    if (v === "") setAp(funcId, noite, { obraId: null, falta: false, meia: false });
+    else if (v === "__falta") setAp(funcId, noite, { falta: true });
+    else setAp(funcId, noite, { falta: false, obraId: v });
   };
   const aplicarTodos = () => {
     if (!obraTodos || !podeGerenciar) return;
-    lista.filter((f) => f.ativo && !apDe(f.id) && !qzFechamentoQueCobre(fechamentos, f.id, data)).forEach((f) => setAp(f.id, { falta: false, obraId: obraTodos }));
+    lista.filter((f) => f.ativo && apsDe(f.id).length === 0 && !qzFechamentoQueCobre(fechamentos, f.id, data)).forEach((f) => setAp(f.id, false, { falta: false, obraId: obraTodos }));
+  };
+  // valor do dia de um funcionário: soma dos turnos; o bônus de feriado entra uma única vez
+  const valorDiaFunc = (fn) => {
+    let bonusDado = false, total = 0;
+    [false, true].forEach((noite) => {
+      const ap = apTurno(fn.id, noite);
+      if (!ap || ap.falta || !ap.obraId) return;
+      const bonus = ehFeriado && !bonusDado; if (bonus) bonusDado = true;
+      total += qzValorDia(fn, ap, bonus);
+    });
+    return qzRound(total);
+  };
+  const celulaTurno = (fn, noite, bloqueado) => {
+    const ap = apTurno(fn.id, noite);
+    const obraFora = ap?.obraId && !obrasEmCurso.some((o) => o.id === ap.obraId);
+    return (
+      <td>
+        <select value={valorSelect(ap)} disabled={bloqueado} onChange={(e) => onSelect(fn.id, noite, e.target.value)} style={{ minWidth: 170 }}>
+          <option value="">— sem apontamento —</option>
+          {obrasEmCurso.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+          {obraFora && <option value={ap.obraId}>{nomeObra(ap.obraId)}</option>}
+          {!noite && <option value="__falta">Falta</option>}
+        </select>
+        <label className="gf-checkbox" style={{ marginTop: 4, fontSize: 12 }}>
+          <input type="checkbox" checked={!!ap?.meia} disabled={bloqueado || !ap || ap.falta} onChange={(e) => setAp(fn.id, noite, { meia: e.target.checked })} />
+          <span>Meia diária</span>
+        </label>
+      </td>
+    );
   };
   const toggleFeriado = () => {
     if (!podeGerenciar) return;
@@ -13366,28 +13401,23 @@ function QzDiaModal({ data, funcionarios, obrasEmCurso, obras, apontamentos, set
       ) : (
         <div className="gf-table-wrap" style={{ maxHeight: 460 }}>
           <ExportableTable exportavel={false} className="gf-table">
-            <thead><tr><th>Funcionário</th><th>Obra / Falta</th><th>Meia diária</th><th>Noturna</th><th className="num">Valor do dia</th></tr></thead>
+            <thead><tr><th>Funcionário</th><th>Diurno — obra / falta</th><th>Noturno — obra</th><th className="num">Valor do dia</th></tr></thead>
             <tbody>
               {lista.map((fn) => {
-                const ap = apDe(fn.id);
+                const aps = apsDe(fn.id);
                 const fech = qzFechamentoQueCobre(fechamentos, fn.id, data);
                 const bloqueado = !podeGerenciar || !!fech;
-                const obraFora = ap?.obraId && !obrasEmCurso.some((o) => o.id === ap.obraId);
+                const soFalta = aps.length > 0 && aps.every((a) => a.falta);
+                const temTrab = aps.some((a) => !a.falta && a.obraId);
                 return (
-                  <tr key={fn.id} className={ap?.falta ? "row-neg" : ap ? "row-pos" : ""}>
-                    <td><b>{fn.nome}</b>{fn.funcao && <div className="gf-muted" style={{ fontSize: 11.5 }}>{fn.funcao}</div>}{!fn.ativo && <Badge tone="gray">Inativo</Badge>}</td>
-                    <td>
-                      <select value={valorSelect(ap)} disabled={bloqueado} onChange={(e) => onSelect(fn.id, e.target.value)} style={{ minWidth: 200 }}>
-                        <option value="">— sem apontamento —</option>
-                        {obrasEmCurso.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}
-                        {obraFora && <option value={ap.obraId}>{nomeObra(ap.obraId)}</option>}
-                        <option value="__falta">Falta</option>
-                      </select>
+                  <tr key={fn.id} className={soFalta ? "row-neg" : temTrab ? "row-pos" : ""}>
+                    <td><b>{fn.nome}</b>{fn.funcao && <div className="gf-muted" style={{ fontSize: 11.5 }}>{fn.funcao}</div>}{!fn.ativo && <Badge tone="gray">Inativo</Badge>}
+                      {aps.filter((a) => !a.falta && a.obraId).length === 2 && <div><Badge tone="blue">Jornada dupla</Badge></div>}
                       {fech && <div className="gf-muted" style={{ fontSize: 11 }}>Fechado na quinzena {fmtDate(fech.inicio)} a {fmtDate(fech.fim)}</div>}
                     </td>
-                    <td><input type="checkbox" checked={!!ap?.meia} disabled={bloqueado || !ap || ap.falta} onChange={(e) => setAp(fn.id, { meia: e.target.checked })} /></td>
-                    <td><input type="checkbox" checked={!!ap?.noturna} disabled={bloqueado || !ap || ap.falta} onChange={(e) => setAp(fn.id, { noturna: e.target.checked })} /></td>
-                    <td className="num mono">{ap && !ap.falta ? BRL(qzValorDia(fn, ap, ehFeriado)) : "—"}</td>
+                    {celulaTurno(fn, false, bloqueado)}
+                    {celulaTurno(fn, true, bloqueado)}
+                    <td className="num mono">{temTrab ? BRL(valorDiaFunc(fn)) : "—"}</td>
                   </tr>
                 );
               })}
@@ -13462,7 +13492,7 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
           {calc && !conflito && (
             <div className="gf-span-2">
               <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(4,1fr)", marginBottom: 8 }}>
-                <div><span>Dias trabalhados</span><b className="mono">{String(calc.diasTrabalhados).replace(".", ",")}</b></div>
+                <div><span>Diárias (turnos)</span><b className="mono">{String(calc.diasTrabalhados).replace(".", ",")}</b></div>
                 <div><span>Faltas</span><b className="mono">{calc.faltas}</b></div>
                 <div><span>Noturnas</span><b className="mono">{calc.noturnas}</b></div>
                 <div><span>Feriados trabalhados</span><b className="mono">{calc.feriadosTrab}</b></div>
@@ -13618,8 +13648,14 @@ function FechamentoQuinzenasPage({
   const mudarMes = (delta) => { const d = new Date(ano, mesNum - 1 + delta, 1); setMes(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); };
 
   const apsPorDia = useMemo(() => {
+    const t = {}; // por dia: funcionários que trabalharam / que faltaram (jornada dupla conta uma vez)
+    apontamentos.forEach((a) => {
+      if (!a.data.startsWith(mes)) return;
+      const d = (t[a.data] = t[a.data] || { trab: new Set(), falta: new Set() });
+      (a.falta ? d.falta : d.trab).add(a.funcId);
+    });
     const m = {};
-    apontamentos.forEach((a) => { if (a.data.startsWith(mes)) { (m[a.data] = m[a.data] || { trab: 0, falta: 0 }); if (a.falta) m[a.data].falta += 1; else m[a.data].trab += 1; } });
+    Object.keys(t).forEach((k) => { m[k] = { trab: t[k].trab.size, falta: t[k].falta.size }; });
     return m;
   }, [apontamentos, mes]);
 
