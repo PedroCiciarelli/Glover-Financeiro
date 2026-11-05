@@ -1589,7 +1589,7 @@ export default function App() {
     // Adiantamentos a funcionários: saída financeira imediata da conta. Quando o fechamento da quinzena é pago,
     // o adiantamento passa a existir como lançamento rateado nas obras (lancadoObra) e deixa de contar aqui.
     const adiantOut = {};
-    adiantamentosFunc.forEach((ad) => { if (!ad.lancadoObra) adiantOut[ad.contaId] = (adiantOut[ad.contaId] || 0) + Number(ad.valor || 0); });
+    adiantamentosFunc.forEach((ad) => { const p = adiantPendente(ad); if (p > 0) adiantOut[ad.contaId] = (adiantOut[ad.contaId] || 0) + p; });
     accounts.forEach((a) => {
       const s = map[a.id];
       s.adiantOut = adiantOut[a.id] || 0;
@@ -2908,7 +2908,7 @@ function SaldosPage({ adiantamentosFunc = [], accounts, setAccounts, accountStat
     (movimentosSocios || []).forEach((m) => movs.push({ data: m.data, delta: m.tipo === "aporte" ? m.valor : -m.valor }));
     movimentosInvestidores.forEach((m) => { if (m.origemAporte === "GLOVER" && m.contaGloverId) movs.push({ data: m.data, delta: -Number(m.valor) }); });
     retiradasInvestidores.forEach((r) => { if (r.tipo === "GLOVER" && r.contaGloverDestinoId) movs.push({ data: r.data, delta: Number(r.valor) }); });
-    adiantamentosFunc.forEach((ad) => { if (!ad.lancadoObra) movs.push({ data: ad.data, delta: -Number(ad.valor) }); });
+    adiantamentosFunc.forEach((ad) => { const p = adiantPendente(ad); if (p > 0) movs.push({ data: ad.data, delta: -p }); });
     // transferências não afetam o total da empresa (saem de uma conta, entram em outra)
     const byDate = {};
     movs.forEach((m) => { byDate[m.data] = (byDate[m.data] || 0) + m.delta; });
@@ -3011,7 +3011,7 @@ function SaldosPage({ adiantamentosFunc = [], accounts, setAccounts, accountStat
           aportesInvestidores={movimentosInvestidores.filter((m) => m.origemAporte === "GLOVER" && m.contaGloverId === detailAccountId)}
           retiradasInvestidores={retiradasInvestidores.filter((r) => r.tipo === "GLOVER" && r.contaGloverDestinoId === detailAccountId)}
           contasInvestidores={contasInvestidores}
-          adiantamentos={adiantamentosFunc.filter((ad) => ad.contaId === detailAccountId && !ad.lancadoObra)}
+          adiantamentos={adiantamentosFunc.filter((ad) => ad.contaId === detailAccountId).map((ad) => ({ ...ad, valorPendente: adiantPendente(ad) })).filter((ad) => ad.valorPendente > 0)}
           obras={obras}
           onDeleteTransfer={podeTransferir ? excluirTransferencia : null}
           onClose={() => setDetailAccountId(null)}
@@ -3050,7 +3050,9 @@ function ContaLancamentosModal({ conta, entries, transfers = [], accounts = [], 
     })),
     ...adiantamentos.map((ad) => ({
       id: `ad-${ad.id}`, data: ad.data, createdAt: ad.createdAt || 0, tipo: "Adiantamento a funcionário",
-      origem: ad.funcNome, descricao: ad.descricao || "Aguardando fechamento da quinzena", valor: -Math.abs(Number(ad.valor)),
+      origem: ad.funcNome,
+      descricao: (ad.parcelas ? `Adiantamento parcelado — ${ad.parcelas.filter((p) => p.lancadoObra).length}/${ad.parcelas.length} parcelas já descontadas${ad.descricao ? ` · ${ad.descricao}` : ""}` : (ad.descricao || "Aguardando fechamento da quinzena")),
+      valor: -Math.abs(Number(ad.valorPendente != null ? ad.valorPendente : ad.valor)),
     })),
     ...aportesInvestidores.map((m) => ({
       id: `ai-${m.id}`, data: m.data, createdAt: m.createdAt || 0, tipo: "Aporte em Conta Investidor",
@@ -13158,6 +13160,30 @@ const qzRound = (v) => Math.round((Number(v) || 0) * 100) / 100;
 const QZ_DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const QZ_DIAS_SEMANA_LONGO = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
 
+// ---- Adiantamentos (à vista ou parcelados) ----
+// Parte do adiantamento que ainda é só "lançamento financeiro" (saiu da conta, mas ainda não foi rateada nas obras).
+function adiantPendente(ad) {
+  if (Array.isArray(ad.parcelas)) return qzRound(ad.parcelas.reduce((t, p) => t + (p.lancadoObra ? 0 : Number(p.valor) || 0), 0));
+  return ad.lancadoObra ? 0 : Number(ad.valor) || 0;
+}
+// Próxima parcela ainda não incluída em nenhum fechamento (à vista: o próprio adiantamento).
+function adiantProxima(ad) {
+  if (Array.isArray(ad.parcelas)) {
+    const i = ad.parcelas.findIndex((p) => !p.fechamentoId);
+    return i < 0 ? null : { n: i + 1, valor: Number(ad.parcelas[i].valor) || 0 };
+  }
+  return ad.fechamentoId ? null : { n: null, valor: Number(ad.valor) || 0 };
+}
+function qzItensAdiant(q) { return q.adiantamentoItens || (q.adiantamentoIds || []).map((adId) => ({ adId, parcela: null })); }
+function adiantAplicar(lista, itens, fn) {
+  return lista.map((ad) => {
+    const it = itens.find((i) => i.adId === ad.id);
+    if (!it) return ad;
+    if (it.parcela && Array.isArray(ad.parcelas)) return { ...ad, parcelas: ad.parcelas.map((p, i) => (i === it.parcela - 1 ? { ...p, ...fn(p) } : p)) };
+    return { ...ad, ...fn(ad) };
+  });
+}
+
 // Valor de um dia apontado: diária (ou noturna), metade se meia diária, + bônus de feriado quando trabalhou em feriado.
 function qzValorDia(func, ap, feriado) {
   if (!func || !ap || ap.falta || !ap.obraId) return 0;
@@ -13216,11 +13242,26 @@ function FuncionarioModal({ funcionario, onClose, onSave }) {
 function QzAdiantamentoModal({ funcionarios, accounts, onClose, onSave }) {
   const ativos = funcionarios.filter((f) => f.ativo);
   const [f, setF] = useState({ funcId: ativos[0]?.id || "", data: todayISO(), valor: "", contaId: accounts[0]?.id || "", descricao: "" });
+  const [parcelado, setParcelado] = useState(false);
+  const [nParcelas, setNParcelas] = useState("5");
+  const [parcRows, setParcRows] = useState([]);
   const upd = (p) => setF((s) => ({ ...s, ...p }));
+  useEffect(() => {
+    if (!parcelado) return;
+    const n = Math.floor(Number(nParcelas) || 0), total = Number(f.valor) || 0;
+    if (n < 2 || n > 60 || total <= 0) { setParcRows([]); return; }
+    const base = Math.round((total / n) * 100) / 100;
+    setParcRows(Array.from({ length: n }, (_, i) => ({ id: i + 1, valor: String(i === n - 1 ? qzRound(total - base * (n - 1)) : base) })));
+  }, [parcelado, nParcelas, f.valor]);
+  const somaParc = qzRound(parcRows.reduce((t, r) => t + (Number(r.valor) || 0), 0));
+  const difParc = qzRound((Number(f.valor) || 0) - somaParc);
+  const parcOk = !parcelado || (parcRows.length >= 2 && parcRows.every((r) => Number(r.valor) > 0) && Math.abs(difParc) < 0.01);
   const submit = (e) => {
     e.preventDefault();
-    if (!f.funcId || !f.contaId || !(Number(f.valor) > 0) || !f.data) return;
-    onSave({ ...f, valor: qzRound(f.valor), descricao: f.descricao.trim() });
+    if (!f.funcId || !f.contaId || !(Number(f.valor) > 0) || !f.data || !parcOk) return;
+    const payload = { ...f, valor: qzRound(f.valor), descricao: f.descricao.trim() };
+    if (parcelado) payload.parcelas = parcRows.map((r) => ({ valor: qzRound(r.valor), fechamentoId: null, lancadoObra: false }));
+    onSave(payload);
   };
   return (
     <Modal title="Adiantamento a funcionário" onClose={onClose} width={520}>
@@ -13240,8 +13281,29 @@ function QzAdiantamentoModal({ funcionarios, accounts, onClose, onSave }) {
             </select>
           </Field>
           <Field label="Descrição (opcional)" className="gf-span-2"><input value={f.descricao} onChange={(e) => upd({ descricao: e.target.value })} /></Field>
-          <p className="gf-field-hint gf-span-2">O valor sai da conta imediatamente, como lançamento financeiro (sem obra). No fechamento da quinzena ele é descontado do depósito e rateado entre as obras em que o funcionário trabalhou.</p>
-          <div className="gf-form-actions gf-span-2"><button type="submit" className="gf-btn gf-btn-primary">Lançar adiantamento</button></div>
+          <label className="gf-checkbox gf-span-2"><input type="checkbox" checked={parcelado} onChange={(e) => setParcelado(e.target.checked)} /><span>Adiantamento parcelado (descontar uma parcela por quinzena)</span></label>
+          {parcelado && (
+            <div className="gf-span-2 gf-rateio-box">
+              <Field label="Número de parcelas (quinzenas)"><input type="number" min="2" max="60" step="1" value={nParcelas} onChange={(e) => setNParcelas(e.target.value)} /></Field>
+              {parcRows.length > 0 && (
+                <>
+                  <span className="gf-field-label" style={{ display: "block", margin: "8px 0 6px" }}>Valor de cada parcela (editável)</span>
+                  {parcRows.map((r, i) => (
+                    <div className="gf-rateio-row" key={r.id} style={{ gridTemplateColumns: "60px 1fr" }}>
+                      <span className="mono" style={{ alignSelf: "center", fontSize: 12.5 }}>{i + 1}/{parcRows.length}</span>
+                      <input type="number" min="0.01" step="0.01" value={r.valor} onChange={(e) => setParcRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, valor: e.target.value } : x)))} />
+                    </div>
+                  ))}
+                  <div className={`gf-rateio-total ${Math.abs(difParc) < 0.01 ? "is-ok" : "is-warn"}`}>
+                    <span>Soma das parcelas: {BRL(somaParc)} de {BRL(Number(f.valor) || 0)}</span>
+                    {Math.abs(difParc) < 0.01 ? <b className="pos">Fecha com o valor total ✓</b> : <b className="neg">{difParc > 0 ? `Falta ${BRL(difParc)}` : `Excedeu em ${BRL(-difParc)}`}</b>}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          <p className="gf-field-hint gf-span-2">O valor total sai da conta imediatamente, como lançamento financeiro (sem obra). {parcelado ? "A cada fechamento de quinzena do funcionário, a próxima parcela é descontada do depósito (parcela 1/N, 2/N…) e rateada entre as obras em que ele trabalhou, até quitar." : "No fechamento da quinzena ele é descontado do depósito e rateado entre as obras em que o funcionário trabalhou."}</p>
+          <div className="gf-form-actions gf-span-2"><button type="submit" className="gf-btn gf-btn-primary" disabled={!parcOk}>Lançar adiantamento</button></div>
         </form>
       )}
     </Modal>
@@ -13358,9 +13420,12 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
   const periodoInvalido = !inicio || !fim || fim < inicio;
   const calc = useMemo(() => (func && !periodoInvalido ? qzCalcularPeriodo(func, inicio, fim, apontamentos, feriados) : null), [func, inicio, fim, apontamentos, feriados, periodoInvalido]);
   // adiantamentos do funcionário ainda não incluídos em nenhum fechamento, até o fim do período
-  const adiantDisponiveis = adiantamentos.filter((ad) => ad.funcId === funcId && !ad.fechamentoId && ad.data <= fim).sort((a, b) => (a.data < b.data ? -1 : 1));
-  const adiantIncluidos = adiantDisponiveis.filter((ad) => !desmarcados.includes(ad.id));
-  const somaAdiant = qzRound(adiantIncluidos.reduce((s, ad) => s + Number(ad.valor || 0), 0));
+  const adiantDisponiveis = adiantamentos
+    .filter((ad) => ad.funcId === funcId && ad.data <= fim)
+    .map((ad) => { const p = adiantProxima(ad); return p ? { key: ad.id, ad, parcela: p.n, totalParc: ad.parcelas ? ad.parcelas.length : null, valor: p.valor } : null; })
+    .filter(Boolean).sort((a, b) => (a.ad.data < b.ad.data ? -1 : 1));
+  const adiantIncluidos = adiantDisponiveis.filter((it) => !desmarcados.includes(it.key));
+  const somaAdiant = qzRound(adiantIncluidos.reduce((s, it) => s + it.valor, 0));
   const totalFinal = calc ? qzRound(calc.bruto + (Number(bonus) || 0) + (Number(reembolso) || 0) - somaAdiant) : 0;
   const obrasLinhas = calc ? Object.entries(calc.porObra).sort((a, b) => b[1] - a[1]) : [];
   const podeSalvar = !!func && !periodoInvalido && !conflito && calc && calc.bruto > 0 && totalFinal > 0;
@@ -13371,7 +13436,7 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
     if (!podeSalvar) { setErro(calc && calc.bruto <= 0 ? "Não há dias trabalhados apontados neste período." : "Revise os dados: o valor final precisa ser maior que zero."); return; }
     onSave({
       funcId, funcNome: func.nome, funcFuncao: func.funcao || "", inicio, fim,
-      bonus: qzRound(bonus), reembolso: qzRound(reembolso), adiantamentos: somaAdiant, adiantamentoIds: adiantIncluidos.map((ad) => ad.id),
+      bonus: qzRound(bonus), reembolso: qzRound(reembolso), adiantamentos: somaAdiant, adiantamentoIds: adiantIncluidos.map((it) => it.ad.id), adiantamentoItens: adiantIncluidos.map((it) => ({ adId: it.ad.id, parcela: it.parcela, valor: it.valor })),
       bruto: calc.bruto, total: totalFinal, porObra: calc.porObra,
       diasTrabalhados: calc.diasTrabalhados, meias: calc.meias, faltas: calc.faltas, noturnas: calc.noturnas, feriadosTrab: calc.feriadosTrab,
       diariaUsada: func.diaria, diariaNoturnaUsada: func.diariaNoturna, bonusFeriadoUsado: func.bonusFeriado,
@@ -13427,16 +13492,18 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
                 <ExportableTable exportavel={false} className="gf-table">
                   <thead><tr><th></th><th>Data</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
                   <tbody>
-                    {adiantDisponiveis.map((ad) => (
-                      <tr key={ad.id}>
-                        <td><input type="checkbox" checked={!desmarcados.includes(ad.id)} onChange={(e) => setDesmarcados((prev) => (e.target.checked ? prev.filter((x) => x !== ad.id) : [...prev, ad.id]))} /></td>
-                        <td>{fmtDate(ad.data)}</td><td>{ad.descricao || "—"}</td><td className="num mono">{BRL(ad.valor)}</td>
+                    {adiantDisponiveis.map((it) => (
+                      <tr key={it.key}>
+                        <td><input type="checkbox" checked={!desmarcados.includes(it.key)} onChange={(e) => setDesmarcados((prev) => (e.target.checked ? prev.filter((x) => x !== it.key) : [...prev, it.key]))} /></td>
+                        <td>{fmtDate(it.ad.data)}</td>
+                        <td>{it.ad.descricao || "Adiantamento"}{it.parcela && <b> — parcela {it.parcela}/{it.totalParc}</b>}</td>
+                        <td className="num mono">{BRL(it.valor)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot><tr><td colSpan={3}><b>Adiantamentos incluídos</b></td><td className="num mono neg"><b>− {BRL(somaAdiant)}</b></td></tr></tfoot>
                 </ExportableTable>
-                <p className="gf-field-hint" style={{ marginTop: 6 }}>Desmarque um adiantamento para levá-lo ao próximo fechamento.</p>
+                <p className="gf-field-hint" style={{ marginTop: 6 }}>Desmarque um adiantamento (ou parcela) para levá-lo ao próximo fechamento.</p>
               </div>
             )}
           </div>
@@ -13568,6 +13635,7 @@ function FechamentoQuinzenasPage({
     setModalFunc(null);
   };
   const [showAdiant, setShowAdiant] = useState(false);
+  const [adAberto, setAdAberto] = useState(null);
   const salvarAdiantamento = (d) => {
     if (!podePagar) return;
     const fn = funcionarios.find((x) => x.id === d.funcId);
@@ -13577,7 +13645,7 @@ function FechamentoQuinzenasPage({
     setAba("adiantamentos");
   };
   const excluirAdiantamento = (ad) => {
-    if (!podePagar || ad.fechamentoId) return;
+    if (!podePagar || ad.fechamentoId || (ad.parcelas || []).some((p) => p.fechamentoId)) return;
     if (!window.confirm(`Excluir o adiantamento de ${BRL(ad.valor)} para ${ad.funcNome}? O valor volta para a conta ${nomeConta(ad.contaId)}.`)) return;
     setAdiantamentos((prev) => prev.filter((x) => x.id !== ad.id));
     logAudit?.({ tipoOperacao: "Exclusão de adiantamento a funcionário", registroAlterado: `${ad.funcNome} — ${nomeConta(ad.contaId)}`, valorAnterior: BRL(ad.valor), valorNovo: "—" });
@@ -13590,7 +13658,7 @@ function FechamentoQuinzenasPage({
     if (fechamentos.some((q) => q.funcId === dados.funcId && dados.inicio <= q.fim && dados.fim >= q.inicio)) { window.alert("Este período se sobrepõe a uma quinzena já fechada."); return; }
     const novoId = uid("qz");
     setFechamentos((prev) => [...prev, { ...dados, id: novoId, status: "pendente", pagamento: null, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() }]);
-    setAdiantamentos((prev) => prev.map((ad) => ((dados.adiantamentoIds || []).includes(ad.id) ? { ...ad, fechamentoId: novoId } : ad)));
+    setAdiantamentos((prev) => adiantAplicar(prev, qzItensAdiant(dados), () => ({ fechamentoId: novoId })));
     logAudit?.({ tipoOperacao: "Fechamento de quinzena", registroAlterado: `${dados.funcNome} — ${fmtDate(dados.inicio)} a ${fmtDate(dados.fim)}`, valorAnterior: "—", valorNovo: BRL(dados.total) });
     setShowFech(false);
     setAba("fechamentos");
@@ -13599,7 +13667,7 @@ function FechamentoQuinzenasPage({
     if (!podeGerenciar || q.status === "pago") return;
     if (!window.confirm(`Excluir o fechamento de ${q.funcNome} (${fmtDate(q.inicio)} a ${fmtDate(q.fim)})? Os dias voltam a ficar livres para novo fechamento.`)) return;
     setFechamentos((prev) => prev.filter((x) => x.id !== q.id));
-    setAdiantamentos((prev) => prev.map((ad) => ((q.adiantamentoIds || []).includes(ad.id) ? { ...ad, fechamentoId: null } : ad)));
+    setAdiantamentos((prev) => adiantAplicar(prev, qzItensAdiant(q), () => ({ fechamentoId: null })));
     logAudit?.({ tipoOperacao: "Exclusão de fechamento de quinzena", registroAlterado: `${q.funcNome} — ${fmtDate(q.inicio)} a ${fmtDate(q.fim)}`, valorAnterior: BRL(q.total), valorNovo: "—" });
   };
 
@@ -13625,19 +13693,23 @@ function FechamentoQuinzenasPage({
       });
     });
     // adiantamentos incluídos no fechamento: passam de "lançamento financeiro" a lançamentos rateados nas obras, na data original
-    const ads = adiantamentos.filter((ad) => (q.adiantamentoIds || []).includes(ad.id));
-    ads.forEach((ad) => {
-      computeRateioValores(Object.entries(q.porObra).map(([oid, v]) => ({ centroCusto: oid, percentual: (v / pesoTotal) * 100 })), Number(ad.valor)).forEach((po) => {
+    const itensAd = qzItensAdiant(q);
+    itensAd.forEach((it) => {
+      const ad = adiantamentos.find((x) => x.id === it.adId);
+      if (!ad) return;
+      const valorItem = it.valor != null ? Number(it.valor) : Number(ad.valor);
+      const rotulo = it.parcela ? ` (parcela ${it.parcela}/${ad.parcelas?.length || it.parcela})` : "";
+      computeRateioValores(Object.entries(q.porObra).map(([oid, v]) => ({ centroCusto: oid, percentual: (v / pesoTotal) * 100 })), valorItem).forEach((po) => {
         if (po.valor <= 0) return;
         novos.push({
           id: uid("lan"), tipo: "saida", origemTipo: "CONTA_EMPRESA", contaId: ad.contaId, contaInvestidorId: null,
           obraId: po.centroCusto, data: ad.data, valor: po.valor, fornecedor: q.funcNome, apropriacao: "Civil",
-          descricao: `Fechamento de quinzena (${fmtDate(q.inicio)} a ${fmtDate(q.fim)}) — adiantamento${ad.descricao ? `: ${ad.descricao}` : ""}`,
+          descricao: `Fechamento de quinzena (${fmtDate(q.inicio)} a ${fmtDate(q.fim)}) — adiantamento${rotulo}${ad.descricao ? `: ${ad.descricao}` : ""}`,
           fechamentoQuinzenaId: q.id, adiantamentoFuncId: ad.id, createdAt: Date.now(), ...carimbarCriacao(currentUser),
         });
       });
     });
-    if (ads.length) setAdiantamentos((prev) => prev.map((ad) => ((q.adiantamentoIds || []).includes(ad.id) ? { ...ad, lancadoObra: true } : ad)));
+    if (itensAd.length) setAdiantamentos((prev) => adiantAplicar(prev, itensAd, () => ({ lancadoObra: true })));
     if (!apropriacoes.includes("Civil")) setApropriacoes((prev) => (prev.includes("Civil") ? prev : [...prev, "Civil"]));
     setEntries((prev) => [...novos, ...prev]);
     setFechamentos((prev) => prev.map((x) => (x.id === q.id ? { ...x, status: "pago", pagamento: { data, contas, entryIds: novos.map((e) => e.id), pagoPor: currentUser?.nome || "—", pagoEm: Date.now() } } : x)));
@@ -13649,7 +13721,7 @@ function FechamentoQuinzenasPage({
     if (!window.confirm(`Estornar o pagamento de ${BRL(q.total)} para ${q.funcNome}? Os lançamentos gerados serão removidos e o fechamento volta para "Pendente".`)) return;
     const ids = new Set(q.pagamento?.entryIds || []);
     setEntries((prev) => prev.filter((e) => !ids.has(e.id)));
-    setAdiantamentos((prev) => prev.map((ad) => ((q.adiantamentoIds || []).includes(ad.id) ? { ...ad, lancadoObra: false } : ad)));
+    setAdiantamentos((prev) => adiantAplicar(prev, qzItensAdiant(q), () => ({ lancadoObra: false })));
     setFechamentos((prev) => prev.map((x) => (x.id === q.id ? { ...x, status: "pendente", pagamento: null } : x)));
     logAudit?.({ tipoOperacao: "Estorno de pagamento de quinzena", registroAlterado: `${q.funcNome} — ${fmtDate(q.inicio)} a ${fmtDate(q.fim)}`, valorAnterior: BRL(q.total), valorNovo: "—" });
   };
@@ -13755,13 +13827,39 @@ function FechamentoQuinzenasPage({
                 <tbody>
                   {[...adiantamentos].sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : (b.createdAt || 0) - (a.createdAt || 0))).map((ad) => {
                     const q = fechamentos.find((x) => x.id === ad.fechamentoId);
+                    const parc = ad.parcelas;
+                    const descontadas = parc ? parc.filter((p) => p.lancadoObra).length : 0;
+                    const restante = parc ? qzRound(parc.reduce((t, p) => t + (p.lancadoObra ? 0 : p.valor), 0)) : 0;
+                    const algumVinc = parc && parc.some((p) => p.fechamentoId);
+                    const aberto = adAberto === ad.id;
                     return (
-                      <tr key={ad.id}>
-                        <td>{fmtDate(ad.data)}</td><td><b>{ad.funcNome}</b></td><td>{nomeConta(ad.contaId)}</td><td>{ad.descricao || "—"}</td>
+                      <React.Fragment key={ad.id}>
+                      <tr>
+                        <td>{fmtDate(ad.data)}</td><td><b>{ad.funcNome}</b></td><td>{nomeConta(ad.contaId)}</td>
+                        <td>{ad.descricao || "—"}{parc && <div className="gf-muted" style={{ fontSize: 11.5 }}>{parc.length}x de {BRL(parc[0].valor)} · {descontadas}/{parc.length} descontadas · resta {BRL(restante)}</div>}</td>
                         <td className="num mono neg">− {BRL(ad.valor)}</td>
-                        <td>{ad.lancadoObra ? <Badge tone="green">Rateado nas obras</Badge> : q ? <Badge tone="orange">No fechamento {fmtDate(q.inicio)} a {fmtDate(q.fim)}</Badge> : <Badge tone="blue">Aguardando fechamento</Badge>}</td>
-                        <td>{podePagar && !ad.fechamentoId && <button className="gf-icon-btn" title="Excluir adiantamento" onClick={() => excluirAdiantamento(ad)}><Trash2 size={14} /></button>}</td>
+                        <td>{parc
+                          ? (descontadas === parc.length ? <Badge tone="green">Quitado</Badge> : (descontadas > 0 || algumVinc) ? <Badge tone="orange">Em desconto ({descontadas}/{parc.length})</Badge> : <Badge tone="blue">Aguardando fechamento</Badge>)
+                          : (ad.lancadoObra ? <Badge tone="green">Rateado nas obras</Badge> : q ? <Badge tone="orange">No fechamento {fmtDate(q.inicio)} a {fmtDate(q.fim)}</Badge> : <Badge tone="blue">Aguardando fechamento</Badge>)}</td>
+                        <td>
+                          <div className="gf-row-actions">
+                            {parc && <button className="gf-btn gf-btn-ghost" style={{ padding: "2px 8px" }} onClick={() => setAdAberto(aberto ? null : ad.id)}>{aberto ? "Ocultar parcelas" : "Parcelas"}</button>}
+                            {podePagar && !ad.fechamentoId && !algumVinc && <button className="gf-icon-btn" title="Excluir adiantamento" onClick={() => excluirAdiantamento(ad)}><Trash2 size={14} /></button>}
+                          </div>
+                        </td>
                       </tr>
+                      {parc && aberto && parc.map((p, i) => {
+                        const qp = fechamentos.find((x) => x.id === p.fechamentoId);
+                        return (
+                          <tr key={`${ad.id}-${i}`} style={{ background: "#F7F9F8" }}>
+                            <td></td><td colSpan={3} style={{ paddingLeft: 24 }}>Parcela {i + 1}/{parc.length}</td>
+                            <td className="num mono">{BRL(p.valor)}</td>
+                            <td>{p.lancadoObra ? <Badge tone="green">Descontada</Badge> : qp ? <Badge tone="orange">No fechamento</Badge> : <Badge tone="gray">Pendente</Badge>}</td>
+                            <td>{qp ? `${fmtDate(qp.inicio)} a ${fmtDate(qp.fim)}` : ""}</td>
+                          </tr>
+                        );
+                      })}
+                      </React.Fragment>
                     );
                   })}
                 </tbody>
