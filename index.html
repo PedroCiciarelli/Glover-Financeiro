@@ -8557,12 +8557,20 @@ const PP_PODE_PAGAR_PAPEIS = ["admin", "operacional"];
 const ppPodePagar = (u) => !!u && can(u, "progpag_pagar") && PP_PODE_PAGAR_PAPEIS.includes(u.papel);
 const ppArred = (v) => Math.round((Number(v) || 0) * 100) / 100;
 const ppContratoDe = (contratos, obraId, fornecedor) => contratos.find((c) => c.ativo !== false && c.obraId === obraId && c.fornecedor === fornecedor) || null;
+// Todos os contratos ativos do fornecedor na obra (pode haver mais de um) e rótulo para escolher entre eles.
+const ppContratosDe = (contratos, obraId, fornecedor) => contratos.filter((c) => c.ativo !== false && c.obraId === obraId && c.fornecedor === fornecedor).sort((a, b) => (a.criadoEm || 0) - (b.criadoEm || 0));
+const ppRotuloContrato = (c, lista, ordens, ignorarId) => {
+  const idx = lista.findIndex((x) => x.id === c.id);
+  const nome = (c.descricao || "").trim() || `Contrato ${idx >= 0 ? idx + 1 : ""}`.trim();
+  const saldo = ppArred(c.valorTotal - ppMedidoAnterior(c, ordens, ignorarId));
+  return `${nome} — total ${BRL(c.valorTotal)} · saldo ${BRL(saldo)}`;
+};
 // Total já medido/pago do contrato: valor inicial informado + ordens (exceto a que está sendo editada).
 const ppMedidoAnterior = (contrato, ordens, ignorarId) =>
   ppArred((Number(contrato?.medidoInicial) || 0) + ordens.filter((o) => o.contratoId === contrato?.id && o.id !== ignorarId).reduce((s, o) => s + (Number(o.valor) || 0), 0));
 
 function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOptions, currentUser, logAudit, onClose }) {
-  const blank = { id: null, obraId: "", fornecedor: "", valorTotal: "", medidoInicial: "", ativo: true };
+  const blank = { id: null, obraId: "", fornecedor: "", descricao: "", valorTotal: "", medidoInicial: "", ativo: true };
   const [f, setF] = useState(blank);
   const [erro, setErro] = useState("");
   const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
@@ -8571,15 +8579,14 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
   const salvar = (e) => {
     e.preventDefault();
     if (!f.obraId || !f.fornecedor || !(Number(f.valorTotal) > 0)) { setErro("Informe obra, fornecedor e valor total do contrato."); return; }
-    if (contratos.some((c) => c.id !== f.id && c.ativo !== false && f.ativo && c.obraId === f.obraId && c.fornecedor === f.fornecedor)) { setErro("Já existe um contrato ativo deste fornecedor nesta obra."); return; }
-    const reg = { id: f.id || uid("ctr"), obraId: f.obraId, fornecedor: f.fornecedor, valorTotal: ppArred(f.valorTotal), medidoInicial: ppArred(f.medidoInicial), ativo: !!f.ativo, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() };
+    const reg = { id: f.id || uid("ctr"), obraId: f.obraId, fornecedor: f.fornecedor, descricao: (f.descricao || "").trim(), valorTotal: ppArred(f.valorTotal), medidoInicial: ppArred(f.medidoInicial), ativo: !!f.ativo, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() };
     setContratos((prev) => (f.id ? prev.map((c) => (c.id === f.id ? { ...c, ...reg, criadoPor: c.criadoPor, criadoEm: c.criadoEm } : c)) : [...prev, reg]));
     logAudit?.({ tipoOperacao: f.id ? "Edição de contrato de fornecedor" : "Cadastro de contrato de fornecedor", registroAlterado: `${nomeObra(reg.obraId)} — ${reg.fornecedor}`, valorAnterior: "—", valorNovo: BRL(reg.valorTotal) });
     setF(blank); setErro("");
   };
   return (
     <Modal title="Contratos de fornecedores" onClose={onClose} width={760}>
-      <p className="gf-field-hint">Com um contrato ativo cadastrado para a obra e o fornecedor, o valor total e o saldo após medição são preenchidos automaticamente nas ordens de pagamento.</p>
+      <p className="gf-field-hint">Com um contrato ativo cadastrado para a obra e o fornecedor, o valor total e o saldo após medição são preenchidos automaticamente nas ordens de pagamento. Um fornecedor pode ter mais de um contrato ativo na mesma obra — identifique cada um para escolher na hora do pagamento.</p>
       <form onSubmit={salvar} className="gf-form-grid gf-modal-form">
         <Field label="Obra">
           <select value={f.obraId} onChange={(e) => setF((s) => ({ ...s, obraId: e.target.value }))}>
@@ -8588,6 +8595,7 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
           </select>
         </Field>
         <Field label="Fornecedor"><SearchableSelect value={f.fornecedor} onChange={(v) => setF((s) => ({ ...s, fornecedor: v }))} options={fornecedorOptions.map((x) => ({ value: x, label: x }))} placeholder="Buscar fornecedor…" /></Field>
+        <Field label="Identificação do contrato" hint="Opcional — ex.: Instalações elétricas, Aditivo 1" className="gf-span-2"><input value={f.descricao || ""} onChange={(e) => setF((s) => ({ ...s, descricao: e.target.value }))} /></Field>
         <Field label="Valor total do contrato (R$)"><input type="number" min="0.01" step="0.01" value={f.valorTotal} onChange={(e) => setF((s) => ({ ...s, valorTotal: e.target.value }))} /></Field>
         <Field label="Já medido/pago antes (R$)" hint="Opcional — o que já foi medido fora do sistema"><input type="number" min="0" step="0.01" value={f.medidoInicial} onChange={(e) => setF((s) => ({ ...s, medidoInicial: e.target.value }))} /></Field>
         <Field label="Situação">
@@ -8601,17 +8609,17 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
       </form>
       <div className="gf-table-wrap">
         <ExportableTable className="gf-table">
-          <thead><tr><th>Obra</th><th>Fornecedor</th><th className="num">Valor total</th><th className="num">Medido</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
+          <thead><tr><th>Obra</th><th>Fornecedor</th><th>Contrato</th><th className="num">Valor total</th><th className="num">Medido</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
           <tbody>
-            {lista.length === 0 && <tr><td colSpan={7}><EmptyState icon={FileText} title="Nenhum contrato cadastrado" body="Cadastre acima ou ao criar uma ordem de pagamento." /></td></tr>}
+            {lista.length === 0 && <tr><td colSpan={8}><EmptyState icon={FileText} title="Nenhum contrato cadastrado" body="Cadastre acima ou ao criar uma ordem de pagamento." /></td></tr>}
             {lista.map((c) => {
               const med = ppMedidoAnterior(c, ordens, null);
               return (
                 <tr key={c.id}>
-                  <td>{nomeObra(c.obraId)}</td><td>{c.fornecedor}</td>
+                  <td>{nomeObra(c.obraId)}</td><td>{c.fornecedor}</td><td>{c.descricao || "—"}</td>
                   <td className="num mono">{BRL(c.valorTotal)}</td><td className="num mono">{BRL(med)}</td><td className={`num mono ${c.valorTotal - med < 0 ? "neg" : ""}`}>{BRL(c.valorTotal - med)}</td>
                   <td><Badge tone={c.ativo !== false ? "green" : "gray"}>{c.ativo !== false ? "Ativo" : "Encerrado"}</Badge></td>
-                  <td><button type="button" className="gf-icon-btn" title="Editar" onClick={() => setF({ id: c.id, obraId: c.obraId, fornecedor: c.fornecedor, valorTotal: String(c.valorTotal), medidoInicial: String(c.medidoInicial || ""), ativo: c.ativo !== false })}><Pencil size={14} /></button></td>
+                  <td><button type="button" className="gf-icon-btn" title="Editar" onClick={() => setF({ id: c.id, obraId: c.obraId, fornecedor: c.fornecedor, descricao: c.descricao || "", valorTotal: String(c.valorTotal), medidoInicial: String(c.medidoInicial || ""), ativo: c.ativo !== false })}><Pencil size={14} /></button></td>
                 </tr>
               );
             })}
@@ -8624,7 +8632,10 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
 
 function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, onClose, onSave }) {
   const [f, setF] = useState(ordem ? { ...ordem, valor: String(ordem.valor), valorContrato: String(ordem.valorContrato ?? ""), saldoAposMedicao: String(ordem.saldoAposMedicao ?? ""), dadosBancarios: ordem.dadosBancarios || "" }
-    : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true, dadosBancarios: "" });
+    : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true, dadosBancarios: "", descricaoContrato: "" });
+  // vínculo com contrato: "contrato" (um dos ativos), "novo" (novo contrato deste fornecedor na obra) ou "avulso" (fora de contrato)
+  const [vinculo, setVinculo] = useState(ordem ? (ordem.contratoId ? "contrato" : ordem.avulso ? "avulso" : "novo") : "novo");
+  const [contratoSelId, setContratoSelId] = useState(ordem?.contratoId || "");
   const [bancoAuto, setBancoAuto] = useState(false); // dados bancários preenchidos automaticamente (última ordem do fornecedor)
   // Dados bancários mais recentes já usados em ordens deste fornecedor (em qualquer obra)
   const dadosAnteriores = (fornecedor) => {
@@ -8633,13 +8644,25 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
   };
   const [excecoes, setExcecoes] = useState(ordem?.apropriacao ? [ordem.apropriacao] : []);
   const [erro, setErro] = useState("");
-  const contrato = ppContratoDe(contratos, f.obraId, f.fornecedor);
+  const contratosObra = ppContratosDe(contratos, f.obraId, f.fornecedor);
+  const contratosOpcoes = ordem?.contratoId && !contratosObra.some((c) => c.id === ordem.contratoId) && contratos.find((c) => c.id === ordem.contratoId)
+    ? [contratos.find((c) => c.id === ordem.contratoId), ...contratosObra] : contratosObra;
+  // com contrato ativo: seleciona automaticamente (o primeiro) sem prender o usuário — dá para trocar, criar outro ou lançar avulso
+  const vinculoEf = vinculo === "contrato" && contratosOpcoes.length === 0 ? "novo" : vinculo;
+  const contrato = vinculoEf === "contrato" ? (contratosOpcoes.find((c) => c.id === contratoSelId) || contratosOpcoes[0] || null) : null;
+  const avulso = vinculoEf === "avulso";
   const medido = contrato ? ppMedidoAnterior(contrato, ordens, ordem?.id) : 0;
   const valorNum = Number(f.valor) || 0;
   const saldoAuto = contrato ? ppArred(contrato.valorTotal - medido - valorNum) : null;
   const valorContratoEf = contrato ? contrato.valorTotal : f.valorContrato;
   const saldoEf = contrato ? saldoAuto : f.saldoAposMedicao;
   const upd = (p) => { setF((s) => ({ ...s, ...p })); setErro(""); };
+  // ao escolher obra/fornecedor: se houver contrato ativo, sugere-o automaticamente; senão, volta ao cadastro de novo contrato
+  const sugerirVinculo = (obraId, fornecedor) => {
+    if (ordem) return;
+    const lista = ppContratosDe(contratos, obraId, fornecedor);
+    if (lista.length > 0) { setVinculo("contrato"); setContratoSelId(lista[0].id); } else { setVinculo("novo"); setContratoSelId(""); }
+  };
   const reapropriar = (obraId, fornecedor) => {
     const disp = computeApropriacoesDisponiveis(obraId, fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
     return f.apropriacao && [...disp, ...excecoes].includes(f.apropriacao) ? f.apropriacao : "";
@@ -8647,23 +8670,24 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
   const submit = (e) => {
     e.preventDefault();
     if (!f.obraId || !f.fornecedor || !f.apropriacao || !(valorNum > 0) || !f.dataPagamento) { setErro("Preencha obra, fornecedor, apropriação, valor e data para pagamento."); return; }
-    if (!contrato && (f.valorContrato === "" || f.saldoAposMedicao === "")) { setErro("Informe o valor total do contrato e o saldo após a medição (ou cadastre um contrato ativo para esta obra e fornecedor)."); return; }
+    if (!contrato && !avulso && (f.valorContrato === "" || f.saldoAposMedicao === "")) { setErro("Informe o valor total do contrato e o saldo após a medição (ou cadastre um contrato ativo para esta obra e fornecedor)."); return; }
     let contratoId = contrato ? contrato.id : null;
-    if (!contrato && f.cadastrarContrato && Number(f.valorContrato) > 0 && !ordem) {
+    if (!contrato && !avulso && f.cadastrarContrato && Number(f.valorContrato) > 0 && !ordem) {
       contratoId = uid("ctr");
       const jaMedido = ppArred(Number(f.valorContrato) - Number(f.saldoAposMedicao) - valorNum); // o que já havia sido medido antes desta ordem
-      setContratos((prev) => [...prev, { id: contratoId, obraId: f.obraId, fornecedor: f.fornecedor, valorTotal: ppArred(f.valorContrato), medidoInicial: Math.max(0, jaMedido), ativo: true, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() }]);
+      setContratos((prev) => [...prev, { id: contratoId, obraId: f.obraId, fornecedor: f.fornecedor, descricao: (f.descricaoContrato || "").trim(), valorTotal: ppArred(f.valorContrato), medidoInicial: Math.max(0, jaMedido), ativo: true, criadoPor: currentUser?.nome || "—", criadoEm: Date.now() }]);
     }
     onSave({
       obraId: f.obraId, fornecedor: f.fornecedor, apropriacao: f.apropriacao, valor: ppArred(valorNum), dataPagamento: f.dataPagamento,
-      descricao: (f.descricao || "").trim(), dadosBancarios: (f.dadosBancarios || "").trim(), valorContrato: ppArred(valorContratoEf), saldoAposMedicao: ppArred(saldoEf), contratoId,
+      descricao: (f.descricao || "").trim(), dadosBancarios: (f.dadosBancarios || "").trim(),
+      valorContrato: avulso ? null : ppArred(valorContratoEf), saldoAposMedicao: avulso ? null : ppArred(saldoEf), contratoId: avulso ? null : contratoId, avulso,
     });
   };
   return (
     <Modal title={ordem ? "Editar ordem de pagamento" : "Nova ordem de pagamento"} onClose={onClose} width={680}>
       <form onSubmit={submit} className="gf-form-grid gf-modal-form">
         <Field label="Obra">
-          <SearchableSelect value={f.obraId} onChange={(v) => upd({ obraId: v, apropriacao: reapropriar(v, f.fornecedor) })}
+          <SearchableSelect value={f.obraId} onChange={(v) => { upd({ obraId: v, apropriacao: reapropriar(v, f.fornecedor) }); sugerirVinculo(v, f.fornecedor); }}
             options={obras.filter((o) => !o.arquivada).map((o) => ({ value: o.id, label: o.nome }))} placeholder="Selecione a obra…" />
         </Field>
         <Field label="Fornecedor">
@@ -8671,6 +8695,7 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
             const sugestao = dadosAnteriores(v);
             const podeSugerir = sugestao && (!(f.dadosBancarios || "").trim() || bancoAuto);
             upd({ fornecedor: v, apropriacao: reapropriar(f.obraId, v), ...(podeSugerir ? { dadosBancarios: sugestao } : {}) });
+            sugerirVinculo(f.obraId, v);
             if (podeSugerir) setBancoAuto(true); else if (bancoAuto && !sugestao) { upd({ dadosBancarios: "" }); setBancoAuto(false); }
           }}
             options={fornecedorOptions.map((x) => ({ value: x, label: x }))} placeholder="Buscar fornecedor…" />
@@ -8686,18 +8711,51 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
         <Field label="Valor a pagar (R$)"><input type="number" min="0.01" step="0.01" value={f.valor} onChange={(e) => upd({ valor: e.target.value })} /></Field>
         <Field label="Data para pagamento"><input type="date" value={f.dataPagamento} onChange={(e) => upd({ dataPagamento: e.target.value })} /></Field>
         <Field label="Descrição"><input value={f.descricao || ""} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Ex.: 2ª medição — instalações elétricas" /></Field>
-        <Field label="Valor total do contrato (R$)" hint={contrato ? "Contrato ativo encontrado — preenchido automaticamente" : "Sem contrato ativo para esta obra/fornecedor: informe manualmente"}>
-          <input type="number" step="0.01" value={contrato ? contrato.valorTotal : f.valorContrato} readOnly={!!contrato} onChange={(e) => upd({ valorContrato: e.target.value })} />
-        </Field>
-        <Field label="Saldo do contrato após medição (R$)" hint={contrato ? `Total ${BRL(contrato.valorTotal)} − já medido ${BRL(medido)} − esta ordem ${BRL(valorNum)}` : "Valor que restará do contrato após esta medição"}>
-          <input type="number" step="0.01" value={contrato ? saldoAuto : f.saldoAposMedicao} readOnly={!!contrato} onChange={(e) => upd({ saldoAposMedicao: e.target.value })} />
-        </Field>
+        {f.obraId && f.fornecedor && (
+          <div className="gf-span-2 gf-rateio-box">
+            <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Vínculo com contrato</span>
+            {contratosOpcoes.map((c) => (
+              <label key={c.id} className="gf-checkbox" style={{ display: "flex", marginBottom: 4 }}>
+                <input type="radio" name="pp-vinculo" checked={vinculoEf === "contrato" && contrato?.id === c.id} onChange={() => { setVinculo("contrato"); setContratoSelId(c.id); }} />
+                <span>{ppRotuloContrato(c, contratosObra, ordens, ordem?.id)}{c.ativo === false ? " (encerrado)" : ""}</span>
+              </label>
+            ))}
+            {!ordem && (
+              <label className="gf-checkbox" style={{ display: "flex", marginBottom: 4 }}>
+                <input type="radio" name="pp-vinculo" checked={vinculoEf === "novo"} onChange={() => setVinculo("novo")} />
+                <span>{contratosOpcoes.length > 0 ? "Outro contrato deste fornecedor nesta obra (cadastrar novo)" : "Informar contrato manualmente / cadastrar novo contrato"}</span>
+              </label>
+            )}
+            {ordem && !ordem.contratoId && !ordem.avulso && (
+              <label className="gf-checkbox" style={{ display: "flex", marginBottom: 4 }}>
+                <input type="radio" name="pp-vinculo" checked={vinculoEf === "novo"} onChange={() => setVinculo("novo")} /><span>Valores informados manualmente</span>
+              </label>
+            )}
+            <label className="gf-checkbox" style={{ display: "flex" }}>
+              <input type="radio" name="pp-vinculo" checked={avulso} onChange={() => setVinculo("avulso")} />
+              <span>Pagamento avulso (fora de contrato — não consome saldo de nenhum contrato)</span>
+            </label>
+          </div>
+        )}
+        {!avulso && (
+          <>
+            <Field label="Valor total do contrato (R$)" hint={contrato ? "Contrato selecionado — preenchido automaticamente" : "Informe o valor total do contrato"}>
+              <input type="number" step="0.01" value={contrato ? contrato.valorTotal : f.valorContrato} readOnly={!!contrato} onChange={(e) => upd({ valorContrato: e.target.value })} />
+            </Field>
+            <Field label="Saldo do contrato após medição (R$)" hint={contrato ? `Total ${BRL(contrato.valorTotal)} − já medido ${BRL(medido)} − esta ordem ${BRL(valorNum)}` : "Valor que restará do contrato após esta medição"}>
+              <input type="number" step="0.01" value={contrato ? saldoAuto : f.saldoAposMedicao} readOnly={!!contrato} onChange={(e) => upd({ saldoAposMedicao: e.target.value })} />
+            </Field>
+          </>
+        )}
         {contrato && saldoAuto < 0 && <div className="gf-warn gf-span-2">Atenção: esta ordem ultrapassa o saldo do contrato em {BRL(-saldoAuto)}.</div>}
-        {!contrato && !ordem && (
-          <label className="gf-checkbox gf-span-2">
-            <input type="checkbox" checked={!!f.cadastrarContrato} onChange={(e) => upd({ cadastrarContrato: e.target.checked })} />
-            <span>Cadastrar como contrato ativo desta obra e fornecedor (as próximas ordens preenchem o valor e o saldo automaticamente)</span>
-          </label>
+        {!contrato && !avulso && !ordem && (
+          <>
+            <Field label="Identificação do novo contrato" hint="Opcional — ex.: Instalações elétricas, Aditivo 1" className="gf-span-2"><input value={f.descricaoContrato || ""} onChange={(e) => upd({ descricaoContrato: e.target.value })} /></Field>
+            <label className="gf-checkbox gf-span-2">
+              <input type="checkbox" checked={!!f.cadastrarContrato} onChange={(e) => upd({ cadastrarContrato: e.target.checked })} />
+              <span>Cadastrar como contrato ativo desta obra e fornecedor ({contratosOpcoes.length > 0 ? "passa a ser mais uma opção de contrato nas próximas ordens" : "as próximas ordens preenchem o valor e o saldo automaticamente"})</span>
+            </label>
+          </>
         )}
         {erro && <div className="gf-warn gf-span-2">{erro}</div>}
         <div className="gf-form-actions gf-span-2">
@@ -8875,8 +8933,8 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
                     <td>{fmtDate(o.dataPagamento)}{o.dataPagamento < hoje && <Badge tone="red" style={{ marginLeft: 6 }}>Atrasada</Badge>}</td>
                     <td>{nomeObra(o.obraId)}</td><td>{o.fornecedor}{o.dadosBancarios && <div className="gf-muted" style={{ fontSize: 11, whiteSpace: "pre-line", maxWidth: 260 }} title="Dados bancários">{o.dadosBancarios}</div>}</td><td>{o.apropriacao}</td>
                     <td className="num mono">{BRL(o.valor)}</td>
-                    <td className="num mono">{BRL(o.valorContrato)}</td>
-                    <td className={`num mono ${o.saldoAposMedicao < 0 ? "neg" : ""}`}>{BRL(o.saldoAposMedicao)}</td>
+                    <td className="num mono">{o.avulso ? <Badge tone="gray">Avulso</Badge> : BRL(o.valorContrato)}</td>
+                    <td className={`num mono ${o.saldoAposMedicao < 0 ? "neg" : ""}`}>{o.avulso ? "—" : BRL(o.saldoAposMedicao)}</td>
                     <td className="gf-td-desc" title={o.descricao}>{o.descricao || "—"}<div className="gf-muted" style={{ fontSize: 11 }}>por {o.criadoPor}</div></td>
                     <td>
                       <div className="gf-row-actions">
