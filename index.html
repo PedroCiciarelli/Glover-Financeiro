@@ -1964,6 +1964,7 @@ export default function App() {
           )}
           {page === "faturamentodireto" && !ehInvestidor && (
             <FaturamentoDiretoPage
+              contratos={contratosFornecedor} ordens={programacoesPagamento}
               accounts={accounts} setAccounts={setAccounts} accountStats={accountStats}
               obras={obrasEscopo} obrasTodas={obras} entries={entries} setEntries={setEntries}
               apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions}
@@ -8237,13 +8238,13 @@ function FdAnexosModal({ registro, onClose }) {
   );
 }
 
-function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obrasTodas, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
+function FaturamentoDiretoPage({ contratos = [], ordens = [], accounts, setAccounts, accountStats, obras, obrasTodas, entries, setEntries, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, logAudit }) {
   const conta = accounts.find(isFatDiretoAccount);
   const podeGerenciar = can(currentUser, "fatdireto_gerenciar");
   const idsEscopo = useMemo(() => new Set(obras.map((o) => o.id)), [obras]);
   const todasObras = obrasTodas || obras;
   const nomeObra = (id) => todasObras.find((o) => o.id === id)?.nome || "—";
-  const blank = { id: null, data: todayISO(), valor: "", obraEntradaId: "", mesmaObra: true, obraSaidaId: "", fornecedor: "", apropriacao: "", descricao: "", anexos: [] };
+  const blank = { id: null, data: todayISO(), valor: "", obraEntradaId: "", mesmaObra: true, obraSaidaId: "", fornecedor: "", apropriacao: "", descricao: "", anexos: [], contratoId: "" };
   const [form, setForm] = useState(blank);
   const [salvando, setSalvando] = useState(false);
   const [verAnexos, setVerAnexos] = useState(null);
@@ -8304,6 +8305,22 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
   const saidaOptionsArq = todasObras.filter((o) => o.arquivada).map((o) => ({ value: o.id, label: o.nome }));
   const fornecedorSelectOptions = fornecedorOptions.map((f) => ({ value: f, label: f }));
 
+  // Contratos vigentes da obra faturada (aba Programação de pagamentos) que podem ter o saldo descontado por este lançamento.
+  const contratosFat = useMemo(() => {
+    const obrasRef = [form.obraEntradaId, obraSaidaEfetiva].filter(Boolean);
+    const ativos = contratos.filter((c) => c.ativo !== false && obrasRef.includes(c.obraId));
+    const atual = form.contratoId && !ativos.some((c) => c.id === form.contratoId) ? contratos.find((c) => c.id === form.contratoId) : null;
+    return (atual ? [atual, ...ativos] : ativos).sort((a, b) => (a.fornecedor || "").localeCompare(b.fornecedor || "", "pt-BR") || (a.criadoEm || 0) - (b.criadoEm || 0));
+  }, [contratos, form.obraEntradaId, obraSaidaEfetiva, form.contratoId]);
+  const contratoSel = form.contratoId ? contratos.find((c) => c.id === form.contratoId) || null : null;
+  const rotuloContratoFat = (c) => {
+    const nome = `${nomeObra(c.obraId)} · ${c.fornecedor}${(c.descricao || "").trim() ? " — " + c.descricao.trim() : ""}`;
+    const sal = ppArred(c.valorTotal - ppMedidoAnterior(c, ordens, null, entries, form.id));
+    return `${nome} · total ${BRL(c.valorTotal)} · saldo ${BRL(sal)}${c.ativo === false ? " (encerrado)" : ""}`;
+  };
+  const saldoContratoApos = contratoSel ? ppArred(contratoSel.valorTotal - ppMedidoAnterior(contratoSel, ordens, null, entries, form.id) - (Number(form.valor) || 0)) : 0;
+  const nomeContrato = (id) => { const c = contratos.find((x) => x.id === id); return c ? `${c.fornecedor}${(c.descricao || "").trim() ? " — " + c.descricao.trim() : ""}` : null; };
+
   const limpar = () => { setForm({ ...blank, data: form.data }); setErros({}); setExcecoes([]); };
 
   const submit = async (e) => {
@@ -8335,7 +8352,8 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
       try { await relGravarTexto(fdChaveAnexo(fdId, a.id), ""); } catch (err2) { /* melhor esforço */ }
     }
     const obraE = todasObras.find((o) => o.id === form.obraEntradaId);
-    const comum = { contaId: conta.id, origemTipo: "CONTA_EMPRESA", contaInvestidorId: null, data: form.data, valor, fatDireto: true, fdId };
+    const contratoIdEf = form.contratoId && contratos.some((c) => c.id === form.contratoId) ? form.contratoId : null;
+    const comum = { contaId: conta.id, origemTipo: "CONTA_EMPRESA", contaInvestidorId: null, data: form.data, valor, fatDireto: true, fdId, contratoId: contratoIdEf };
     const carimbo = (orig) => (editando ? { createdAt: orig?.createdAt || Date.now(), ...(orig?.status ? { status: orig.status, criadoPor: orig.criadoPor, criadoEm: orig.criadoEm, aprovadoPor: orig.aprovadoPor, aprovadoEm: orig.aprovadoEm } : {}), ...carimbarEdicao(currentUser) } : { createdAt: Date.now(), ...carimbarCriacao(currentUser) });
     const entrada = {
       ...comum, id: editando ? atual.entrada.id : uid("lan"), tipo: "entrada", obraId: form.obraEntradaId,
@@ -8354,7 +8372,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
     logAudit?.({
       tipoOperacao: editando ? "Edição de Faturamento Direto" : "Lançamento de Faturamento Direto",
       registroAlterado: `${nomeObra(entrada.obraId)} → ${saida.fornecedor}${entrada.obraId !== saida.obraId ? ` (gasto: ${nomeObra(saida.obraId)})` : ""}`,
-      valorAnterior: editando ? BRL(atual.saida.valor) : "—", valorNovo: BRL(valor),
+      valorAnterior: editando ? BRL(atual.saida.valor) : "—", valorNovo: BRL(valor) + (contratoIdEf ? ` (desconta do contrato: ${nomeContrato(contratoIdEf)})` : ""),
     });
     setSalvando(false);
     limpar();
@@ -8365,7 +8383,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
       id: r.id, data: r.saida.data, valor: String(r.saida.valor), obraEntradaId: r.entrada.obraId,
       mesmaObra: r.entrada.obraId === r.saida.obraId, obraSaidaId: r.saida.obraId,
       fornecedor: r.saida.fornecedor || "", apropriacao: r.saida.apropriacao || "", descricao: r.saida.descricao || "",
-      anexos: (r.saida.anexos || []).map((a) => ({ ...a })),
+      anexos: (r.saida.anexos || []).map((a) => ({ ...a })), contratoId: r.saida.contratoId || "",
     });
     setExcecoes(r.saida.apropriacao ? [r.saida.apropriacao] : []);
     setErros({});
@@ -8417,18 +8435,18 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
                 <SearchableSelect value={form.obraEntradaId} onChange={(v) => {
                   const efetiva = form.mesmaObra ? v : form.obraSaidaId;
                   const disp = computeApropriacoesDisponiveis(efetiva, form.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
-                  upd({ obraEntradaId: v, apropriacao: form.apropriacao && [...disp, ...excecoes].includes(form.apropriacao) ? form.apropriacao : "" });
+                  upd({ obraEntradaId: v, contratoId: [v, form.mesmaObra ? v : form.obraSaidaId].includes(contratos.find((c) => c.id === form.contratoId)?.obraId) ? form.contratoId : "", apropriacao: form.apropriacao && [...disp, ...excecoes].includes(form.apropriacao) ? form.apropriacao : "" });
                 }} options={obraOptions} extraOptions={obraOptionsArq} placeholder="Selecione a obra…" error={!!erros.obraEntradaId} />
               </Field>
               <Field label="Obra do gasto (saída)">
                 <label className="gf-checkbox" style={{ marginBottom: 6 }}>
-                  <input type="checkbox" checked={form.mesmaObra} onChange={(e) => upd({ mesmaObra: e.target.checked, apropriacao: "" })} />
+                  <input type="checkbox" checked={form.mesmaObra} onChange={(e) => upd({ mesmaObra: e.target.checked, apropriacao: "", contratoId: contratos.find((c) => c.id === form.contratoId)?.obraId === form.obraEntradaId ? form.contratoId : "" })} />
                   <span>Mesma obra da entrada</span>
                 </label>
                 {!form.mesmaObra && (
                   <SearchableSelect value={form.obraSaidaId} onChange={(v) => {
                     const disp = computeApropriacoesDisponiveis(v, form.fornecedor, apropriacoes, orcamentoItens, fornecedoresCadastro);
-                    upd({ obraSaidaId: v, apropriacao: form.apropriacao && [...disp, ...excecoes].includes(form.apropriacao) ? form.apropriacao : "" });
+                    upd({ obraSaidaId: v, contratoId: [form.obraEntradaId, v].includes(contratos.find((c) => c.id === form.contratoId)?.obraId) ? form.contratoId : "", apropriacao: form.apropriacao && [...disp, ...excecoes].includes(form.apropriacao) ? form.apropriacao : "" });
                   }} options={saidaOptions} extraOptions={saidaOptionsArq} placeholder="Selecione a obra do gasto…" error={!!erros.obraSaidaId} />
                 )}
               </Field>
@@ -8452,6 +8470,18 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
                   excecoes={excecoes} onAddExcecao={(nome) => setExcecoes((prev) => [...new Set([...prev, nome])])}
                   error={!!erros.apropriacao}
                 />
+              </Field>
+              <Field label="Descontar do saldo de contrato" hint={form.obraEntradaId ? (contratosFat.length ? "Opcional — contratos vigentes da obra faturada e da obra do gasto (Programação de pagamentos)" : "Nenhum contrato vigente cadastrado na Programação de pagamentos para as obras selecionadas") : "Selecione a obra faturada para ver os contratos"} className="gf-span-2">
+                <select value={form.contratoId || ""} disabled={(!form.obraEntradaId && !obraSaidaEfetiva) || (contratosFat.length === 0 && !form.contratoId)} onChange={(e) => upd({ contratoId: e.target.value })}>
+                  <option value="">Não descontar de nenhum contrato</option>
+                  {contratosFat.map((c) => <option key={c.id} value={c.id}>{rotuloContratoFat(c)}</option>)}
+                </select>
+                {contratoSel && (
+                  <span className="gf-field-hint" style={{ display: "block", marginTop: 4 }}>
+                    Saldo do contrato após este lançamento: <b className={saldoContratoApos < 0 ? "neg" : ""}>{BRL(saldoContratoApos)}</b>
+                    {saldoContratoApos < 0 ? " — atenção: ultrapassa o saldo do contrato." : ""}
+                  </span>
+                )}
               </Field>
               <Field label="Descrição / NF" className="gf-span-2">
                 <input value={form.descricao} onChange={(e) => upd({ descricao: e.target.value })} placeholder="Ex.: NF 1234 — material elétrico" />
@@ -8507,11 +8537,11 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
         <div className="gf-table-wrap">
           <ExportableTable className="gf-table gf-table-ledger">
             <thead>
-              <tr><th>Data</th><th>Obra faturada</th><th>Obra do gasto</th><th>Fornecedor</th><th>Apropriação</th><th className="num">Valor</th><th>Descrição</th><th>Anexos</th><th></th></tr>
+              <tr><th>Data</th><th>Obra faturada</th><th>Obra do gasto</th><th>Fornecedor</th><th>Apropriação</th><th>Contrato descontado</th><th className="num">Valor</th><th>Descrição</th><th>Anexos</th><th></th></tr>
             </thead>
             <tbody>
               {filtrados.length === 0 && (
-                <tr><td colSpan={9}><EmptyState icon={Receipt} title="Nenhum faturamento direto encontrado" body="Registre um novo faturamento direto acima ou ajuste os filtros." /></td></tr>
+                <tr><td colSpan={10}><EmptyState icon={Receipt} title="Nenhum faturamento direto encontrado" body="Registre um novo faturamento direto acima ou ajuste os filtros." /></td></tr>
               )}
               {filtrados.map((r) => (
                 <tr key={r.id}>
@@ -8520,6 +8550,7 @@ function FaturamentoDiretoPage({ accounts, setAccounts, accountStats, obras, obr
                   <td>{nomeObra(r.saida.obraId)}{r.entrada.obraId !== r.saida.obraId && <Badge tone="orange" style={{ marginLeft: 6 }}>Outra obra</Badge>}</td>
                   <td>{r.saida.fornecedor}</td>
                   <td>{r.saida.apropriacao || "—"}</td>
+                  <td>{(r.saida.contratoId && nomeContrato(r.saida.contratoId)) || "—"}</td>
                   <td className="num mono">{BRL(r.saida.valor)}</td>
                   <td className="gf-td-desc" title={r.saida.descricao}>{r.saida.descricao || "—"}</td>
                   <td>
@@ -8559,17 +8590,20 @@ const ppArred = (v) => Math.round((Number(v) || 0) * 100) / 100;
 const ppContratoDe = (contratos, obraId, fornecedor) => contratos.find((c) => c.ativo !== false && c.obraId === obraId && c.fornecedor === fornecedor) || null;
 // Todos os contratos ativos do fornecedor na obra (pode haver mais de um) e rótulo para escolher entre eles.
 const ppContratosDe = (contratos, obraId, fornecedor) => contratos.filter((c) => c.ativo !== false && c.obraId === obraId && c.fornecedor === fornecedor).sort((a, b) => (a.criadoEm || 0) - (b.criadoEm || 0));
-const ppRotuloContrato = (c, lista, ordens, ignorarId) => {
+const ppRotuloContrato = (c, lista, ordens, ignorarId, entries = []) => {
   const idx = lista.findIndex((x) => x.id === c.id);
   const nome = (c.descricao || "").trim() || `Contrato ${idx >= 0 ? idx + 1 : ""}`.trim();
-  const saldo = ppArred(c.valorTotal - ppMedidoAnterior(c, ordens, ignorarId));
+  const saldo = ppArred(c.valorTotal - ppMedidoAnterior(c, ordens, ignorarId, entries));
   return `${nome} — total ${BRL(c.valorTotal)} · saldo ${BRL(saldo)}`;
 };
 // Total já medido/pago do contrato: valor inicial informado + ordens (exceto a que está sendo editada).
-const ppMedidoAnterior = (contrato, ordens, ignorarId) =>
-  ppArred((Number(contrato?.medidoInicial) || 0) + ordens.filter((o) => o.contratoId === contrato?.id && o.id !== ignorarId).reduce((s, o) => s + (Number(o.valor) || 0), 0));
+// Também desconta os faturamentos diretos vinculados ao contrato (saídas com contratoId), exceto o que está sendo editado (ignorarFdId).
+const ppMedidoAnterior = (contrato, ordens, ignorarId, entries = [], ignorarFdId = null) =>
+  ppArred((Number(contrato?.medidoInicial) || 0)
+    + ordens.filter((o) => o.contratoId === contrato?.id && o.id !== ignorarId).reduce((s, o) => s + (Number(o.valor) || 0), 0)
+    + entries.filter((e) => e.fatDireto && e.tipo === "saida" && e.contratoId && e.contratoId === contrato?.id && e.fdId !== ignorarFdId).reduce((s, e) => s + (Number(e.valor) || 0), 0));
 
-function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOptions, currentUser, logAudit, onClose }) {
+function PPContratosModal({ contratos, setContratos, ordens, entries = [], obras, fornecedorOptions, currentUser, logAudit, onClose }) {
   const blank = { id: null, obraId: "", fornecedor: "", descricao: "", valorTotal: "", medidoInicial: "", ativo: true };
   const [f, setF] = useState(blank);
   const [erro, setErro] = useState("");
@@ -8613,7 +8647,7 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
           <tbody>
             {lista.length === 0 && <tr><td colSpan={8}><EmptyState icon={FileText} title="Nenhum contrato cadastrado" body="Cadastre acima ou ao criar uma ordem de pagamento." /></td></tr>}
             {lista.map((c) => {
-              const med = ppMedidoAnterior(c, ordens, null);
+              const med = ppMedidoAnterior(c, ordens, null, entries);
               return (
                 <tr key={c.id}>
                   <td>{nomeObra(c.obraId)}</td><td>{c.fornecedor}</td><td>{c.descricao || "—"}</td>
@@ -8630,7 +8664,7 @@ function PPContratosModal({ contratos, setContratos, ordens, obras, fornecedorOp
   );
 }
 
-function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, onClose, onSave }) {
+function PPOrdemModal({ ordem, obras, ordens, entries = [], contratos, setContratos, apropriacoes, fornecedorOptions, orcamentoItens, fornecedoresCadastro, currentUser, onClose, onSave }) {
   const [f, setF] = useState(ordem ? { ...ordem, valor: String(ordem.valor), valorContrato: String(ordem.valorContrato ?? ""), saldoAposMedicao: String(ordem.saldoAposMedicao ?? ""), dadosBancarios: ordem.dadosBancarios || "" }
     : { obraId: "", fornecedor: "", apropriacao: "", valor: "", dataPagamento: todayISO(), descricao: "", valorContrato: "", saldoAposMedicao: "", cadastrarContrato: true, dadosBancarios: "", descricaoContrato: "" });
   // vínculo com contrato: "contrato" (um dos ativos), "novo" (novo contrato deste fornecedor na obra) ou "avulso" (fora de contrato)
@@ -8651,7 +8685,7 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
   const vinculoEf = vinculo === "contrato" && contratosOpcoes.length === 0 ? "novo" : vinculo;
   const contrato = vinculoEf === "contrato" ? (contratosOpcoes.find((c) => c.id === contratoSelId) || contratosOpcoes[0] || null) : null;
   const avulso = vinculoEf === "avulso";
-  const medido = contrato ? ppMedidoAnterior(contrato, ordens, ordem?.id) : 0;
+  const medido = contrato ? ppMedidoAnterior(contrato, ordens, ordem?.id, entries) : 0;
   const valorNum = Number(f.valor) || 0;
   const saldoAuto = contrato ? ppArred(contrato.valorTotal - medido - valorNum) : null;
   const valorContratoEf = contrato ? contrato.valorTotal : f.valorContrato;
@@ -8717,7 +8751,7 @@ function PPOrdemModal({ ordem, obras, ordens, contratos, setContratos, apropriac
             {contratosOpcoes.map((c) => (
               <label key={c.id} className="gf-checkbox" style={{ display: "flex", marginBottom: 4 }}>
                 <input type="radio" name="pp-vinculo" checked={vinculoEf === "contrato" && contrato?.id === c.id} onChange={() => { setVinculo("contrato"); setContratoSelId(c.id); }} />
-                <span>{ppRotuloContrato(c, contratosObra, ordens, ordem?.id)}{c.ativo === false ? " (encerrado)" : ""}</span>
+                <span>{ppRotuloContrato(c, contratosObra, ordens, ordem?.id, entries)}{c.ativo === false ? " (encerrado)" : ""}</span>
               </label>
             ))}
             {!ordem && (
@@ -8972,10 +9006,10 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
         </section>
       )}
 
-      {modal?.tipo === "nova" && <PPOrdemModal ordem={null} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, null)} />}
-      {modal?.tipo === "editar" && <PPOrdemModal ordem={modal.ordem} obras={obras} ordens={ordens} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, modal.ordem)} />}
+      {modal?.tipo === "nova" && <PPOrdemModal ordem={null} obras={obras} ordens={ordens} entries={entries} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, null)} />}
+      {modal?.tipo === "editar" && <PPOrdemModal ordem={modal.ordem} obras={obras} ordens={ordens} entries={entries} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, modal.ordem)} />}
       {modal?.tipo === "pagar" && <PPPagarModal ordem={modal.ordem} accounts={contasAtivas} contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")} obraNome={nomeObra(modal.ordem.obraId)} onClose={() => setModal(null)} onConfirm={(p) => pagar(modal.ordem, p)} />}
-      {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
+      {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} entries={entries} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
     </div>
   );
 }
