@@ -7928,19 +7928,20 @@ function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasP
       origem: "lancamentos", id: e.id, data: e.data,
       centroCusto: obraName(e.obraId),
       contaBancaria: e.origemTipo === "CONTA_INVESTIDOR" ? `${investidorName(e.contaInvestidorId)} — Investidor` : accountName(e.contaId),
-      fornecedor: e.fornecedor || "—", descricao: e.descricao || "—",
+      fornecedor: e.fornecedor || "—", descricao: e.descricao || "—", apropriacao: e.apropriacao || "—",
       valor: e.valor, tipo: e.tipo, criadoPor: e.criadoPor || "—", criadoEm: e.criadoEm, raw: e,
     }));
     const doContasPagar = contasPagar.filter((c) => statusAprovacao(c) === "pendente").map((c) => ({
       origem: "contaspagar", id: c.id, data: c.dataVencimento,
       centroCusto: c.rateio && c.rateio.length > 1 ? `Rateado (${c.rateio.length})` : obraName(c.rateio?.[0]?.centroCusto ?? c.centroCusto),
       contaBancaria: "—", fornecedor: c.fornecedor || "—", descricao: c.descricao || "—",
+      apropriacao: (c.rateio && c.rateio.length > 1 ? [...new Set(c.rateio.map((r) => r.apropriacao).filter(Boolean))].join(", ") : "") || c.apropriacao || c.rateio?.[0]?.apropriacao || "—",
       valor: c.valorPrevisto, tipo: "saida", criadoPor: c.criadoPor || "—", criadoEm: c.criadoEm, raw: c,
     }));
     const doSocios = movimentosSocios.filter((m) => statusAprovacao(m) === "pendente").map((m) => ({
       origem: "socios", id: m.id, data: m.data, centroCusto: "—", contaBancaria: accountName(m.contaId),
       fornecedor: socioName(m.socioId),
-      descricao: m.descricao || (m.tipo === "aporte" ? "Aporte" : m.tipo === "pro-labore" ? "Pró-labore" : "Retirada"),
+      descricao: m.descricao || (m.tipo === "aporte" ? "Aporte" : m.tipo === "pro-labore" ? "Pró-labore" : "Retirada"), apropriacao: "—",
       valor: m.valor, tipo: m.tipo === "aporte" ? "entrada" : "saida", criadoPor: m.criadoPor || "—", criadoEm: m.criadoEm, raw: m,
     }));
     return [...doLancamentos, ...doContasPagar, ...doSocios].sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
@@ -8023,7 +8024,7 @@ function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasP
               <thead>
                 <tr>
                   <th>Origem</th><th>Data</th><th>Centro de custo</th><th>Conta bancária</th><th>Fornecedor/beneficiário</th>
-                  <th>Descrição</th><th className="num">Valor</th><th>Criado por</th><th>Criado em</th><th></th>
+                  <th>Apropriação</th><th>Descrição</th><th className="num">Valor</th><th>Criado por</th><th>Criado em</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -8034,6 +8035,7 @@ function AprovacaoLancamentosPage({ entries, setEntries, contasPagar, setContasP
                     <td>{p.centroCusto}</td>
                     <td>{p.contaBancaria}</td>
                     <td>{p.fornecedor}</td>
+                    <td>{p.apropriacao}</td>
                     <td className="gf-td-desc" title={p.descricao}>{p.descricao}</td>
                     <td className={`num mono ${p.tipo === "entrada" ? "pos" : "neg"}`}>{BRL(p.valor)}</td>
                     <td>{p.criadoPor}</td>
@@ -8603,10 +8605,71 @@ const ppMedidoAnterior = (contrato, ordens, ignorarId, entries = [], ignorarFdId
     + ordens.filter((o) => o.contratoId === contrato?.id && o.id !== ignorarId).reduce((s, o) => s + (Number(o.valor) || 0), 0)
     + entries.filter((e) => e.fatDireto && e.tipo === "saida" && e.contratoId && e.contratoId === contrato?.id && e.fdId !== ignorarFdId).reduce((s, e) => s + (Number(e.valor) || 0), 0));
 
-function PPContratosModal({ contratos, setContratos, ordens, entries = [], obras, fornecedorOptions, currentUser, logAudit, onClose }) {
+// Detalhamento de um contrato: o que foi medido antes do sistema, as ordens de pagamento (conta e data) e os faturamentos diretos.
+function PPContratoDetalheModal({ contrato, ordens, entries, obras, accounts, contasInvestidores, onClose }) {
+  const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
+  const nomeConta = (id) => accounts.find((a) => a.id === id)?.nome || contasInvestidores.find((c) => c.id === id)?.nome || "Conta não encontrada";
+  const linhas = [];
+  ordens.filter((o) => o.contratoId === contrato.id).forEach((o) => {
+    if (o.status === "pago" && o.pagamento) {
+      (o.pagamento.contas || []).forEach((c, i) => linhas.push({
+        k: `${o.id}-${i}`, data: o.pagamento.data, tipo: "Ordem de pagamento", conta: nomeConta(c.contaId) + (c.investidor ? " (Investidor)" : ""),
+        valor: Number(c.valor) || 0, desc: o.descricao || "", apropriacao: o.apropriacao || "", obra: nomeObra(o.obraId), pago: true,
+      }));
+    } else {
+      linhas.push({ k: o.id, data: o.dataPagamento, tipo: "Ordem de pagamento", conta: "Programada — ainda não paga", valor: Number(o.valor) || 0, desc: o.descricao || "", apropriacao: o.apropriacao || "", obra: nomeObra(o.obraId), pago: false });
+    }
+  });
+  entries.filter((e) => e.fatDireto && e.tipo === "saida" && e.contratoId === contrato.id).forEach((e) => linhas.push({
+    k: e.id, data: e.data, tipo: "Faturamento direto", conta: "Pago direto pelo cliente", valor: Number(e.valor) || 0, desc: e.descricao || "", apropriacao: e.apropriacao || "", obra: nomeObra(e.obraId), pago: true,
+  }));
+  linhas.sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : 0));
+  const inicial = Number(contrato.medidoInicial) || 0;
+  const totalOrdens = linhas.filter((l) => l.tipo === "Ordem de pagamento").reduce((s, l) => s + l.valor, 0);
+  const totalFat = linhas.filter((l) => l.tipo === "Faturamento direto").reduce((s, l) => s + l.valor, 0);
+  const medido = ppArred(inicial + totalOrdens + totalFat);
+  const saldo = ppArred((Number(contrato.valorTotal) || 0) - medido);
+  return (
+    <Modal title={`Contrato — ${contrato.fornecedor}${contrato.descricao ? " — " + contrato.descricao : ""}`} onClose={onClose} width={900}>
+      <div className="gf-tiles" style={{ gridTemplateColumns: "repeat(4,1fr)", marginBottom: 12 }}>
+        <div className="gf-tile"><span className="gf-tile-label">Obra</span><span className="gf-tile-value" style={{ fontSize: 14 }}>{nomeObra(contrato.obraId)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Valor total</span><span className="gf-tile-value">{BRL(contrato.valorTotal)}</span></div>
+        <div className="gf-tile"><span className="gf-tile-label">Medido / pago</span><span className="gf-tile-value">{BRL(medido)}</span></div>
+        <div className={`gf-tile ${saldo < 0 ? "tone-red" : ""}`}><span className="gf-tile-label">Saldo</span><span className="gf-tile-value">{BRL(saldo)}</span></div>
+      </div>
+      <p className="gf-field-hint">
+        Situação: <b>{contrato.ativo !== false ? "Ativo" : "Encerrado"}</b>
+        {contrato.criadoPor ? <> · cadastrado por {contrato.criadoPor}{contrato.criadoEm ? ` em ${nowStampFromTs(contrato.criadoEm)}` : ""}</> : null}
+        {inicial > 0 ? <> · já medido/pago antes do sistema: <b>{BRL(inicial)}</b></> : null}
+        {" · "}Ordens de pagamento: <b>{BRL(totalOrdens)}</b> · Faturamento direto: <b>{BRL(totalFat)}</b>
+      </p>
+      <div className="gf-table-wrap">
+        <ExportableTable className="gf-table">
+          <thead><tr><th>Data</th><th>Origem</th><th>Conta / forma de pagamento</th><th>Obra do gasto</th><th>Apropriação</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
+          <tbody>
+            {linhas.length === 0 && <tr><td colSpan={7}><EmptyState icon={FileText} title="Nenhum pagamento neste contrato" body="Os pagamentos aparecem aqui quando uma ordem de pagamento ou um faturamento direto for vinculado a este contrato." /></td></tr>}
+            {linhas.map((l) => (
+              <tr key={l.k}>
+                <td>{l.data ? fmtDate(l.data) : "—"}</td>
+                <td><Badge tone={l.tipo === "Faturamento direto" ? "orange" : l.pago ? "green" : "yellow"}>{l.tipo === "Faturamento direto" ? "Fat. direto" : l.pago ? "Pago" : "Programado"}</Badge></td>
+                <td>{l.conta}</td><td>{l.obra}</td><td>{l.apropriacao || "—"}</td>
+                <td className="gf-td-desc" title={l.desc}>{l.desc || "—"}</td>
+                <td className="num mono">{BRL(l.valor)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </ExportableTable>
+      </div>
+      <p className="gf-field-hint" style={{ marginTop: 8 }}>Ordens ainda não pagas (“Programado”) já contam no valor medido do contrato, como no cálculo do saldo das ordens de pagamento.</p>
+    </Modal>
+  );
+}
+
+function PPContratosModal({ contratos, setContratos, ordens, entries = [], accounts = [], contasInvestidores = [], obras, fornecedorOptions, currentUser, logAudit, onClose }) {
   const blank = { id: null, obraId: "", fornecedor: "", descricao: "", valorTotal: "", medidoInicial: "", ativo: true };
   const [f, setF] = useState(blank);
   const [erro, setErro] = useState("");
+  const [detalheId, setDetalheId] = useState(null);
   const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
   const idsObras = new Set(obras.map((o) => o.id));
   const lista = contratos.filter((c) => idsObras.has(c.obraId));
@@ -8649,17 +8712,20 @@ function PPContratosModal({ contratos, setContratos, ordens, entries = [], obras
             {lista.map((c) => {
               const med = ppMedidoAnterior(c, ordens, null, entries);
               return (
-                <tr key={c.id}>
+                <tr key={c.id} onClick={() => setDetalheId(c.id)} style={{ cursor: "pointer" }} title="Clique para ver o detalhamento dos pagamentos">
                   <td>{nomeObra(c.obraId)}</td><td>{c.fornecedor}</td><td>{c.descricao || "—"}</td>
                   <td className="num mono">{BRL(c.valorTotal)}</td><td className="num mono">{BRL(med)}</td><td className={`num mono ${c.valorTotal - med < 0 ? "neg" : ""}`}>{BRL(c.valorTotal - med)}</td>
                   <td><Badge tone={c.ativo !== false ? "green" : "gray"}>{c.ativo !== false ? "Ativo" : "Encerrado"}</Badge></td>
-                  <td><button type="button" className="gf-icon-btn" title="Editar" onClick={() => setF({ id: c.id, obraId: c.obraId, fornecedor: c.fornecedor, descricao: c.descricao || "", valorTotal: String(c.valorTotal), medidoInicial: String(c.medidoInicial || ""), ativo: c.ativo !== false })}><Pencil size={14} /></button></td>
+                  <td><button type="button" className="gf-icon-btn" title="Editar" onClick={(ev) => { ev.stopPropagation(); setF({ id: c.id, obraId: c.obraId, fornecedor: c.fornecedor, descricao: c.descricao || "", valorTotal: String(c.valorTotal), medidoInicial: String(c.medidoInicial || ""), ativo: c.ativo !== false }); }}><Pencil size={14} /></button></td>
                 </tr>
               );
             })}
           </tbody>
         </ExportableTable>
       </div>
+      {detalheId && contratos.find((c) => c.id === detalheId) && (
+        <PPContratoDetalheModal contrato={contratos.find((c) => c.id === detalheId)} ordens={ordens} entries={entries} obras={obras} accounts={accounts} contasInvestidores={contasInvestidores} onClose={() => setDetalheId(null)} />
+      )}
     </Modal>
   );
 }
@@ -9009,7 +9075,7 @@ function ProgramacaoPagamentosPage({ contasInvestidores = [], ordens, setOrdens,
       {modal?.tipo === "nova" && <PPOrdemModal ordem={null} obras={obras} ordens={ordens} entries={entries} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, null)} />}
       {modal?.tipo === "editar" && <PPOrdemModal ordem={modal.ordem} obras={obras} ordens={ordens} entries={entries} contratos={contratos} setContratos={setContratos} apropriacoes={apropriacoes} fornecedorOptions={fornecedorOptions} orcamentoItens={orcamentoItens} fornecedoresCadastro={fornecedoresCadastro} currentUser={currentUser} onClose={() => setModal(null)} onSave={(d) => salvarOrdem(d, modal.ordem)} />}
       {modal?.tipo === "pagar" && <PPPagarModal ordem={modal.ordem} accounts={contasAtivas} contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")} obraNome={nomeObra(modal.ordem.obraId)} onClose={() => setModal(null)} onConfirm={(p) => pagar(modal.ordem, p)} />}
-      {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} entries={entries} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
+      {modal?.tipo === "contratos" && <PPContratosModal contratos={contratos} setContratos={setContratos} ordens={ordens} entries={entries} accounts={accounts} contasInvestidores={contasInvestidores} obras={obras} fornecedorOptions={fornecedorOptions} currentUser={currentUser} logAudit={logAudit} onClose={() => setModal(null)} />}
     </div>
   );
 }
