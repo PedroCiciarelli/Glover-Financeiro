@@ -13374,8 +13374,184 @@ function qzCalcularPeriodo(func, inicio, fim, apontamentos, feriados) {
   return { porObra, bruto: qzRound(bruto), diasTrabalhados, meias, faltas, noturnas, feriadosTrab, nApontamentos: aps.length };
 }
 
+// Adiantamentos/parcelas que podem entrar em um fechamento do funcionário. Na edição, inclui os que já estão no próprio fechamento (q).
+function qzAdiantDisponiveis(adiantamentos, funcId, fim, q) {
+  const itensQ = q ? qzItensAdiant(q) : [];
+  return adiantamentos.filter((ad) => ad.funcId === funcId).map((ad) => {
+    const it = itensQ.find((i) => i.adId === ad.id);
+    const totalParc = ad.parcelas ? ad.parcelas.length : null;
+    if (it) {
+      const valor = it.valor != null ? Number(it.valor) : (it.parcela && ad.parcelas ? Number(ad.parcelas[it.parcela - 1]?.valor) || 0 : Number(ad.valor) || 0);
+      return { key: ad.id, ad, parcela: it.parcela || null, totalParc, valor, jaNoFechamento: true };
+    }
+    if (ad.data > fim) return null;
+    const p = adiantProxima(ad);
+    return p ? { key: ad.id, ad, parcela: p.n, totalParc, valor: p.valor, jaNoFechamento: false } : null;
+  }).filter(Boolean).sort((a, b) => (a.ad.data < b.ad.data ? -1 : 1));
+}
+
 function qzFechamentoQueCobre(fechamentos, funcId, data) {
   return fechamentos.find((q) => q.funcId === funcId && data >= q.inicio && data <= q.fim);
+}
+
+// Detalhe dia a dia de um período (com os valores da época do fechamento) para o recibo.
+function qzDetalheDias(funcSnap, inicio, fim, apontamentos, feriados, nomeObra) {
+  const fer = new Set(feriados || []);
+  const aps = apontamentos.filter((a) => a.funcId === funcSnap.id && a.data >= inicio && a.data <= fim)
+    .sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : (a.noturna ? 1 : 0) - (b.noturna ? 1 : 0)));
+  const jaBonus = new Set();
+  return aps.map((a) => {
+    const dia = QZ_DIAS_SEMANA[new Date(a.data + "T12:00:00").getDay()];
+    if (a.falta) return { data: a.data, dia, obra: "—", turno: "Falta", valor: 0, falta: true };
+    if (!a.obraId) return null;
+    const bonus = fer.has(a.data) && !jaBonus.has(a.data);
+    if (bonus) jaBonus.add(a.data);
+    const partes = [a.noturna ? "Noturno" : "Diurno"];
+    if (a.meia) partes.push("meia diária");
+    if (bonus) partes.push("feriado");
+    return { data: a.data, dia, obra: nomeObra(a.obraId), turno: partes.join(" · "), valor: qzValorDia(funcSnap, a, bonus), falta: false };
+  }).filter(Boolean);
+}
+
+// Desenha o demonstrativo (recibo) da quinzena em um <canvas>. Recebe textos já formatados.
+// d: { titulo, funcionario, funcao, periodo, situacao, emitidoEm, dias:[{c1,c2,c3,c4,falta}], resumo:[{rotulo,valor,tom,sub}], totalRotulo, total, rodape }
+function qzDesenharRecibo(d, logoImg) {
+  const W = 880, M = 36, S = 2;
+  const HEAD = 124, ROW = 30, RES = 30;
+  const alturaInfo = 96;
+  const H = HEAD + alturaInfo + 40 + 34 + Math.max(d.dias.length, 1) * ROW + 40 + d.resumo.reduce((t, r) => t + (r.sub ? RES + 14 : RES), 0) + 90 + 60;
+  const cv = document.createElement("canvas");
+  cv.width = W * S; cv.height = H * S;
+  const c = cv.getContext("2d");
+  c.scale(S, S);
+  const FONT = "-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  const fit = (txt, maxW) => { let t = String(txt); if (c.measureText(t).width <= maxW) return t; while (t.length > 1 && c.measureText(t + "…").width > maxW) t = t.slice(0, -1); return t + "…"; };
+  const txt = (t, x, y, { size = 13, weight = "400", color = "#1F2A24", align = "left", max } = {}) => {
+    c.font = `${weight} ${size}px ${FONT}`; c.fillStyle = color; c.textAlign = align; c.textBaseline = "middle";
+    c.fillText(max ? fit(t, max) : t, x, y);
+  };
+  c.fillStyle = "#FFFFFF"; c.fillRect(0, 0, W, H);
+  // cabeçalho (mesma cor de fundo da logo)
+  c.fillStyle = "#8A8B8B"; c.fillRect(0, 0, W, HEAD);
+  if (logoImg) { const lh = 112, lw = lh * (logoImg.width / logoImg.height); c.drawImage(logoImg, M - 10, (HEAD - lh) / 2, lw, lh); }
+  else txt("GLOVER ENGENHARIA", M, HEAD / 2, { size: 22, weight: "700", color: "#FFFFFF" });
+  txt(d.titulo, W - M, HEAD / 2 - 12, { size: 20, weight: "700", color: "#FFFFFF", align: "right" });
+  txt(`Emitido em ${d.emitidoEm}`, W - M, HEAD / 2 + 14, { size: 12.5, color: "#F1F3F1", align: "right" });
+  c.fillStyle = "#1B6B45"; c.fillRect(0, HEAD, W, 5);
+  // identificação
+  let y = HEAD + 5 + 28;
+  txt("FUNCIONÁRIO", M, y, { size: 11, weight: "600", color: "#6B7A72" });
+  txt("PERÍODO", W / 2 + 10, y, { size: 11, weight: "600", color: "#6B7A72" });
+  txt(d.funcionario, M, y + 22, { size: 18, weight: "700", max: W / 2 - M - 10 });
+  txt(d.periodo, W / 2 + 10, y + 22, { size: 18, weight: "700" });
+  txt(d.funcao || "", M, y + 44, { size: 13, color: "#55645C", max: W / 2 - M - 10 });
+  txt(d.situacao, W / 2 + 10, y + 44, { size: 13, color: "#55645C" });
+  y = HEAD + 5 + alturaInfo + 14;
+  // tabela de dias
+  txt("DIAS TRABALHADOS", M, y, { size: 12, weight: "700", color: "#1B6B45" });
+  y += 18;
+  const colX = [M + 8, M + 160, M + 470, W - M - 8];
+  c.fillStyle = "#EEF3F0"; c.fillRect(M, y, W - 2 * M, 30);
+  txt("Data", colX[0], y + 15, { size: 12, weight: "700", color: "#33423A" });
+  txt("Obra", colX[1], y + 15, { size: 12, weight: "700", color: "#33423A" });
+  txt("Turno / observação", colX[2], y + 15, { size: 12, weight: "700", color: "#33423A" });
+  txt("Valor", colX[3], y + 15, { size: 12, weight: "700", color: "#33423A", align: "right" });
+  y += 30;
+  if (d.dias.length === 0) { txt("Nenhum dia apontado no período.", M + 8, y + ROW / 2, { size: 13, color: "#6B7A72" }); y += ROW; }
+  d.dias.forEach((r, i) => {
+    if (i % 2 === 1) { c.fillStyle = "#F8FAF9"; c.fillRect(M, y, W - 2 * M, ROW); }
+    const cor = r.falta ? "#B3261E" : "#1F2A24";
+    txt(r.c1, colX[0], y + ROW / 2, { size: 13, color: cor });
+    txt(r.c2, colX[1], y + ROW / 2, { size: 13, color: cor, max: colX[2] - colX[1] - 12 });
+    txt(r.c3, colX[2], y + ROW / 2, { size: 13, color: cor, max: colX[3] - colX[2] - 100 });
+    txt(r.c4, colX[3], y + ROW / 2, { size: 13, color: cor, align: "right" });
+    y += ROW;
+  });
+  c.strokeStyle = "#D5DDD8"; c.lineWidth = 1; c.beginPath(); c.moveTo(M, y + .5); c.lineTo(W - M, y + .5); c.stroke();
+  y += 26;
+  // resumo
+  txt("RESUMO", M, y, { size: 12, weight: "700", color: "#1B6B45" });
+  y += 14;
+  d.resumo.forEach((r) => {
+    const cor = r.tom === "neg" ? "#B3261E" : r.tom === "pos" ? "#1B6B45" : "#1F2A24";
+    txt(r.rotulo, M + 8, y + RES / 2, { size: 13.5, weight: r.forte ? "700" : "400", max: W - 2 * M - 180 });
+    txt(r.valor, W - M - 8, y + RES / 2, { size: 13.5, weight: r.forte ? "700" : "400", color: cor, align: "right" });
+    y += RES;
+    if (r.sub) { txt(r.sub, M + 22, y - 2, { size: 11.5, color: "#6B7A72", max: W - 2 * M - 60 }); y += 14; }
+    c.strokeStyle = "#E6ECE8"; c.beginPath(); c.moveTo(M, y + .5); c.lineTo(W - M, y + .5); c.stroke();
+  });
+  y += 18;
+  // total
+  c.fillStyle = "#1B6B45"; c.fillRect(M, y, W - 2 * M, 56);
+  txt(d.totalRotulo, M + 18, y + 28, { size: 14, weight: "700", color: "#FFFFFF" });
+  txt(d.total, W - M - 18, y + 28, { size: 24, weight: "700", color: "#FFFFFF", align: "right" });
+  y += 56 + 24;
+  txt(d.rodape, W / 2, y, { size: 11, color: "#8A968F", align: "center" });
+  return cv;
+}
+
+function qzCarregarLogo() {
+  return new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = GLOVER_LOGO_CINZA_URI; });
+}
+
+// Monta os dados do recibo de um fechamento e devolve o canvas.
+async function qzGerarReciboCanvas(q, { apontamentos, feriados, adiantamentos, nomeObra }) {
+  const snap = { id: q.funcId, diaria: q.diariaUsada, diariaNoturna: q.diariaNoturnaUsada, bonusFeriado: q.bonusFeriadoUsado };
+  const dias = qzDetalheDias(snap, q.inicio, q.fim, apontamentos, feriados, nomeObra);
+  const somaDias = qzRound(dias.reduce((s, r) => s + r.valor, 0));
+  const linhasDias = dias.map((r) => ({ c1: `${fmtDate(r.data)}  ${r.dia}`, c2: r.obra, c3: r.turno, c4: r.falta ? "—" : BRL(r.valor), falta: r.falta }));
+  const ajuste = qzRound((Number(q.bruto) || 0) - somaDias);
+  if (Math.abs(ajuste) > 0.005) linhasDias.push({ c1: "—", c2: "Ajuste", c3: "Diferença de apontamentos", c4: BRL(ajuste), falta: false });
+  const resumo = [{ rotulo: `Total das diárias (${String(q.diasTrabalhados).replace(".", ",")} diária${q.diasTrabalhados === 1 ? "" : "s"}${q.faltas ? ` · ${q.faltas} falta${q.faltas > 1 ? "s" : ""}` : ""})`, valor: BRL(q.bruto) }];
+  if (Number(q.bonus) > 0) resumo.push({ rotulo: "Bônus", valor: `+ ${BRL(q.bonus)}`, tom: "pos" });
+  if (Number(q.reembolso) > 0) resumo.push({ rotulo: "Reembolso de combustível", valor: `+ ${BRL(q.reembolso)}`, tom: "pos" });
+  qzItensAdiant(q).forEach((it) => {
+    const ad = adiantamentos.find((x) => x.id === it.adId);
+    const valor = it.valor != null ? Number(it.valor) : Number(ad?.valor) || 0;
+    const parc = it.parcela ? ` — parcela ${it.parcela}${ad?.parcelas ? `/${ad.parcelas.length}` : ""}` : "";
+    resumo.push({ rotulo: `Adiantamento${parc}`, valor: `− ${BRL(valor)}`, tom: "neg", sub: `${ad ? "Pago em " + fmtDate(ad.data) : ""}${ad?.descricao ? (ad ? " · " : "") + ad.descricao : ""}` || null });
+  });
+  const logo = await qzCarregarLogo();
+  return qzDesenharRecibo({
+    titulo: "DEMONSTRATIVO DE QUINZENA", emitidoEm: fmtDate(todayISO()),
+    funcionario: q.funcNome, funcao: q.funcFuncao || "", periodo: `${fmtDate(q.inicio)} a ${fmtDate(q.fim)}`,
+    situacao: q.status === "pago" ? `Pago em ${fmtDate(q.pagamento?.data)}` : "Pagamento pendente",
+    dias: linhasDias, resumo, totalRotulo: "VALOR DO DEPÓSITO", total: BRL(q.total),
+    rodape: "Glover Engenharia — demonstrativo gerado pelo sistema de gestão",
+  }, logo);
+}
+
+function QzReciboModal({ fechamento, apontamentos, feriados, adiantamentos, obras, onClose }) {
+  const [url, setUrl] = useState("");
+  const [blob, setBlob] = useState(null);
+  const [erro, setErro] = useState("");
+  useEffect(() => {
+    let vivo = true;
+    qzGerarReciboCanvas(fechamento, { apontamentos, feriados, adiantamentos, nomeObra: (id) => obras.find((o) => o.id === id)?.nome || "Obra não encontrada" })
+      .then((cv) => { if (!vivo) return; setUrl(cv.toDataURL("image/png")); cv.toBlob((b) => vivo && setBlob(b), "image/png"); })
+      .catch((e) => vivo && setErro("Não foi possível gerar a imagem: " + ((e && e.message) || e)));
+    return () => { vivo = false; };
+  }, [fechamento.id]);
+  const nomeArq = `recibo-quinzena-${(fechamento.funcNome || "funcionario").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").toLowerCase()}-${fechamento.inicio}-a-${fechamento.fim}.png`;
+  const baixar = () => { const a = document.createElement("a"); a.href = url; a.download = nomeArq; document.body.appendChild(a); a.click(); a.remove(); };
+  const podeCompartilhar = !!blob && typeof navigator !== "undefined" && navigator.canShare && (() => { try { return navigator.canShare({ files: [new File([blob], nomeArq, { type: "image/png" })] }); } catch (e) { return false; } })();
+  const compartilhar = async () => { try { await navigator.share({ files: [new File([blob], nomeArq, { type: "image/png" })], title: `Demonstrativo de quinzena — ${fechamento.funcNome}` }); } catch (e) { /* cancelado */ } };
+  return (
+    <Modal title={`Recibo — ${fechamento.funcNome}`} onClose={onClose} width={760}>
+      {erro && <div className="gf-warn">{erro}</div>}
+      {!erro && !url && <p className="gf-hint">Gerando imagem…</p>}
+      {url && (
+        <>
+          <div className="gf-form-actions" style={{ marginBottom: 10 }}>
+            <button type="button" className="gf-btn gf-btn-primary" onClick={baixar}><Download size={15} /> Baixar PNG</button>
+            {podeCompartilhar && <button type="button" className="gf-btn gf-btn-ghost" onClick={compartilhar}><Send size={15} /> Compartilhar</button>}
+            <span className="gf-hint">Imagem pronta para enviar ao prestador (WhatsApp, e-mail…).</span>
+          </div>
+          <img src={url} alt="Demonstrativo de quinzena" style={{ width: "100%", border: "1px solid #D5DDD8", borderRadius: 6 }} />
+        </>
+      )}
+    </Modal>
+  );
 }
 
 function FuncionarioModal({ funcionario, onClose, onSave }) {
@@ -13588,30 +13764,34 @@ function QzDiaModal({ data, funcionarios, obrasEmCurso, obras, apontamentos, set
   );
 }
 
-function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, adiantamentos = [], obras, onClose, onSave }) {
-  const ativos = funcionarios.filter((f) => f.ativo);
+function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, adiantamentos = [], obras, fechamento = null, onClose, onSave }) {
+  const edit = fechamento; // editando um fechamento ainda pendente
+  const ativos = edit ? funcionarios.filter((f) => f.id === edit.funcId) : funcionarios.filter((f) => f.ativo);
   const hoje = todayISO();
-  const [funcId, setFuncId] = useState(ativos[0]?.id || "");
-  const [inicio, setInicio] = useState(hoje.slice(0, 8) + (Number(hoje.slice(8)) > 15 ? "16" : "01"));
-  const [fim, setFim] = useState(hoje);
-  const [bonus, setBonus] = useState("");
-  const [reembolso, setReembolso] = useState("");
-  const [desmarcados, setDesmarcados] = useState([]);
+  const [funcId, setFuncId] = useState(edit ? edit.funcId : ativos[0]?.id || "");
+  const [inicio, setInicio] = useState(edit ? edit.inicio : hoje.slice(0, 8) + (Number(hoje.slice(8)) > 15 ? "16" : "01"));
+  const [fim, setFim] = useState(edit ? edit.fim : hoje);
+  const [bonus, setBonus] = useState(edit && edit.bonus ? String(edit.bonus) : "");
+  const [reembolso, setReembolso] = useState(edit && edit.reembolso ? String(edit.reembolso) : "");
+  const [desmarcados, setDesmarcados] = useState(() => (edit ? qzAdiantDisponiveis(adiantamentos, edit.funcId, edit.fim, edit).filter((it) => !it.jaNoFechamento).map((it) => it.key) : []));
+  const [usarAtuais, setUsarAtuais] = useState(false);
   const [erro, setErro] = useState("");
-  const func = funcionarios.find((f) => f.id === funcId);
+  const funcCad = funcionarios.find((f) => f.id === funcId);
+  // na edição, mantém os valores (diária, noturna, bônus de feriado) da época do fechamento, a menos que se peça os atuais
+  const func = funcCad && edit && !usarAtuais
+    ? { ...funcCad, diaria: edit.diariaUsada ?? funcCad.diaria, diariaNoturna: edit.diariaNoturnaUsada ?? funcCad.diariaNoturna, bonusFeriado: edit.bonusFeriadoUsado ?? funcCad.bonusFeriado }
+    : funcCad;
+  const taxasDiferem = !!(edit && funcCad && (Number(edit.diariaUsada ?? funcCad.diaria) !== Number(funcCad.diaria) || Number(edit.diariaNoturnaUsada ?? funcCad.diariaNoturna) !== Number(funcCad.diariaNoturna) || Number(edit.bonusFeriadoUsado ?? funcCad.bonusFeriado) !== Number(funcCad.bonusFeriado)));
   const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "Obra não encontrada";
 
   const conflito = useMemo(() => {
     if (!funcId || !inicio || !fim) return null;
-    return fechamentos.find((q) => q.funcId === funcId && inicio <= q.fim && fim >= q.inicio) || null;
-  }, [fechamentos, funcId, inicio, fim]);
+    return fechamentos.find((q) => q.id !== edit?.id && q.funcId === funcId && inicio <= q.fim && fim >= q.inicio) || null;
+  }, [fechamentos, funcId, inicio, fim, edit?.id]);
   const periodoInvalido = !inicio || !fim || fim < inicio;
-  const calc = useMemo(() => (func && !periodoInvalido ? qzCalcularPeriodo(func, inicio, fim, apontamentos, feriados) : null), [func, inicio, fim, apontamentos, feriados, periodoInvalido]);
-  // adiantamentos do funcionário ainda não incluídos em nenhum fechamento, até o fim do período
-  const adiantDisponiveis = adiantamentos
-    .filter((ad) => ad.funcId === funcId && ad.data <= fim)
-    .map((ad) => { const p = adiantProxima(ad); return p ? { key: ad.id, ad, parcela: p.n, totalParc: ad.parcelas ? ad.parcelas.length : null, valor: p.valor } : null; })
-    .filter(Boolean).sort((a, b) => (a.ad.data < b.ad.data ? -1 : 1));
+  const calc = useMemo(() => (func && !periodoInvalido ? qzCalcularPeriodo(func, inicio, fim, apontamentos, feriados) : null), [func?.id, func?.diaria, func?.diariaNoturna, func?.bonusFeriado, inicio, fim, apontamentos, feriados, periodoInvalido]);
+  // adiantamentos do funcionário ainda não incluídos em nenhum fechamento, até o fim do período (e os já incluídos neste, ao editar)
+  const adiantDisponiveis = qzAdiantDisponiveis(adiantamentos, funcId, fim, edit);
   const adiantIncluidos = adiantDisponiveis.filter((it) => !desmarcados.includes(it.key));
   const somaAdiant = qzRound(adiantIncluidos.reduce((s, it) => s + it.valor, 0));
   const totalFinal = calc ? qzRound(calc.bruto + (Number(bonus) || 0) + (Number(reembolso) || 0) - somaAdiant) : 0;
@@ -13632,18 +13812,24 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
   };
 
   return (
-    <Modal title="Fechamento de quinzena" onClose={onClose} width={680}>
+    <Modal title={edit ? "Editar fechamento de quinzena" : "Fechamento de quinzena"} onClose={onClose} width={680}>
       {ativos.length === 0 ? (
         <EmptyState icon={Users} title="Nenhum funcionário ativo" body="Cadastre um funcionário para fazer o fechamento." />
       ) : (
         <form onSubmit={submit} className="gf-form-grid gf-modal-form">
           <Field label="Funcionário" className="gf-span-2">
-            <select value={funcId} onChange={(e) => { setFuncId(e.target.value); setErro(""); }}>
+            <select value={funcId} disabled={!!edit} onChange={(e) => { setFuncId(e.target.value); setErro(""); setDesmarcados([]); }}>
               {ativos.map((f) => <option key={f.id} value={f.id}>{f.nome}{f.funcao ? ` — ${f.funcao}` : ""}</option>)}
             </select>
           </Field>
           <Field label="Início da quinzena"><input type="date" required value={inicio} onChange={(e) => { setInicio(e.target.value); setErro(""); }} /></Field>
           <Field label="Fim da quinzena"><input type="date" required value={fim} onChange={(e) => { setFim(e.target.value); setErro(""); }} /></Field>
+          {edit && taxasDiferem && (
+            <label className="gf-checkbox gf-span-2">
+              <input type="checkbox" checked={usarAtuais} onChange={(e) => setUsarAtuais(e.target.checked)} />
+              <span>Recalcular com os valores atuais do cadastro (diária {BRL(funcCad.diaria)}, noturna {BRL(funcCad.diariaNoturna)}, bônus feriado {BRL(funcCad.bonusFeriado)}) — o fechamento está com diária {BRL(edit.diariaUsada ?? funcCad.diaria)}</span>
+            </label>
+          )}
           {periodoInvalido && inicio && fim && <div className="gf-warn gf-span-2">A data final não pode ser anterior à inicial.</div>}
           {conflito && <div className="gf-warn gf-span-2">Este período se sobrepõe à quinzena já fechada de {fmtDate(conflito.inicio)} a {fmtDate(conflito.fim)}. Escolha datas que não incluam dias de quinzenas anteriores.</div>}
 
@@ -13702,8 +13888,8 @@ function QzFechamentoModal({ funcionarios, apontamentos, feriados, fechamentos, 
           </div>
           {erro && <div className="gf-warn gf-span-2">{erro}</div>}
           <div className="gf-form-actions gf-span-2">
-            <button type="submit" className="gf-btn gf-btn-primary" disabled={!podeSalvar}>Fechar quinzena</button>
-            <span className="gf-hint">Depois do fechamento, use "Pagamento" para apontar a(s) conta(s) de onde saiu o depósito.</span>
+            <button type="submit" className="gf-btn gf-btn-primary" disabled={!podeSalvar}>{edit ? "Salvar alterações" : "Fechar quinzena"}</button>
+            <span className="gf-hint">{edit ? "A edição fica liberada até o pagamento ser registrado; depois disso o fechamento fica travado (só estornando o pagamento)." : 'Depois do fechamento, use "Pagamento" para apontar a(s) conta(s) de onde saiu o depósito.'}</span>
           </div>
         </form>
       )}
@@ -13790,6 +13976,8 @@ function FechamentoQuinzenasPage({
   const [modalFunc, setModalFunc] = useState(null); // { f } | "novo"
   const [showFech, setShowFech] = useState(false);
   const [pagarId, setPagarId] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [reciboId, setReciboId] = useState(null);
   const podeGerenciar = can(currentUser, "quinzenas_gerenciar");
   const podePagar = qzPodePagar(currentUser);
   const obrasEmCurso = obras.filter((o) => !o.arquivada && o.status === "Em execução");
@@ -13857,6 +14045,15 @@ function FechamentoQuinzenasPage({
     setShowFech(false);
     setAba("fechamentos");
   };
+  const atualizarFechamento = (q, dados) => {
+    if (!podeGerenciar || q.status === "pago") return;
+    if (fechamentos.some((x) => x.id !== q.id && x.funcId === dados.funcId && dados.inicio <= x.fim && dados.fim >= x.inicio)) { window.alert("Este período se sobrepõe a outra quinzena já fechada."); return; }
+    setFechamentos((prev) => prev.map((x) => (x.id === q.id ? { ...x, ...dados, id: q.id, status: "pendente", pagamento: null, editadoPor: currentUser?.nome || "—", editadoEm: Date.now() } : x)));
+    // devolve os adiantamentos do fechamento anterior e vincula os do novo conjunto
+    setAdiantamentos((prev) => adiantAplicar(adiantAplicar(prev, qzItensAdiant(q), () => ({ fechamentoId: null })), qzItensAdiant(dados), () => ({ fechamentoId: q.id })));
+    logAudit?.({ tipoOperacao: "Edição de fechamento de quinzena", registroAlterado: `${dados.funcNome} — ${fmtDate(dados.inicio)} a ${fmtDate(dados.fim)}`, valorAnterior: BRL(q.total), valorNovo: BRL(dados.total) });
+    setEditId(null);
+  };
   const excluirFechamento = (q) => {
     if (!podeGerenciar || q.status === "pago") return;
     if (!window.confirm(`Excluir o fechamento de ${q.funcNome} (${fmtDate(q.inicio)} a ${fmtDate(q.fim)})? Os dias voltam a ficar livres para novo fechamento.`)) return;
@@ -13922,6 +14119,8 @@ function FechamentoQuinzenasPage({
 
   const fechamentosOrd = [...fechamentos].sort((a, b) => (a.fim < b.fim ? 1 : a.fim > b.fim ? -1 : 0));
   const pagarQ = fechamentos.find((q) => q.id === pagarId);
+  const editQ = fechamentos.find((q) => q.id === editId && q.status !== "pago");
+  const reciboQ = fechamentos.find((q) => q.id === reciboId);
 
   return (
     <div className="gf-stack">
@@ -13995,6 +14194,8 @@ function FechamentoQuinzenasPage({
                       </td>
                       <td>
                         <div className="gf-row-actions">
+                          <button className="gf-icon-btn" title="Gerar recibo (imagem PNG)" onClick={() => setReciboId(q.id)}><ImageDown size={14} /></button>
+                          {q.status !== "pago" && podeGerenciar && <button className="gf-icon-btn" title="Editar fechamento" onClick={() => setEditId(q.id)}><Pencil size={14} /></button>}
                           {q.status !== "pago" && podePagar && <button className="gf-btn gf-btn-primary" style={{ padding: "4px 10px" }} title="Registrar pagamento" onClick={() => setPagarId(q.id)}><CircleDollarSign size={14} /> Pagamento</button>}
                           {q.status === "pago" && podePagar && <button className="gf-icon-btn" title="Estornar pagamento" onClick={() => estornar(q)}><Undo2 size={14} /></button>}
                           {q.status !== "pago" && podeGerenciar && <button className="gf-icon-btn" title="Excluir fechamento" onClick={() => excluirFechamento(q)}><Trash2 size={14} /></button>}
@@ -14103,6 +14304,8 @@ function FechamentoQuinzenasPage({
       {modalFunc && <FuncionarioModal funcionario={modalFunc === "novo" ? null : modalFunc} onClose={() => setModalFunc(null)} onSave={salvarFuncionario} />}
       {showAdiant && <QzAdiantamentoModal funcionarios={funcionarios} accounts={accounts} onClose={() => setShowAdiant(false)} onSave={salvarAdiantamento} />}
       {showFech && <QzFechamentoModal funcionarios={funcionarios} apontamentos={apontamentos} feriados={feriados} fechamentos={fechamentos} adiantamentos={adiantamentos} obras={obras} onClose={() => setShowFech(false)} onSave={salvarFechamento} />}
+      {editQ && <QzFechamentoModal fechamento={editQ} funcionarios={funcionarios} apontamentos={apontamentos} feriados={feriados} fechamentos={fechamentos} adiantamentos={adiantamentos} obras={obras} onClose={() => setEditId(null)} onSave={(d) => atualizarFechamento(editQ, d)} />}
+      {reciboQ && <QzReciboModal fechamento={reciboQ} apontamentos={apontamentos} feriados={feriados} adiantamentos={adiantamentos} obras={obras} onClose={() => setReciboId(null)} />}
       {pagarQ && <QzPagarModal fechamento={pagarQ} accounts={accounts} contasInvestidores={contasInvestidores} obras={obras} onClose={() => setPagarId(null)} onConfirm={(p) => pagar(pagarQ, p)} />}
     </div>
   );
