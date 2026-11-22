@@ -165,7 +165,7 @@ import {
   TrendingUp, TrendingDown, Filter, ChevronLeft, Check, Scale, BarChart3,
   CalendarClock, Layers, Undo2, AlertTriangle, CircleDollarSign, ShieldCheck, Lock, LogOut, ClipboardCheck, CreditCard,
   FolderKanban, Paperclip, Send, HandCoins, CalendarRange, GripVertical, ImageDown, Archive, ArchiveRestore,
-  HardHat, FileText, Upload, Eye, FileDown, ArrowUp, ArrowDown, ImagePlus, Sparkles, Handshake,
+  HardHat, FileText, Upload, Eye, FileDown, ArrowUp, ArrowDown, ImagePlus, Sparkles, Handshake, Landmark,
 } from "lucide-react";
 
 const GLOVER_LOGO_DATA_URI = "data:image/png;base64,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";
@@ -256,6 +256,11 @@ const PERMISSION_GROUPS = [
     { key: "quinzenas_visualizar", label: "Acessar Quinzena Funcionários" },
     { key: "quinzenas_gerenciar", label: "Cadastrar funcionários, apontar dias e fechar quinzenas" },
     { key: "quinzenas_pagar", label: "Registrar pagamento de quinzenas (somente administrador/operacional)" },
+  ] },
+  { group: "Impostos", keys: [
+    { key: "impostos_visualizar", label: "Acessar Impostos (consulta)" },
+    { key: "impostos_gerenciar", label: "Cadastrar notas fiscais, configurações e guias de impostos" },
+    { key: "impostos_pagar", label: "Registrar pagamento/estorno de guias (somente administrador/operacional)" },
   ] },
   { group: "Faturamento Direto", keys: [
     { key: "fatdireto_visualizar", label: "Acessar Faturamento Direto (consulta)" },
@@ -1306,6 +1311,7 @@ export default function App() {
   const [planejamentosSemanais, setPlanejamentosSemanais] = useState([]);
   const [programacoesPagamento, setProgramacoesPagamento] = useState([]);
   const [contratosFornecedor, setContratosFornecedor] = useState([]);
+  const [imp, setImp] = useState(() => impNormalizar());
   const [funcionarios, setFuncionarios] = useState([]);
   const [apontamentosFunc, setApontamentosFunc] = useState([]);
   const [feriadosFunc, setFeriadosFunc] = useState([]);
@@ -1349,6 +1355,7 @@ export default function App() {
     setPlanejamentosSemanais(d.planejamentosSemanais || []);
     setProgramacoesPagamento(d.programacoesPagamento || []);
     setContratosFornecedor(d.contratosFornecedor || []);
+    setImp(impNormalizar(d.impostos));
     setFuncionarios(d.funcionarios || []);
     setApontamentosFunc(d.apontamentosFunc || []);
     setFeriadosFunc(d.feriadosFunc || []);
@@ -1438,7 +1445,7 @@ export default function App() {
       try {
         // Sessão de investidor é estritamente somente leitura: nunca grava no banco compartilhado.
         if (isInvestidor(usuarios.find((u) => u.id === currentUserId))) return;
-        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
+        const json = JSON.stringify({ accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, impostos: imp, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog });
         if (json === lastRemoteJson.current) return;
         await window.storage.set(STORAGE_KEY, json, true);
         lastRemoteJson.current = json;
@@ -1449,7 +1456,7 @@ export default function App() {
       }
     }, 350);
     return () => clearTimeout(t);
-  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
+  }, [accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro, socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores, contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, imp, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc, cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog, ready]);
 
   // Verifica periodicamente se alguém da equipe salvou algo novo, e atualiza a tela sozinho
   // (assim, se uma pessoa lança algo em um computador, as outras veem sem precisar recarregar a página).
@@ -1501,7 +1508,7 @@ export default function App() {
     setDividas(seed.dividas || []); setInvestimentos(seed.investimentos || []);
     setCartoesCredito(seed.cartoesCredito || []); setLancamentosCartao(seed.lancamentosCartao || []); setFaturasCartao(seed.faturasCartao || []);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
-    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]); setImp(impNormalizar());
     setFuncionarios([]); setApontamentosFunc([]); setFeriadosFunc([]); setFechamentosQuinzena([]); setAdiantamentosFunc([]);
   };
 
@@ -1515,7 +1522,7 @@ export default function App() {
     setCartoesCredito([]); setLancamentosCartao([]); setFaturasCartao([]);
     setGerContasPagar([]); setGerDepositos([]); setGerReembolsos([]); setGerRemessas([]);
     setContasInvestidores([]); setMovimentosInvestidores([]); setTransfersInvestidores([]); setRetiradasInvestidores([]);
-    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]);
+    setDisciplinas(DEFAULT_DISCIPLINAS); setPlanejamentosSemanais([]); setProgramacoesPagamento([]); setContratosFornecedor([]); setImp(impNormalizar());
     setFuncionarios([]); setApontamentosFunc([]); setFeriadosFunc([]); setFechamentosQuinzena([]); setAdiantamentosFunc([]);
   };
 
@@ -1523,7 +1530,7 @@ export default function App() {
     const dados = {
       accounts, obras, apropriacoes, entries, transfers, fornecedoresSeed, fornecedoresCadastro,
       socios, movimentosSocios, contasInvestidores, movimentosInvestidores, transfersInvestidores, retiradasInvestidores,
-      contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc,
+      contasPagar, orcamentoItens, dividas, investimentos, disciplinas, planejamentosSemanais, programacoesPagamento, contratosFornecedor, impostos: imp, funcionarios, apontamentosFunc, feriadosFunc, fechamentosQuinzena, adiantamentosFunc,
       cartoesCredito, lancamentosCartao, faturasCartao, gerContasPagar, gerDepositos, gerReembolsos, gerRemessas, usuarios, auditLog,
       exportadoEm: new Date().toISOString(),
     };
@@ -1650,19 +1657,27 @@ export default function App() {
   const obraStats = useMemo(() => {
     const map = {};
     obras.forEach((o) => (map[o.id] = { receitas: 0, despesas: 0, count: 0 }));
+    // Impostos (modelo híbrido): faturamento = valor bruto das NFs; custo tributário = provisões + ajustes + juros/multas.
+    // Pagamentos de guias (natureza "pagamento_imposto") movimentam o banco mas não somam de novo como despesa;
+    // entradas conciliadas com uma NF já estão dentro do faturamento bruto da nota.
+    const { por: tribMap, linked } = impTributos(imp, entries);
     entries.forEach((e) => {
       if (!map[e.obraId]) return;
       map[e.obraId].count += 1;
-      if (e.tipo === "entrada") map[e.obraId].receitas += Number(e.valor) || 0;
+      if (e.natureza === "pagamento_imposto" || e.natureza === "estorno_pagamento_imposto") return;
+      if (e.tipo === "entrada") { if (!linked.has(e.id)) map[e.obraId].receitas += Number(e.valor) || 0; }
       else map[e.obraId].despesas += Number(e.valor) || 0;
     });
     obras.forEach((o) => {
       const s = map[o.id];
+      const t = tribMap[o.id];
+      s.trib = t || null;
+      if (t) { s.receitas += t.faturamentoBruto; s.despesas += t.custoTributario; }
       s.resultado = s.receitas - s.despesas;
       s.margem = s.receitas > 0 ? (s.resultado / s.receitas) * 100 : null;
     });
     return map;
-  }, [obras, entries]);
+  }, [obras, entries, imp]);
 
   const obraSemObra = useMemo(() => {
     let receitas = 0, despesas = 0, count = 0;
@@ -1788,7 +1803,7 @@ export default function App() {
     fornecedores: "relatorios_acessar", contaspagar: null, cartoescredito: "cartao_lancar", custosinternos: "relatorios_acessar",
     dividasinvestimentos: "relatorios_acessar", obrasgerenciamento: "gerenciamento_lancar",
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
-    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar", faturamentodireto: "fatdireto_visualizar", programacaopagamentos: "progpag_visualizar", fechamentoquinzenas: "quinzenas_visualizar",
+    contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar", faturamentodireto: "fatdireto_visualizar", impostos: "impostos_visualizar", programacaopagamentos: "progpag_visualizar", fechamentoquinzenas: "quinzenas_visualizar",
   };
   if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
     return (
@@ -1972,6 +1987,13 @@ export default function App() {
               currentUser={currentUser} logAudit={logAudit}
             />
           )}
+          {page === "impostos" && !ehInvestidor && (
+            <ImpostosPage
+              accounts={accounts} contasInvestidores={contasInvestidores} obras={obras}
+              entries={entries} setEntries={setEntries} contasPagar={contasPagar} setContasPagar={setContasPagar}
+              imp={imp} setImp={setImp} currentUser={currentUser} logAudit={logAudit}
+            />
+          )}
           {page === "relatoriosobra" && !ehInvestidor && (
             <RelatoriosObraPage obras={obrasEscopo} disciplinas={disciplinas} usuarios={usuarios} currentUser={currentUser} logAudit={logAudit} />
           )}
@@ -2023,6 +2045,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "programacaopagamentos", label: "Programação de Pagamentos", icon: CalendarClock, perm: "progpag_visualizar" },
     { id: "fechamentoquinzenas", label: "Quinzena Funcionários", icon: HardHat, perm: "quinzenas_visualizar" },
     { id: "faturamentodireto", label: "Faturamento Direto", icon: Handshake, perm: "fatdireto_visualizar" },
+    { id: "impostos", label: "Impostos", icon: Landmark, perm: "impostos_visualizar" },
     { id: "relatoriosobra", label: "Relatórios de Obra", icon: FileText, perm: "relatorios_obra_visualizar" },
     { id: "socios", label: "Sócios", icon: Scale, perm: "socios_acessar" },
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
@@ -2409,6 +2432,7 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
 
   const startEdit = (entry) => {
     if (!can(currentUser, "lancamentos_editar")) return;
+    if (entry.natureza) { window.alert("Este lançamento é um pagamento (ou estorno) de imposto gerado na aba Impostos e não pode ser editado aqui. Use o estorno da guia."); return; }
     setEditingId(entry.id);
     setEditingClassificacao(entry.classificacao || (entry.dividaId ? "divida" : entry.investimentoId ? "investimento" : null));
     setFieldErrors({});
@@ -2432,12 +2456,14 @@ function LancamentosPage({ accounts, obras, apropriacoes, setApropriacoes, entri
 
   const duplicate = (entry) => {
     if (!can(currentUser, "lancamentos_criar")) return;
+    if (entry.natureza) { window.alert("Lançamentos de pagamento de imposto não podem ser duplicados."); return; }
     setEntries((prev) => [{ ...entry, id: uid("lan"), data: todayISO(), createdAt: Date.now(), ...carimbarCriacao(currentUser) }, ...prev]);
   };
 
   const remove = (id) => {
     if (!can(currentUser, "lancamentos_excluir")) return;
     const entry = entries.find((e) => e.id === id);
+    if (entry?.natureza) { setConfirmDeleteId(null); window.alert("Lançamentos de pagamento de imposto não são excluídos fisicamente: use o estorno do pagamento na aba Impostos (Guias e Pagamentos)."); return; }
     setEntries((prev) => prev.filter((e) => e.id !== id));
     setConfirmDeleteId(null);
     if (entry) {
@@ -3832,6 +3858,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
                   <span>Resultado</span>
                   <strong className={`mono ${s.resultado >= 0 ? "pos" : "neg"}`}>{BRL(s.resultado)}</strong>
                 </div>
+                {s.trib && <div className="gf-hint" style={{ margin: "6px 0 0" }}>Impostos: custo {BRL(s.trib.custoTributario)} · pagos {BRL(s.trib.pago)} · pendentes {BRL(s.trib.pendente)}</div>}
                 {orc.temOrcamento && (
                   <div className="gf-orcamento-chip">
                     <span className={`gf-dot gf-dot-${orc.totais.pct > 100 ? "red" : orc.totais.pct >= 80 ? "orange" : "green"}`} />
@@ -4091,6 +4118,24 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
               <div><span>Margem</span><b className="mono">{stats?.margem === null || stats?.margem === undefined ? "—" : `${stats.margem.toFixed(1)}%`}</b></div>
             </div>
 
+            {stats?.trib && (
+              <>
+                <h4 className="gf-chart-title">Resultado tributário da obra</h4>
+                <div className="gf-account-rows gf-detail-stats">
+                  <div><span>Faturamento bruto</span><b className="mono">{BRL(stats.trib.faturamentoBruto)}</b></div>
+                  <div><span>ISS retido (custo)</span><b className="mono">{BRL(stats.trib.issRetido)}</b></div>
+                  <div><span>Crédito INSS retido</span><b className="mono">{BRL(stats.trib.inssRetido)}</b></div>
+                  <div><span>Impostos provisionados</span><b className="mono">{BRL(stats.trib.provisionado)}</b></div>
+                  <div><span>Impostos pagos</span><b className="mono">{BRL(stats.trib.pago)}</b></div>
+                  <div><span>Impostos pendentes</span><b className="mono neg">{BRL(stats.trib.pendente)}</b></div>
+                  <div><span>Ajustes tributários</span><b className="mono">{BRL(stats.trib.ajustes)}</b></div>
+                  <div><span>Juros e multas</span><b className="mono">{BRL(stats.trib.acrescimos)}</b></div>
+                  <div><span>Custo tributário total</span><b className="mono">{BRL(stats.trib.custoTributario)}</b></div>
+                  <div><span>% sobre o faturamento</span><b className="mono">{stats.trib.pctFaturamento === null ? "—" : `${stats.trib.pctFaturamento.toFixed(2).replace(".", ",")}%`}</b></div>
+                </div>
+                <p className="gf-field-hint">Receitas e despesas acima consideram o faturamento bruto das notas e a provisão de impostos (resultado econômico). Os gráficos abaixo mostram o fluxo de caixa (lançamentos), onde os impostos aparecem quando pagos.</p>
+              </>
+            )}
             <div className="gf-field" style={{ maxWidth: 260, margin: "4px 0 14px" }}>
               <span className="gf-field-label">Filtrar por apropriação</span>
               <select value={apropFilter} onChange={(e) => setApropFilter(e.target.value)}>
@@ -5133,6 +5178,7 @@ function ContasPagarPage({ contasPagar, setContasPagar, entries, setEntries, acc
 
   const estornarBaixa = (conta) => {
     if (!podeBaixar) return;
+    if (conta.pagamento?.impostoPagId) { window.alert("Esta conta foi quitada pelo pagamento de uma guia na aba Impostos. Estorne o pagamento por lá."); return; }
     if (!window.confirm("Isso vai excluir o(s) lançamento(s) gerado(s) e reabrir esta conta. Continuar?")) return;
     const idsParaRemover = conta.pagamento?.rateioPago?.map((r) => r.lancamentoId).filter(Boolean)
       || (conta.pagamento?.lancamentoId ? [conta.pagamento.lancamentoId] : []);
@@ -14308,6 +14354,1215 @@ function FechamentoQuinzenasPage({
       {reciboQ && <QzReciboModal fechamento={reciboQ} apontamentos={apontamentos} feriados={feriados} adiantamentos={adiantamentos} obras={obras} onClose={() => setReciboId(null)} />}
       {pagarQ && <QzPagarModal fechamento={pagarQ} accounts={accounts} contasInvestidores={contasInvestidores} obras={obras} onClose={() => setPagarId(null)} onConfirm={(p) => pagar(pagarQ, p)} />}
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   Impostos — módulo tributário (modelo híbrido)
+   Notas fiscais → provisões por competência (custo econômico, sem mexer em banco) →
+   guias (conferência/rateio entre obras) → pagamentos (saída bancária, baixa a provisão, sem novo custo).
+   Estado único `impostos`: { notas, provisoes, guias, pagamentos, ajustes, config, creditos, encerradas, hist }.
+   Natureza dos lançamentos gerados em `entries`: "pagamento_imposto" (saída) e "estorno_pagamento_imposto" (entrada).
+   Eles movimentam o banco, mas NÃO entram como despesa/receita da obra (o custo é a provisão); só juros/multas
+   (valorAcrescimos) compõem custo adicional.
+--------------------------------------------------------------- */
+
+const IMP_EMPRESAS = [
+  { id: "glover_eng", nome: "Glover Engenharia", cnpj: "38.257.092/0001-62", regime: "Lucro Presumido" },
+  { id: "glover_gestao", nome: "Glover Gestão e Planejamento", cnpj: "", regime: "Simples Nacional" },
+];
+const IMP_CODIGOS = ["ISS", "PIS", "COFINS", "IRPJ", "CSLL", "DAS"];
+const IMP_CONFIG_PADRAO = {
+  glover_eng: {
+    regime: "Lucro Presumido",
+    impostos: [
+      { codigo: "ISS", nome: "ISS próprio", aliquota: 2, periodicidade: "mensal", vencDia: 10, orgao: "Prefeitura" },
+      { codigo: "PIS", nome: "PIS", aliquota: 0.65, periodicidade: "mensal", vencDia: 25, orgao: "Receita Federal" },
+      { codigo: "COFINS", nome: "COFINS", aliquota: 3, periodicidade: "mensal", vencDia: 25, orgao: "Receita Federal" },
+      { codigo: "IRPJ", nome: "IRPJ", aliquota: 1.2, periodicidade: "trimestral", vencDia: 30, orgao: "Receita Federal" },
+      { codigo: "CSLL", nome: "CSLL", aliquota: 1.08, periodicidade: "trimestral", vencDia: 30, orgao: "Receita Federal" },
+    ],
+    irpjAdicional: { ativo: true, presuncao: 8, limiteTrimestral: 60000, aliquota: 10 },
+  },
+  glover_gestao: {
+    regime: "Simples Nacional",
+    impostos: [{ codigo: "DAS", nome: "DAS — Simples Nacional (alíquota efetiva)", aliquota: 0, periodicidade: "mensal", vencDia: 20, orgao: "Receita Federal (Simples Nacional)" }],
+    irpjAdicional: { ativo: false, presuncao: 0, limiteTrimestral: 0, aliquota: 0 },
+  },
+};
+const impArred = (v) => Math.round((Number(v) || 0) * 100) / 100;
+const impEmpresa = (id) => IMP_EMPRESAS.find((e) => e.id === id);
+const impEmpresaNome = (id) => impEmpresa(id)?.nome || "—";
+const impDigitos = (s) => String(s || "").replace(/\D/g, "");
+const impPeriodo = (comp, periodicidade) => (periodicidade === "trimestral" ? `${comp.slice(0, 4)}-T${Math.ceil(Number(comp.slice(5, 7)) / 3)}` : comp);
+const impPeriodoLabel = (p) => (!p ? "—" : String(p).includes("-T") ? `${String(p).slice(5)}/${String(p).slice(0, 4)}` : `${String(p).slice(5, 7)}/${String(p).slice(0, 4)}`);
+const impCompLabel = (c) => (c ? `${c.slice(5, 7)}/${c.slice(0, 4)}` : "—");
+// Vencimento previsto: dia configurado do mês seguinte ao fim do período (mensal) ou do trimestre.
+function impVencimentoPrevisto(periodo, vencDia) {
+  const y = Number(String(periodo).slice(0, 4));
+  const fimMes = String(periodo).includes("-T") ? Number(String(periodo).slice(6)) * 3 : Number(String(periodo).slice(5, 7));
+  const d = new Date(y, fimMes, 1); // 1º dia do mês seguinte
+  const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(Math.min(Number(vencDia) || 1, ultimo)).padStart(2, "0")}`;
+}
+const impNormalizar = (x) => ({ notas: [], provisoes: [], guias: [], pagamentos: [], ajustes: [], config: [], creditos: [], encerradas: [], hist: [], ...(x || {}) });
+// Configuração vigente da empresa na competência (cada alteração gera uma nova vigência; competências antigas mantêm a deles).
+function impConfigVigente(configs, empresaId, competencia) {
+  const lista = (configs || []).filter((c) => c.empresaId === empresaId && String(c.vigenciaInicio || "").slice(0, 7) <= competencia)
+    .sort((a, b) => (a.vigenciaInicio < b.vigenciaInicio ? 1 : -1));
+  return lista[0] || { id: "padrao", empresaId, vigenciaInicio: "2000-01-01", ...IMP_CONFIG_PADRAO[empresaId] };
+}
+
+// Gera as provisões de uma nota (uma por obra e imposto). Não toca banco nem lançamentos.
+function impCalcularProvisoes(nota, cfg, novoId) {
+  const out = [];
+  const comp = nota.competencia;
+  const bruto = Number(nota.valorBruto) || 0;
+  const pesos = nota.obras.map((o) => ({ centroCusto: o.obraId, percentual: bruto > 0 ? ((Number(o.valor) || 0) / bruto) * 100 : 0 }));
+  const issRet = impArred(nota.issRetido);
+  const aliqNota = nota.issAliquota !== "" && nota.issAliquota != null ? Number(nota.issAliquota) : null;
+  const base = (o, imp, extra) => ({
+    id: novoId(), empresaId: nota.empresaId, obraId: o.obraId, notaId: nota.id, imposto: imp.codigo, competencia: comp,
+    periodicidade: imp.periodicidade, periodo: impPeriodo(comp, imp.periodicidade), tipo: "estimada", guiaId: null, criadoEm: Date.now(), ...extra,
+  });
+  if (issRet > 0) {
+    const part = computeRateioValores(pesos, issRet);
+    nota.obras.forEach((o, i) => { if (part[i].valor > 0) out.push(base(o, { codigo: "ISS", periodicidade: "mensal" }, { base: impArred(o.valor), aliquota: aliqNota ?? 2, valor: part[i].valor, retido: true, status: "retido" })); });
+  }
+  (cfg.impostos || []).forEach((imp) => {
+    if (imp.codigo === "ISS" && issRet > 0) return; // ISS retido: recolhido pelo tomador — sem guia própria
+    const aliq = imp.codigo === "ISS" && aliqNota != null ? aliqNota : Number(imp.aliquota) || 0;
+    if (!(aliq > 0)) return;
+    nota.obras.forEach((o) => {
+      const valor = impArred(((Number(o.valor) || 0) * aliq) / 100);
+      if (valor > 0) out.push(base(o, imp, { base: impArred(o.valor), aliquota: aliq, valor, retido: false, status: "provisionado" }));
+    });
+  });
+  return out;
+}
+
+// Adicional de IRPJ estimado do trimestre: (base presumida − limite) × alíquota do adicional.
+function impAdicionalIrpj(provsIrpj, cfg) {
+  const a = cfg?.irpjAdicional;
+  if (!a || !a.ativo) return 0;
+  const basePresumida = (provsIrpj || []).reduce((s, p) => s + (Number(p.base) || 0), 0) * ((Number(a.presuncao) || 0) / 100);
+  return impArred(Math.max(0, basePresumida - (Number(a.limiteTrimestral) || 0)) * ((Number(a.aliquota) || 0) / 100));
+}
+
+// Rateio de uma guia entre as obras: participação de cada obra na base tributável daquele tributo/período.
+function impRateioGuia(provs, valorEfetivo) {
+  const base = {}, prev = {};
+  provs.forEach((p) => { base[p.obraId] = (base[p.obraId] || 0) + (Number(p.base) || 0); prev[p.obraId] = impArred((prev[p.obraId] || 0) + (Number(p.valor) || 0)); });
+  const ids = Object.keys(base);
+  const totalBase = ids.reduce((s, id) => s + base[id], 0);
+  const rows = ids.map((id) => ({ centroCusto: id, percentual: totalBase > 0 ? (base[id] / totalBase) * 100 : 100 / ids.length }));
+  const ef = computeRateioValores(rows, impArred(valorEfetivo));
+  return ids.map((id, i) => ({ obraId: id, base: impArred(base[id]), percentual: rows[i].percentual, previsto: prev[id], efetivo: ef[i].valor }));
+}
+
+// Plano de lançamentos de um pagamento de guia (principal/juros/multa/outros rateados entre obras; total repartido entre contas).
+function impPlanejarPagamento(guia, { principal, juros, multa, outros, contas }) {
+  const perc = guia.obraRateio.map((r) => ({ centroCusto: r.obraId, percentual: r.percentual }));
+  const totalAcresc = impArred(juros + multa + outros);
+  const pP = computeRateioValores(perc, impArred(principal));
+  const pJ = computeRateioValores(perc, impArred(juros)), pM = computeRateioValores(perc, impArred(multa)), pO = computeRateioValores(perc, impArred(outros));
+  const total = impArred(principal + totalAcresc);
+  const percContas = contas.map((c) => ({ centroCusto: c.contaId, percentual: total > 0 ? (c.valor / total) * 100 : 0 }));
+  const porObra = [], linhas = [];
+  perc.forEach((o, i) => {
+    const acr = impArred(pJ[i].valor + pM[i].valor + pO[i].valor);
+    porObra.push({ obraId: o.centroCusto, principal: pP[i].valor, juros: pJ[i].valor, multa: pM[i].valor, outros: pO[i].valor, total: impArred(pP[i].valor + acr) });
+    const partP = computeRateioValores(percContas, pP[i].valor), partA = computeRateioValores(percContas, acr);
+    contas.forEach((c, k) => {
+      const valor = impArred(partP[k].valor + partA[k].valor);
+      if (valor > 0) linhas.push({ obraId: o.centroCusto, conta: c, valor, acrescimos: partA[k].valor });
+    });
+  });
+  return { porObra, linhas, total };
+}
+
+// Visão tributária de cada obra (custo econômico x pagamentos) + conjunto de recebimentos já conciliados com notas.
+function impTributos(imp, entries) {
+  const por = {};
+  const g = (id) => (por[id] = por[id] || { faturamentoBruto: 0, issRetido: 0, inssRetido: 0, provisionado: 0, ajustes: 0, pago: 0, acrescimos: 0 });
+  const notasVig = (imp.notas || []).filter((n) => n.status === "vigente");
+  const linked = new Set();
+  notasVig.forEach((n) => {
+    (n.recebimentoEntryIds || []).forEach((id) => linked.add(id));
+    const bruto = Number(n.valorBruto) || 0;
+    const pesos = n.obras.map((o) => ({ centroCusto: o.obraId, percentual: bruto > 0 ? ((Number(o.valor) || 0) / bruto) * 100 : 0 }));
+    const inss = computeRateioValores(pesos, impArred(n.inssRetido));
+    n.obras.forEach((o, i) => { g(o.obraId).faturamentoBruto += Number(o.valor) || 0; g(o.obraId).inssRetido += inss[i].valor; });
+  });
+  (imp.provisoes || []).forEach((p) => {
+    if (p.status === "cancelado") return;
+    if (p.retido) g(p.obraId).issRetido += Number(p.valor) || 0; else g(p.obraId).provisionado += Number(p.valor) || 0;
+  });
+  (imp.ajustes || []).forEach((a) => { if (a.status !== "cancelado") g(a.obraId).ajustes += Number(a.valor) || 0; });
+  (entries || []).forEach((e) => {
+    if (e.natureza === "pagamento_imposto") { g(e.obraId).pago += (Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0); g(e.obraId).acrescimos += Number(e.valorAcrescimos) || 0; }
+    else if (e.natureza === "estorno_pagamento_imposto") { g(e.obraId).pago -= (Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0); g(e.obraId).acrescimos -= Number(e.valorAcrescimos) || 0; }
+  });
+  Object.values(por).forEach((t) => {
+    Object.keys(t).forEach((k) => { t[k] = impArred(t[k]); });
+    t.custoTributario = impArred(t.provisionado + t.issRetido + t.ajustes + t.acrescimos);
+    t.pendente = impArred(Math.max(0, t.provisionado + t.ajustes - t.pago));
+    t.pctFaturamento = t.faturamentoBruto > 0 ? (t.custoTributario / t.faturamentoBruto) * 100 : null;
+  });
+  return { por, linked };
+}
+const impGuiaPago = (guia, pagamentos) => impArred((pagamentos || []).filter((p) => p.guiaId === guia.id && !p.estornado).reduce((s, p) => s + (Number(p.principal) || 0), 0));
+const impGuiaSaldo = (guia, pagamentos) => impArred((Number(guia.valorEfetivo) || 0) - impGuiaPago(guia, pagamentos));
+function impGuiaStatus(guia, pagamentos) {
+  if (guia.status === "cancelada") return "cancelada";
+  const pago = impGuiaPago(guia, pagamentos);
+  if (pago > 0 && impGuiaSaldo(guia, pagamentos) <= 0.004) return "paga";
+  return pago > 0 ? "parcial" : "aberta";
+}
+
+// Leitura do texto do DANFSe (NFS-e nacional): rótulo numa linha, valor na seguinte.
+function impParseNfse(txt) {
+  const L = String(txt || "").split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  const idx = (re, from = 0) => { for (let i = from; i < L.length; i++) if (re.test(L[i])) return i; return -1; };
+  const after = (re, from = 0) => { const i = idx(re, from); return i >= 0 ? L[i + 1] || "" : ""; };
+  const money = (s) => { const m = /(-?\d[\d.]*,\d{2})/.exec(s || ""); return m ? Number(m[1].replace(/\./g, "").replace(",", ".")) : 0; };
+  const dmy = (s) => { const m = /(\d{2})\/(\d{2})\/(\d{4})/.exec(s || ""); return m ? `${m[3]}-${m[2]}-${m[1]}` : ""; };
+  const chave = (String(txt).match(/\b(\d{50})\b/) || [])[1] || "";
+  const r = { chave, avisos: [] };
+  r.numero = after(/^N[ÚU]MERO DA NFS-E$/i).replace(/\D/g, "") || (chave ? String(Number(chave.slice(23, 36))) : "");
+  r.serie = after(/^S[ÉE]RIE DA DPS/i).replace(/\D/g, "");
+  r.competencia = dmy(after(/^COMPET[ÊE]NCIA DA NFS-E/i)).slice(0, 7);
+  r.emissao = dmy(after(/^DATA E HORA DA EMISS[ÃA]O DA NFS-E/i));
+  const iPrest = idx(/^PRESTADOR/i), iTom = idx(/^TOMADOR/i);
+  const cnpjPrest = impDigitos(L[iPrest + 1]) || (chave ? chave.slice(9, 23) : "");
+  r.empresaId = (IMP_EMPRESAS.find((e) => impDigitos(e.cnpj) && impDigitos(e.cnpj) === cnpjPrest) || {}).id || "";
+  r.cnpjEmitente = cnpjPrest;
+  if (iTom >= 0) {
+    r.tomadorCnpj = L[iTom + 1] || "";
+    r.tomador = after(/^Nome \/ Nome Empresarial/i, iTom);
+  }
+  r.valorBruto = money(after(/^VALOR TOTAL DA NFS-E/i));
+  r.inssRetido = money(after(/^Contribui[çc][ãa]o Previdenci[áa]ria/i));
+  if (!r.inssRetido) { const m = /INSS retido:\s*R?\$?\s*(\d[\d.]*,\d{2})/i.exec(txt); if (m) r.inssRetido = money(m[1]); }
+  r.outrosRetidos = impArred(money(after(/IRRF$/i)) + money(after(/^Contribui[çc][õo]es Sociais\s*[–-]\s*Retidas/i)));
+  const aliq = after(/^Al[íi]quota Aplicada/i); r.issAliquota = /([\d,.]+)\s*%/.test(aliq) ? Number(/([\d,.]+)\s*%/.exec(aliq)[1].replace(",", ".")) : "";
+  const ret = after(/^Reten[çc][ãa]o do ISSQN/i);
+  const issApurado = money(after(/^ISSQN Apurado/i));
+  r.issRetido = /retido/i.test(ret) && !/n[ãa]o/i.test(ret) ? issApurado : 0;
+  const incid = after(/^Munic[íi]pio \/ Sigla UF \/ Pa[íi]s de Incid/i); r.municipioIss = incid.replace(/\s*\/\s*-\s*$/, "").trim();
+  const sub = /NFS-e Subst\.:\s*(\d{50})/i.exec(txt); r.substituiChave = sub ? sub[1] : "";
+  r.liquidoPdf = money(after(/^VALOR L[ÍI]QUIDO DA NFS-e$/i));
+  const liqCalc = impArred(r.valorBruto - r.inssRetido - r.issRetido - r.outrosRetidos);
+  if (r.liquidoPdf && Math.abs(liqCalc - r.liquidoPdf) > 0.011) r.avisos.push(`O valor líquido calculado (${BRL(liqCalc)}) difere do líquido do PDF (${BRL(r.liquidoPdf)}). Confira as retenções.`);
+  if (!r.chave) r.avisos.push("Chave de acesso não encontrada no PDF.");
+  if (!r.empresaId) r.avisos.push("Não foi possível identificar a empresa emissora pelo CNPJ — selecione manualmente.");
+  return r;
+}
+
+/* ---- documentos (PDFs) e leitura automática ---- */
+const IMP_PDFJS_BASE = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/";
+const impChaveDoc = (ownerId, anexoId) => `glover:imp:doc:${ownerId}:${anexoId}`;
+async function impSalvarAnexos(ownerId, anexos) {
+  for (const a of (anexos || []).filter((x) => x.dataUri)) await relGravarTexto(impChaveDoc(ownerId, a.id), a.dataUri);
+  return (anexos || []).map(({ dataUri, ...m }) => m);
+}
+async function impBaixarAnexo(ownerId, a) {
+  const t = await relLerTexto(impChaveDoc(ownerId, a.id));
+  if (!t) throw new Error("Arquivo não encontrado no armazenamento.");
+  const l = document.createElement("a"); l.href = t; l.download = a.nome; document.body.appendChild(l); l.click(); l.remove();
+}
+async function impLerPdfTexto(file) {
+  const mod = await import(/* @vite-ignore */ IMP_PDFJS_BASE + "pdf.min.mjs");
+  mod.GlobalWorkerOptions.workerSrc = IMP_PDFJS_BASE + "pdf.worker.min.mjs";
+  const doc = await mod.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  let txt = "";
+  for (let p = 1; p <= doc.numPages; p++) { const c = await (await doc.getPage(p)).getTextContent(); txt += c.items.map((i) => i.str + (i.hasEOL ? "\n" : " ")).join("") + "\n"; }
+  return txt;
+}
+const impPodePagar = (u) => !!u && can(u, "impostos_pagar") && ["admin", "operacional"].includes(u.papel);
+const impBlankNota = () => ({ id: null, empresaId: "glover_eng", numero: "", serie: "", chave: "", emissao: todayISO(), competencia: monthKey(todayISO()), tomador: "", tomadorCnpj: "", municipioIss: "", valorBruto: "", inssRetido: "", issRetido: "", issAliquota: "2", outrosRetidos: "", substituiChave: "", obras: [{ obraId: "", valor: "" }], anexos: [], obs: "" });
+
+function ImpNotaModal({ nota, obras, imp, onClose, onSave }) {
+  const [f, setF] = useState(() => (nota ? { ...impBlankNota(), ...nota, valorBruto: String(nota.valorBruto), inssRetido: String(nota.inssRetido || ""), issRetido: String(nota.issRetido || ""), outrosRetidos: String(nota.outrosRetidos || ""), issAliquota: nota.issAliquota === "" || nota.issAliquota == null ? "" : String(nota.issAliquota), obras: nota.obras.map((o) => ({ obraId: o.obraId, valor: String(o.valor) })), anexos: (nota.anexos || []).map((a) => ({ ...a })) } : impBlankNota()));
+  const [erro, setErro] = useState("");
+  const [lendo, setLendo] = useState(false);
+  const [leitura, setLeitura] = useState(null);
+  const pdfRef = useRef(null);
+  const upd = (p) => { setF((s) => ({ ...s, ...p })); setErro(""); };
+  const bruto = Number(f.valorBruto) || 0;
+  const liquido = impArred(bruto - (Number(f.inssRetido) || 0) - (Number(f.issRetido) || 0) - (Number(f.outrosRetidos) || 0));
+  const somaObras = impArred(f.obras.reduce((s, o) => s + (Number(o.valor) || 0), 0));
+  const unica = f.obras.length === 1;
+  const setObra = (i, p) => setF((s) => ({ ...s, obras: s.obras.map((o, k) => (k === i ? { ...o, ...p } : o)) }));
+  const obrasOpts = obras.filter((o) => !o.arquivada);
+
+  const lerPdf = async (file) => {
+    if (!file) return;
+    setLendo(true); setLeitura(null); setErro("");
+    try {
+      const dataUri = await fdLerArquivo(file);
+      const r = impParseNfse(await impLerPdfTexto(file));
+      setF((s) => ({
+        ...s, empresaId: r.empresaId || s.empresaId, numero: r.numero || s.numero, serie: r.serie || s.serie, chave: r.chave || s.chave,
+        emissao: r.emissao || s.emissao, competencia: r.competencia || s.competencia, tomador: r.tomador || s.tomador, tomadorCnpj: r.tomadorCnpj || s.tomadorCnpj,
+        municipioIss: r.municipioIss || s.municipioIss, valorBruto: r.valorBruto ? String(r.valorBruto) : s.valorBruto, inssRetido: r.inssRetido ? String(r.inssRetido) : "",
+        issRetido: r.issRetido ? String(r.issRetido) : "", issAliquota: r.issAliquota === "" ? s.issAliquota : String(r.issAliquota), outrosRetidos: r.outrosRetidos ? String(r.outrosRetidos) : "",
+        substituiChave: r.substituiChave || s.substituiChave,
+        obras: s.obras.length === 1 && !s.obras[0].obraId ? [{ obraId: "", valor: r.valorBruto ? String(r.valorBruto) : "" }] : s.obras,
+        anexos: s.anexos.some((a) => a.nome === file.name) ? s.anexos : [...s.anexos, { id: uid("anx"), nome: file.name, tipo: "application/pdf", tamanho: file.size, tipoDoc: "Nota fiscal", dataUri }],
+      }));
+      setLeitura(r);
+    } catch (e) {
+      setErro("Não foi possível ler o PDF automaticamente (" + ((e && e.message) || e) + "). Preencha os campos manualmente — o arquivo ainda pode ser anexado abaixo.");
+    }
+    setLendo(false);
+  };
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.numero.trim()) return setErro("Informe o número da nota.");
+    if (!(bruto > 0)) return setErro("Informe o valor bruto da nota.");
+    if (!/^\d{4}-\d{2}$/.test(f.competencia)) return setErro("Informe a competência.");
+    if (f.obras.some((o) => !o.obraId)) return setErro("Selecione a obra de cada linha de vínculo.");
+    if (new Set(f.obras.map((o) => o.obraId)).size !== f.obras.length) return setErro("Há obra repetida no vínculo.");
+    const obrasEf = unica ? [{ obraId: f.obras[0].obraId, valor: bruto }] : f.obras.map((o) => ({ obraId: o.obraId, valor: impArred(o.valor) }));
+    if (!unica && Math.abs(somaObras - bruto) > 0.005) return setErro(`A soma dos valores por obra (${BRL(somaObras)}) deve ser igual ao valor bruto (${BRL(bruto)}).`);
+    if (liquido < 0) return setErro("As retenções superam o valor bruto.");
+    onSave({
+      ...f, id: nota?.id || null, numero: f.numero.trim(), serie: (f.serie || "").trim(), chave: impDigitos(f.chave), valorBruto: impArred(bruto),
+      inssRetido: impArred(f.inssRetido), issRetido: impArred(f.issRetido), outrosRetidos: impArred(f.outrosRetidos), valorLiquido: liquido,
+      issAliquota: f.issAliquota === "" ? "" : Number(f.issAliquota), substituiChave: impDigitos(f.substituiChave), obras: obrasEf,
+    });
+  };
+
+  return (
+    <Modal title={nota ? `Editar nota fiscal ${nota.numero}` : "Nova nota fiscal"} onClose={onClose} width={820}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <div className="gf-span-2">
+          <input ref={pdfRef} type="file" accept=".pdf,application/pdf" style={{ display: "none" }} onChange={(e) => { lerPdf(e.target.files?.[0]); e.target.value = ""; }} />
+          <button type="button" className="gf-btn gf-btn-ghost" disabled={lendo} onClick={() => pdfRef.current?.click()}><Upload size={14} /> {lendo ? "Lendo PDF…" : "Importar PDF da NFS-e e preencher automaticamente"}</button>
+          <span className="gf-hint" style={{ marginLeft: 8 }}>A leitura só preenche o formulário — nada é salvo até você conferir e confirmar.</span>
+          {leitura && (
+            <div className={leitura.avisos.length ? "gf-warn" : "gf-hint"} style={{ marginTop: 8 }}>
+              {leitura.avisos.length ? leitura.avisos.map((a, i) => <div key={i}>{a}</div>) : "PDF lido: confira todos os campos abaixo antes de confirmar."}
+            </div>
+          )}
+        </div>
+        <Field label="Empresa emissora">
+          <select value={f.empresaId} onChange={(e) => upd({ empresaId: e.target.value })}>{IMP_EMPRESAS.map((e) => <option key={e.id} value={e.id}>{e.nome} — {e.regime}</option>)}</select>
+        </Field>
+        <Field label="Chave de acesso" hint="Impede nota duplicada (inclusive cancelada/substituída)"><input value={f.chave} onChange={(e) => upd({ chave: e.target.value })} className="mono" /></Field>
+        <Field label="Número da NFS-e"><input value={f.numero} onChange={(e) => upd({ numero: e.target.value })} /></Field>
+        <Field label="Série (DPS)"><input value={f.serie} onChange={(e) => upd({ serie: e.target.value })} /></Field>
+        <Field label="Data de emissão"><input type="date" value={f.emissao} onChange={(e) => upd({ emissao: e.target.value })} /></Field>
+        <Field label="Competência"><input type="month" value={f.competencia} onChange={(e) => upd({ competencia: e.target.value })} /></Field>
+        <Field label="Cliente / tomador"><input value={f.tomador} onChange={(e) => upd({ tomador: e.target.value })} /></Field>
+        <Field label="CNPJ do tomador"><input value={f.tomadorCnpj} onChange={(e) => upd({ tomadorCnpj: e.target.value })} /></Field>
+        <Field label="Município de incidência do ISS"><input value={f.municipioIss} onChange={(e) => upd({ municipioIss: e.target.value })} placeholder="Ex.: Sumaré / SP" /></Field>
+        <Field label="Alíquota de ISS da nota (%)"><input type="number" step="0.01" min="0" value={f.issAliquota} onChange={(e) => upd({ issAliquota: e.target.value })} /></Field>
+        <Field label="Valor bruto (R$)"><input type="number" step="0.01" min="0" value={f.valorBruto} onChange={(e) => upd({ valorBruto: e.target.value })} /></Field>
+        <Field label="INSS retido (R$)" hint="Crédito previdenciário — não é despesa"><input type="number" step="0.01" min="0" value={f.inssRetido} onChange={(e) => upd({ inssRetido: e.target.value })} /></Field>
+        <Field label="ISS retido pelo tomador (R$)" hint="Compõe o custo da obra; sem guia própria"><input type="number" step="0.01" min="0" value={f.issRetido} onChange={(e) => upd({ issRetido: e.target.value })} /></Field>
+        <Field label="Outros tributos retidos (R$)"><input type="number" step="0.01" min="0" value={f.outrosRetidos} onChange={(e) => upd({ outrosRetidos: e.target.value })} /></Field>
+        <div className="gf-account-balance gf-span-2"><span>Recebimento líquido previsto (bruto − retenções)</span><strong className="mono">{BRL(liquido)}</strong></div>
+        <Field label="Esta nota substitui a nota (chave de acesso)" hint="Opcional — a nota substituída fica no histórico e suas provisões são canceladas" className="gf-span-2"><input value={f.substituiChave} onChange={(e) => upd({ substituiChave: e.target.value })} className="mono" /></Field>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Obra(s) da nota</span>
+          {f.obras.map((o, i) => (
+            <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+              <select value={o.obraId} onChange={(e) => setObra(i, { obraId: e.target.value })} style={{ flex: 2 }}>
+                <option value="">Selecione a obra…</option>
+                {obrasOpts.map((ob) => <option key={ob.id} value={ob.id}>{ob.nome}</option>)}
+              </select>
+              {!unica && <input type="number" step="0.01" min="0" placeholder="Valor bruto da obra" value={o.valor} onChange={(e) => setObra(i, { valor: e.target.value })} style={{ flex: 1 }} />}
+              {!unica && <button type="button" className="gf-icon-btn" title="Remover" onClick={() => setF((s) => ({ ...s, obras: s.obras.filter((_, k) => k !== i) }))}><X size={14} /></button>}
+            </div>
+          ))}
+          <button type="button" className="gf-btn gf-btn-ghost" onClick={() => setF((s) => ({ ...s, obras: [...s.obras, { obraId: "", valor: "" }] }))}><Plus size={14} /> Dividir entre mais uma obra</button>
+          {!unica && <span className={`gf-hint ${Math.abs(somaObras - bruto) > 0.005 ? "neg" : ""}`} style={{ marginLeft: 8 }}>Soma: {BRL(somaObras)} de {BRL(bruto)}</span>}
+        </div>
+        <Field label="Observações" className="gf-span-2"><input value={f.obs || ""} onChange={(e) => upd({ obs: e.target.value })} /></Field>
+        <Field label="PDF da nota / anexos" className="gf-span-2"><FdAnexosField anexos={f.anexos} onChange={(v) => setF((s) => ({ ...s, anexos: v }))} /></Field>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">{nota ? "Salvar e recalcular provisões" : "Confirmar nota e gerar provisões"}</button>
+          <span className="gf-hint">As provisões são custo previsto da obra: não movimentam banco nem saldo.</span>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ImpConciliarModal({ nota, entries, imp, obras, onClose, onSave }) {
+  const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
+  const idsObras = new Set(nota.obras.map((o) => o.obraId));
+  const ocupados = new Set((imp.notas || []).filter((n) => n.status === "vigente" && n.id !== nota.id).flatMap((n) => n.recebimentoEntryIds || []));
+  const cand = entries.filter((e) => e.tipo === "entrada" && !e.fatDireto && !e.natureza && idsObras.has(e.obraId) && !ocupados.has(e.id))
+    .sort((a, b) => (a.data < b.data ? 1 : -1));
+  const [sel, setSel] = useState(() => {
+    const atuais = nota.recebimentoEntryIds || [];
+    if (atuais.length) return atuais;
+    const exato = cand.find((e) => Math.abs((Number(e.valor) || 0) - (Number(nota.valorLiquido) || 0)) < 0.005);
+    return exato ? [exato.id] : [];
+  });
+  const total = impArred(cand.filter((e) => sel.includes(e.id)).reduce((s, e) => s + (Number(e.valor) || 0), 0));
+  const resta = impArred((Number(nota.valorLiquido) || 0) - total);
+  return (
+    <Modal title={`Conciliar recebimento — NF ${nota.numero}`} onClose={onClose} width={720}>
+      <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+        <div><span>Valor bruto</span><b className="mono">{BRL(nota.valorBruto)}</b></div>
+        <div><span>Retenções</span><b className="mono">{BRL(impArred(nota.valorBruto - nota.valorLiquido))}</b></div>
+        <div><span>Líquido previsto</span><b className="mono">{BRL(nota.valorLiquido)}</b></div>
+        <div><span>Conciliado</span><b className="mono">{BRL(total)}</b></div>
+      </div>
+      <p className="gf-field-hint" style={{ margin: "10px 0" }}>Marque os depósitos já lançados na aba Lançamentos que correspondem a esta nota. Eles deixam de somar como receita à parte, pois o faturamento da obra passa a ser o valor bruto da nota.</p>
+      <div className="gf-table-wrap" style={{ maxHeight: 320 }}>
+        <ExportableTable exportavel={false} className="gf-table">
+          <thead><tr><th></th><th>Data</th><th>Obra</th><th>Descrição</th><th className="num">Valor</th></tr></thead>
+          <tbody>
+            {cand.length === 0 && <tr><td colSpan={5}><EmptyState icon={Receipt} title="Nenhuma entrada disponível" body="Não há entradas livres nas obras desta nota." /></td></tr>}
+            {cand.map((e) => (
+              <tr key={e.id}>
+                <td><input type="checkbox" checked={sel.includes(e.id)} onChange={(ev) => setSel((p) => (ev.target.checked ? [...p, e.id] : p.filter((x) => x !== e.id)))} /></td>
+                <td>{fmtDate(e.data)}</td><td>{nomeObra(e.obraId)}</td><td className="gf-td-desc" title={e.descricao}>{e.descricao || e.fornecedor || "—"}</td><td className="num mono">{BRL(e.valor)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </ExportableTable>
+      </div>
+      <div className="gf-account-balance" style={{ marginTop: 10 }}><span>{Math.abs(resta) < 0.005 ? "Recebimento conciliado integralmente" : resta > 0 ? "Ainda a receber" : "Recebido a maior"}</span><strong className="mono">{BRL(Math.abs(resta))}</strong></div>
+      <div className="gf-form-actions" style={{ marginTop: 10 }}><button type="button" className="gf-btn gf-btn-primary" onClick={() => onSave(sel)}>Salvar conciliação</button></div>
+    </Modal>
+  );
+}
+
+function ImpGuiaModal({ guia, sugestao, contasPagar, onClose, onSave }) {
+  const s = sugestao;
+  const previsto = impArred(s.provs.reduce((t, p) => t + p.valor, 0));
+  const adicional = s.adicional || 0;
+  const [f, setF] = useState({
+    valorEfetivo: guia ? String(guia.valorEfetivo) : String(impArred(previsto + adicional)), vencimento: guia?.vencimento || s.vencimento, orgao: guia?.orgao || s.orgao,
+    justificativa: guia?.justificativa || "", contaPagarId: guia?.contaPagarId || "", anexos: (guia?.anexos || []).map((a) => ({ ...a })),
+  });
+  const [erro, setErro] = useState("");
+  const upd = (p) => { setF((x) => ({ ...x, ...p })); setErro(""); };
+  const ef = Number(f.valorEfetivo) || 0;
+  const dif = impArred(ef - previsto), pct = previsto > 0 ? (dif / previsto) * 100 : 0;
+  const rateio = impRateioGuia(s.provs, ef);
+  const bloqueadoValor = !!s.temPagamento;
+  const abertas = contasPagar.filter((c) => (!c.pagamento && !c.cancelada) || c.id === f.contaPagarId);
+  const submit = (e) => {
+    e.preventDefault();
+    if (!(ef > 0)) return setErro("Informe o valor efetivo da guia.");
+    if (!f.vencimento) return setErro("Informe o vencimento.");
+    if (Math.abs(dif) > 0.004 && !f.justificativa.trim()) return setErro("Há divergência entre o provisionado e a guia: informe a justificativa do ajuste.");
+    onSave({ valorEfetivo: impArred(ef), vencimento: f.vencimento, orgao: f.orgao.trim(), justificativa: f.justificativa.trim(), contaPagarId: f.contaPagarId || null, anexos: f.anexos, previsto, adicional, rateio });
+  };
+  return (
+    <Modal title={guia ? "Editar guia" : "Cadastrar guia recebida da contabilidade"} onClose={onClose} width={780}>
+      <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <div><span>Empresa</span><b>{impEmpresaNome(s.empresaId)}</b></div>
+        <div><span>Imposto</span><b>{s.imposto}</b></div>
+        <div><span>Período de apuração</span><b>{impPeriodoLabel(s.periodo)}</b></div>
+      </div>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form" style={{ marginTop: 10 }}>
+        <Field label="Valor provisionado (notas)"><input value={BRL(previsto)} readOnly /></Field>
+        {adicional > 0 && <Field label="Adicional de IRPJ estimado (trimestre)"><input value={BRL(adicional)} readOnly /></Field>}
+        <Field label="Valor principal da guia (R$)" hint={bloqueadoValor ? "Já há pagamento: o valor não pode mais ser alterado" : "Valor efetivo informado pela contabilidade"}>
+          <input type="number" step="0.01" min="0.01" value={f.valorEfetivo} readOnly={bloqueadoValor} onChange={(e) => upd({ valorEfetivo: e.target.value })} />
+        </Field>
+        <Field label="Vencimento"><input type="date" value={f.vencimento} onChange={(e) => upd({ vencimento: e.target.value })} /></Field>
+        <Field label="Órgão arrecadador"><input value={f.orgao} onChange={(e) => upd({ orgao: e.target.value })} /></Field>
+        <div className={`gf-account-balance ${Math.abs(dif) > 0.004 ? "" : ""}`}>
+          <span>Divergência (guia − provisionado)</span>
+          <strong className={`mono ${Math.abs(dif) > 0.004 ? "neg" : ""}`}>{BRL(dif)} ({pct.toFixed(2).replace(".", ",")}%)</strong>
+        </div>
+        {Math.abs(dif) > 0.004 && <Field label="Justificativa do ajuste" hint="Fica registrada com o usuário responsável; atualiza o custo tributário das obras" className="gf-span-2"><input value={f.justificativa} onChange={(e) => upd({ justificativa: e.target.value })} /></Field>}
+        <Field label="Vincular à conta a pagar já registrada" hint="Opcional — ao quitar a guia, a conta a pagar é baixada sem gerar outra saída" className="gf-span-2">
+          <select value={f.contaPagarId} onChange={(e) => upd({ contaPagarId: e.target.value })}>
+            <option value="">Nenhuma</option>
+            {abertas.map((c) => <option key={c.id} value={c.id}>{c.fornecedor || "—"} — {c.descricao || "sem descrição"} — venc. {fmtDate(c.dataVencimento)} — {BRL(c.valorPrevisto)}</option>)}
+          </select>
+        </Field>
+        <Field label="PDF da guia" className="gf-span-2"><FdAnexosField anexos={f.anexos} onChange={(v) => upd({ anexos: v })} /></Field>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Rateio entre as obras (participação na base tributável deste tributo e período)</span>
+          <div className="gf-table-wrap">
+            <ExportableTable exportavel={false} className="gf-table">
+              <thead><tr><th>Obra</th><th className="num">Base</th><th className="num">%</th><th className="num">Provisionado</th><th className="num">Guia (rateio)</th><th className="num">Ajuste</th></tr></thead>
+              <tbody>{rateio.map((r) => (
+                <tr key={r.obraId}><td>{s.nomeObra(r.obraId)}</td><td className="num mono">{BRL(r.base)}</td><td className="num mono">{r.percentual.toFixed(2)}%</td><td className="num mono">{BRL(r.previsto)}</td><td className="num mono">{BRL(r.efetivo)}</td><td className={`num mono ${r.efetivo - r.previsto > 0.004 ? "neg" : ""}`}>{BRL(impArred(r.efetivo - r.previsto))}</td></tr>
+              ))}</tbody>
+            </ExportableTable>
+          </div>
+        </div>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Notas que compõem a guia</span>
+          <div className="gf-table-wrap" style={{ maxHeight: 180 }}>
+            <ExportableTable exportavel={false} className="gf-table">
+              <thead><tr><th>NF</th><th>Obra</th><th className="num">Base</th><th className="num">Alíq.</th><th className="num">Provisão</th></tr></thead>
+              <tbody>{s.provs.map((p) => <tr key={p.id}><td>{s.numeroNota(p.notaId)}</td><td>{s.nomeObra(p.obraId)}</td><td className="num mono">{BRL(p.base)}</td><td className="num mono">{p.aliquota}%</td><td className="num mono">{BRL(p.valor)}</td></tr>)}</tbody>
+            </ExportableTable>
+          </div>
+        </div>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2"><button type="submit" className="gf-btn gf-btn-primary">{guia ? "Salvar guia" : "Confirmar guia"}</button></div>
+      </form>
+    </Modal>
+  );
+}
+
+function ImpPagarModal({ guia, saldo, accounts, contasInvestidores = [], onClose, onConfirm }) {
+  const [data, setData] = useState(todayISO());
+  const [principal, setPrincipal] = useState(String(saldo));
+  const [juros, setJuros] = useState(""), [multa, setMulta] = useState(""), [outros, setOutros] = useState("");
+  const [linhas, setLinhas] = useState([{ id: 1, contaId: accounts[0] ? `acc:${accounts[0].id}` : "", valor: "" }]);
+  const [anexos, setAnexos] = useState([]);
+  const [erro, setErro] = useState("");
+  const total = impArred((Number(principal) || 0) + (Number(juros) || 0) + (Number(multa) || 0) + (Number(outros) || 0));
+  const soma = impArred(linhas.reduce((s, l) => s + (Number(l.valor) || 0), 0));
+  const resta = impArred(total - soma);
+  const setL = (id, p) => { setLinhas((ls) => ls.map((l) => (l.id === id ? { ...l, ...p } : l))); setErro(""); };
+  useEffect(() => { if (linhas.length === 1) setLinhas((ls) => [{ ...ls[0], valor: total > 0 ? String(total) : "" }]); }, [total]);
+  const submit = (e) => {
+    e.preventDefault();
+    const pr = Number(principal) || 0;
+    if (!data) return;
+    if (!(pr > 0)) return setErro("Informe o valor principal.");
+    if (pr - saldo > 0.004) return setErro(`O principal (${BRL(pr)}) excede o saldo da guia (${BRL(saldo)}).`);
+    if (linhas.some((l) => !l.contaId || !(Number(l.valor) > 0))) return setErro("Informe conta e valor em todas as linhas.");
+    if (new Set(linhas.map((l) => l.contaId)).size !== linhas.length) return setErro("Cada conta pode aparecer apenas uma vez.");
+    if (Math.abs(resta) > 0.005) return setErro(`A soma das contas (${BRL(soma)}) deve ser igual ao total pago (${BRL(total)}).`);
+    onConfirm({
+      data, principal: impArred(pr), juros: impArred(juros), multa: impArred(multa), outros: impArred(outros), anexos,
+      contas: linhas.map((l) => (l.contaId.startsWith("inv:") ? { contaId: l.contaId.slice(4), investidor: true, valor: impArred(l.valor) } : { contaId: l.contaId.replace(/^acc:/, ""), valor: impArred(l.valor) })),
+    });
+  };
+  return (
+    <Modal title={`Registrar pagamento — ${guia.imposto} ${impPeriodoLabel(guia.periodo)}`} onClose={onClose} width={640}>
+      <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(3,1fr)" }}>
+        <div><span>Empresa</span><b>{impEmpresaNome(guia.empresaId)}</b></div>
+        <div><span>Guia (principal)</span><b className="mono">{BRL(guia.valorEfetivo)}</b></div>
+        <div><span>Saldo a pagar</span><b className="mono">{BRL(saldo)}</b></div>
+      </div>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form" style={{ marginTop: 10 }}>
+        <Field label="Data do pagamento"><input type="date" required value={data} onChange={(e) => setData(e.target.value)} /></Field>
+        <Field label="Valor principal (R$)" hint="Pode ser parcial; o saldo continua pendente"><input type="number" step="0.01" min="0.01" value={principal} onChange={(e) => { setPrincipal(e.target.value); setErro(""); }} /></Field>
+        <Field label="Juros (R$)"><input type="number" step="0.01" min="0" value={juros} onChange={(e) => setJuros(e.target.value)} /></Field>
+        <Field label="Multa (R$)"><input type="number" step="0.01" min="0" value={multa} onChange={(e) => setMulta(e.target.value)} /></Field>
+        <Field label="Outros acréscimos (R$)"><input type="number" step="0.01" min="0" value={outros} onChange={(e) => setOutros(e.target.value)} /></Field>
+        <div className="gf-account-balance"><span>Valor total</span><strong className="mono">{BRL(total)}</strong></div>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Conta(s) de onde saiu o pagamento</span>
+          {linhas.map((l) => (
+            <div key={l.id} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+              <select value={l.contaId} onChange={(e) => setL(l.id, { contaId: e.target.value })} style={{ flex: 2 }}>
+                <option value="">Selecione…</option>
+                <optgroup label="Contas bancárias">{accounts.map((a) => <option key={a.id} value={`acc:${a.id}`}>{a.nome}</option>)}</optgroup>
+                {contasInvestidores.length > 0 && <optgroup label="Contas Investidor">{contasInvestidores.map((c) => <option key={c.id} value={`inv:${c.id}`}>{c.nome}</option>)}</optgroup>}
+              </select>
+              <input type="number" min="0.01" step="0.01" value={l.valor} onChange={(e) => setL(l.id, { valor: e.target.value })} style={{ flex: 1 }} />
+              {linhas.length > 1 && <button type="button" className="gf-icon-btn" title="Remover" onClick={() => setLinhas((ls) => ls.filter((x) => x.id !== l.id))}><X size={14} /></button>}
+            </div>
+          ))}
+          <button type="button" className="gf-btn gf-btn-ghost" onClick={() => setLinhas((ls) => [...ls, { id: Math.max(...ls.map((x) => x.id)) + 1, contaId: "", valor: resta > 0 ? String(resta) : "" }])}><Plus size={14} /> Adicionar conta</button>
+        </div>
+        <div className="gf-account-balance gf-span-2"><span>{Math.abs(resta) < 0.005 ? "Valores conferem" : resta > 0 ? "Falta distribuir" : "Excede o total em"}</span><strong className="mono">{Math.abs(resta) < 0.005 ? BRL(soma) : BRL(Math.abs(resta))}</strong></div>
+        <Field label="Comprovante de pagamento" className="gf-span-2"><FdAnexosField anexos={anexos} onChange={setAnexos} /></Field>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2">
+          <button type="submit" className="gf-btn gf-btn-primary">Confirmar pagamento</button>
+          <span className="gf-hint">Gera a saída bancária (apropriação "Impostos"), baixa a obrigação e rateia entre as obras da guia. O principal não é lançado de novo como custo; juros e multas entram como custo adicional.</span>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function ImpCreditoModal({ empresas, onClose, onSave }) {
+  const [f, setF] = useState({ empresaId: "glover_eng", data: todayISO(), tipo: "Compensação", valor: "", obs: "", anexos: [] });
+  const [erro, setErro] = useState("");
+  return (
+    <Modal title="Compensação / restituição de INSS retido" onClose={onClose} width={560}>
+      <form onSubmit={(e) => { e.preventDefault(); if (!(Number(f.valor) > 0)) return setErro("Informe o valor."); onSave({ ...f, valor: impArred(f.valor) }); }} className="gf-form-grid gf-modal-form">
+        <Field label="Empresa"><select value={f.empresaId} onChange={(e) => setF({ ...f, empresaId: e.target.value })}>{empresas.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}</select></Field>
+        <Field label="Data"><input type="date" value={f.data} onChange={(e) => setF({ ...f, data: e.target.value })} /></Field>
+        <Field label="Tratamento"><select value={f.tipo} onChange={(e) => setF({ ...f, tipo: e.target.value })}><option>Compensação</option><option>Restituição</option><option>Outro tratamento validado pela contabilidade</option></select></Field>
+        <Field label="Valor (R$)"><input type="number" step="0.01" min="0.01" value={f.valor} onChange={(e) => { setF({ ...f, valor: e.target.value }); setErro(""); }} /></Field>
+        <Field label="Observação" className="gf-span-2"><input value={f.obs} onChange={(e) => setF({ ...f, obs: e.target.value })} /></Field>
+        <Field label="Documento de compensação" className="gf-span-2"><FdAnexosField anexos={f.anexos} onChange={(v) => setF({ ...f, anexos: v })} /></Field>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2"><button type="submit" className="gf-btn gf-btn-primary">Registrar</button><span className="gf-hint">Baixa o crédito previdenciário disponível; não gera despesa nem movimenta banco.</span></div>
+      </form>
+    </Modal>
+  );
+}
+
+const impEncerrada = (imp, empresaId, comp) => (imp.encerradas || []).some((e) => e.empresaId === empresaId && e.competencia === comp);
+const IMP_ST_TONE = { aberta: "orange", parcial: "blue", paga: "green", cancelada: "gray" };
+const IMP_ST_LABEL = { aberta: "Em aberto", parcial: "Parcialmente paga", paga: "Paga", cancelada: "Cancelada" };
+
+function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEntries, contasPagar, setContasPagar, imp: impRaw, setImp, currentUser, logAudit }) {
+  const imp = useMemo(() => impNormalizar(impRaw), [impRaw]);
+  const podeGerenciar = can(currentUser, "impostos_gerenciar");
+  const podePagar = impPodePagar(currentUser);
+  const ehAdmin = currentUser?.papel === "admin";
+  const hoje = todayISO();
+  const [aba, setAba] = useState("painel");
+  const [filtro, setFiltro] = useState({ empresa: "", obra: "", comp: monthKey(hoje), imposto: "" });
+  const [modalNota, setModalNota] = useState(null);
+  const [concNota, setConcNota] = useState(null);
+  const [guiaModal, setGuiaModal] = useState(null);
+  const [pagarGuiaId, setPagarGuiaId] = useState(null);
+  const [credModal, setCredModal] = useState(false);
+  const [detNota, setDetNota] = useState(null);
+  const [guiaAberta, setGuiaAberta] = useState(null);
+  const [prevAberta, setPrevAberta] = useState(null);
+  const [cfgEmpresa, setCfgEmpresa] = useState("glover_eng");
+  const [cfgDraft, setCfgDraft] = useState(null);
+  const [encForm, setEncForm] = useState({ empresaId: "glover_eng", competencia: monthKey(hoje) });
+  const [erroDoc, setErroDoc] = useState("");
+  const nomeObra = (id) => obras.find((o) => o.id === id)?.nome || "—";
+  const nomeConta = (id) => accounts.find((a) => a.id === id)?.nome || contasInvestidores.find((c) => c.id === id)?.nome || "—";
+  const numeroNota = (id) => { const n = imp.notas.find((x) => x.id === id); return n ? `NF ${n.numero}` : "—"; };
+  const mutar = (fn) => setImp((prev) => fn(impNormalizar(prev)));
+  const H = (acao, ref, detalhe) => ({ id: uid("ih"), em: Date.now(), por: currentUser?.nome || "—", acao, ref, detalhe: detalhe || "" });
+  const audit = (tipo, ref, ant, novo) => logAudit?.({ tipoOperacao: tipo, registroAlterado: ref, valorAnterior: ant ?? "—", valorNovo: novo ?? "—" });
+
+  const { por: trib } = useMemo(() => impTributos(imp, entries), [imp, entries]);
+  const fEmp = (x) => !filtro.empresa || x.empresaId === filtro.empresa;
+  const fObra = (x) => !filtro.obra || x.obraId === filtro.obra;
+  const fImp = (x) => !filtro.imposto || x.imposto === filtro.imposto;
+  const fComp = (c) => !filtro.comp || c === filtro.comp;
+  const provAtivas = imp.provisoes.filter((p) => p.status !== "cancelado");
+  const notasVig = imp.notas.filter((n) => n.status === "vigente");
+  const pagEntries = entries.filter((e) => e.natureza === "pagamento_imposto" || e.natureza === "estorno_pagamento_imposto");
+  const sinalPag = (e) => (e.natureza === "estorno_pagamento_imposto" ? -1 : 1);
+  const notaObraShares = (n) => {
+    const bruto = Number(n.valorBruto) || 0;
+    const pesos = n.obras.map((o) => ({ centroCusto: o.obraId, percentual: bruto > 0 ? ((Number(o.valor) || 0) / bruto) * 100 : 0 }));
+    const inss = computeRateioValores(pesos, impArred(n.inssRetido));
+    return n.obras.map((o, i) => ({ obraId: o.obraId, valor: Number(o.valor) || 0, inss: inss[i].valor }));
+  };
+
+  /* ---------- indicadores ---------- */
+  const kpi = useMemo(() => {
+    let fat = 0, inssRet = 0;
+    notasVig.filter(fEmp).filter((n) => fComp(n.competencia)).forEach((n) => notaObraShares(n).filter(fObra).forEach((s) => { fat += s.valor; inssRet += s.inss; }));
+    const provMes = provAtivas.filter((p) => !p.retido && fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).reduce((s, p) => s + p.valor, 0);
+    const issRetMes = provAtivas.filter((p) => p.retido && fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).reduce((s, p) => s + p.valor, 0);
+    const pagoMes = pagEntries.filter((e) => fEmp(e) && fObra(e) && fImp(e) && (!filtro.comp || monthKey(e.data) === filtro.comp)).reduce((s, e) => s + sinalPag(e) * ((Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0)), 0);
+    const provTot = provAtivas.filter((p) => !p.retido && fEmp(p) && fObra(p) && fImp(p)).reduce((s, p) => s + p.valor, 0);
+    const ajTot = imp.ajustes.filter((a) => a.status !== "cancelado" && fEmp(a) && fObra(a) && fImp(a)).reduce((s, a) => s + a.valor, 0);
+    const pagoTot = pagEntries.filter((e) => fEmp(e) && fObra(e) && fImp(e)).reduce((s, e) => s + sinalPag(e) * ((Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0)), 0);
+    const acresc = pagEntries.filter((e) => fEmp(e) && fObra(e) && fImp(e)).reduce((s, e) => s + sinalPag(e) * (Number(e.valorAcrescimos) || 0), 0);
+    const inssTot = notasVig.filter(fEmp).reduce((s, n) => s + notaObraShares(n).filter(fObra).reduce((t, x) => t + x.inss, 0), 0);
+    const compens = imp.creditos.filter(fEmp).reduce((s, c) => s + c.valor, 0);
+    const custo = impArred(provAtivas.filter((p) => fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).reduce((s, p) => s + p.valor, 0));
+    return {
+      fat: impArred(fat), provMes: impArred(provMes), pagoMes: impArred(pagoMes), saldo: impArred(Math.max(0, provTot + ajTot - pagoTot)),
+      retidos: impArred(issRetMes + inssRet), issRetMes: impArred(issRetMes), inssRet: impArred(inssRet), creditoInss: impArred(inssTot - compens),
+      acresc: impArred(acresc), carga: fat > 0 ? (custo / fat) * 100 : null,
+    };
+  }, [imp, entries, filtro]);
+
+  const guiasInfo = useMemo(() => imp.guias.map((g) => ({ g, pago: impGuiaPago(g, imp.pagamentos), saldo: impGuiaSaldo(g, imp.pagamentos), st: impGuiaStatus(g, imp.pagamentos) })), [imp]);
+  const guiasFiltradas = guiasInfo.filter(({ g }) => fEmp(g) && fImp(g) && (!filtro.obra || g.obraRateio.some((r) => r.obraId === filtro.obra)));
+
+  const previsoes = useMemo(() => {
+    const m = {};
+    provAtivas.filter((p) => p.status === "provisionado" && !p.guiaId && !p.retido).forEach((p) => {
+      const k = `${p.empresaId}|${p.imposto}|${p.periodo}`;
+      (m[k] = m[k] || { key: k, empresaId: p.empresaId, imposto: p.imposto, periodo: p.periodo, periodicidade: p.periodicidade, provs: [] }).provs.push(p);
+    });
+    return Object.values(m).map((gp) => {
+      const comp0 = gp.provs[0].competencia;
+      const cfg = impConfigVigente(imp.config, gp.empresaId, comp0);
+      const ci = (cfg.impostos || []).find((i) => i.codigo === gp.imposto) || { vencDia: 20, orgao: "Receita Federal" };
+      const jaTemGuia = imp.guias.some((g) => g.status !== "cancelada" && g.empresaId === gp.empresaId && g.imposto === gp.imposto && g.periodo === gp.periodo);
+      const adicional = gp.imposto === "IRPJ" && !jaTemGuia ? impAdicionalIrpj(provAtivas.filter((p) => p.empresaId === gp.empresaId && p.imposto === "IRPJ" && p.periodo === gp.periodo), cfg) : 0;
+      return { ...gp, adicional, vencimento: impVencimentoPrevisto(gp.periodo, ci.vencDia), orgao: ci.orgao || "Receita Federal", previsto: impArred(gp.provs.reduce((s, p) => s + p.valor, 0)), notas: new Set(gp.provs.map((p) => p.notaId)).size };
+    }).filter((gp) => fEmp(gp) && fImp(gp) && (!filtro.obra || gp.provs.some((p) => p.obraId === filtro.obra)))
+      .sort((a, b) => (a.vencimento < b.vencimento ? -1 : 1));
+  }, [imp, filtro]);
+
+  /* ---------- ações: notas ---------- */
+  const salvarNota = async (d) => {
+    if (!podeGerenciar) return;
+    const editando = !!d.id;
+    const atual = editando ? imp.notas.find((n) => n.id === d.id) : null;
+    if (impEncerrada(imp, d.empresaId, d.competencia) || (atual && impEncerrada(imp, atual.empresaId, atual.competencia))) { window.alert("Esta competência está encerrada para a empresa. Reabra a competência (administrador) para lançar ou alterar notas."); return; }
+    const dupC = d.chave && imp.notas.find((n) => n.id !== d.id && impDigitos(n.chave) === d.chave);
+    if (dupC) { window.alert(`Já existe uma nota com esta chave de acesso: NF ${dupC.numero} (${dupC.status}). Notas canceladas ou substituídas também impedem o cadastro duplicado.`); return; }
+    const dupN = imp.notas.find((n) => n.id !== d.id && n.empresaId === d.empresaId && String(n.numero) === String(d.numero) && String(n.serie || "") === String(d.serie || ""));
+    if (dupN) { window.alert(`Já existe a NF ${dupN.numero}${dupN.serie ? ` (série ${dupN.serie})` : ""} cadastrada para esta empresa (${dupN.status}).`); return; }
+    if (atual && imp.provisoes.some((p) => p.notaId === atual.id && p.guiaId && p.status !== "cancelado")) { window.alert("As provisões desta nota já compõem uma guia. Cancele a guia antes de alterar a nota."); return; }
+    let antiga = null;
+    if (!editando && d.substituiChave) {
+      antiga = imp.notas.find((n) => impDigitos(n.chave) === d.substituiChave && n.status === "vigente") || null;
+      if (antiga && imp.provisoes.some((p) => p.notaId === antiga.id && p.guiaId && p.status !== "cancelado")) { window.alert(`A NF ${antiga.numero} (substituída) já compõe uma guia. Cancele a guia antes de registrar a substituição.`); return; }
+    }
+    const id = d.id || uid("nf");
+    let anexos;
+    try { anexos = await impSalvarAnexos(id, d.anexos); } catch (e) { window.alert("Não foi possível salvar o PDF: " + ((e && e.message) || e) + "\nNada foi lançado."); return; }
+    const cfg = impConfigVigente(imp.config, d.empresaId, d.competencia);
+    const { anexos: _x, ...resto } = d;
+    const nota = {
+      ...resto, id, anexos, status: "vigente", recebimentoEntryIds: atual?.recebimentoEntryIds || antiga?.recebimentoEntryIds || [],
+      substituiId: antiga?.id || atual?.substituiId || null, criadoPor: atual?.criadoPor || currentUser?.nome || "—", criadoEm: atual?.criadoEm || Date.now(),
+      ...(editando ? { editadoPor: currentUser?.nome || "—", editadoEm: Date.now() } : {}),
+    };
+    const novas = impCalcularProvisoes(nota, cfg, () => uid("prv"));
+    mutar((prev) => {
+      let notas = editando ? prev.notas.map((n) => (n.id === id ? nota : n)) : [...prev.notas, nota];
+      if (antiga) notas = notas.map((n) => (n.id === antiga.id ? { ...n, status: "substituida", substituidaPorId: id, recebimentoEntryIds: [] } : n));
+      const provisoes = prev.provisoes.map((p) => ((p.notaId === id || (antiga && p.notaId === antiga.id)) && p.status !== "cancelado" ? { ...p, status: "cancelado", canceladoEm: Date.now(), canceladoMotivo: editando ? "Nota editada — provisões recalculadas" : "Nota substituída" } : p)).concat(novas);
+      return { ...prev, notas, provisoes, hist: [H(editando ? "Edição de nota fiscal" : "Cadastro de nota fiscal", `NF ${nota.numero} — ${impEmpresaNome(nota.empresaId)}`, `Bruto ${BRL(nota.valorBruto)} · INSS ${BRL(nota.inssRetido)} · ISS retido ${BRL(nota.issRetido)} · ${novas.length} provisão(ões)${antiga ? ` · substitui NF ${antiga.numero}` : ""}`), ...prev.hist] };
+    });
+    audit(editando ? "Edição de nota fiscal (impostos)" : "Nota fiscal (impostos)", `NF ${nota.numero} — ${impEmpresaNome(nota.empresaId)}`, editando ? BRL(atual.valorBruto) : "—", BRL(nota.valorBruto));
+    setModalNota(null);
+  };
+  const cancelarNota = (n) => {
+    if (!podeGerenciar || n.status !== "vigente") return;
+    if (impEncerrada(imp, n.empresaId, n.competencia)) { window.alert("Competência encerrada."); return; }
+    if (imp.provisoes.some((p) => p.notaId === n.id && p.guiaId && p.status !== "cancelado")) { window.alert("As provisões desta nota já compõem uma guia. Cancele a guia antes."); return; }
+    const motivo = window.prompt(`Cancelar a NF ${n.numero}? As provisões serão canceladas (a nota fica no histórico). Informe o motivo:`);
+    if (motivo === null) return;
+    mutar((prev) => ({
+      ...prev,
+      notas: prev.notas.map((x) => (x.id === n.id ? { ...x, status: "cancelada", canceladaEm: Date.now(), canceladaPor: currentUser?.nome || "—", motivoCancelamento: motivo, recebimentoEntryIds: [] } : x)),
+      provisoes: prev.provisoes.map((p) => (p.notaId === n.id && p.status !== "cancelado" ? { ...p, status: "cancelado", canceladoEm: Date.now(), canceladoMotivo: "Nota cancelada" } : p)),
+      hist: [H("Cancelamento de nota fiscal", `NF ${n.numero}`, motivo), ...prev.hist],
+    }));
+    audit("Cancelamento de nota fiscal (impostos)", `NF ${n.numero}`, BRL(n.valorBruto), "—");
+  };
+  const salvarConciliacao = (n, ids) => {
+    mutar((prev) => ({ ...prev, notas: prev.notas.map((x) => (x.id === n.id ? { ...x, recebimentoEntryIds: ids } : x)), hist: [H("Conciliação de recebimento", `NF ${n.numero}`, `${ids.length} depósito(s) vinculado(s)`), ...prev.hist] }));
+    setConcNota(null);
+  };
+
+  /* ---------- ações: guias ---------- */
+  const abrirGuia = (gp) => setGuiaModal({ guia: null, sugestao: { ...gp, nomeObra, numeroNota, temPagamento: false } });
+  const editarGuia = (gi) => {
+    const g = gi.g;
+    const provs = imp.provisoes.filter((p) => g.provisaoIds.includes(p.id));
+    setGuiaModal({ guia: g, sugestao: { empresaId: g.empresaId, imposto: g.imposto, periodo: g.periodo, provs, adicional: g.adicionalEstimado || 0, vencimento: g.vencimento, orgao: g.orgao, nomeObra, numeroNota, temPagamento: gi.pago > 0 } });
+  };
+  const salvarGuia = async (s, d, guiaEd) => {
+    if (!podeGerenciar) return;
+    const id = guiaEd?.id || uid("gui");
+    let anexos;
+    try { anexos = await impSalvarAnexos(id, d.anexos); } catch (e) { window.alert("Não foi possível salvar o PDF: " + ((e && e.message) || e)); return; }
+    const provIds = guiaEd ? guiaEd.provisaoIds : s.provs.map((p) => p.id);
+    const guia = {
+      id, empresaId: s.empresaId, imposto: s.imposto, periodo: s.periodo, periodicidade: s.periodicidade || (String(s.periodo).includes("-T") ? "trimestral" : "mensal"),
+      valorPrevisto: d.previsto, adicionalEstimado: d.adicional, valorEfetivo: d.valorEfetivo, vencimento: d.vencimento, orgao: d.orgao, justificativa: d.justificativa,
+      contaPagarId: d.contaPagarId, provisaoIds: provIds, obraRateio: d.rateio, status: "ativa", anexos,
+      criadoPor: guiaEd?.criadoPor || currentUser?.nome || "—", criadoEm: guiaEd?.criadoEm || Date.now(), ...(guiaEd ? { editadoPor: currentUser?.nome || "—", editadoEm: Date.now() } : {}),
+    };
+    const ajustes = d.rateio.filter((r) => Math.abs(r.efetivo - r.previsto) > 0.004).map((r) => ({
+      id: uid("iaj"), guiaId: id, obraId: r.obraId, empresaId: s.empresaId, imposto: s.imposto, periodo: s.periodo, valor: impArred(r.efetivo - r.previsto),
+      justificativa: d.justificativa, por: currentUser?.nome || "—", em: Date.now(), status: "ativo",
+    }));
+    mutar((prev) => ({
+      ...prev,
+      guias: guiaEd ? prev.guias.map((g) => (g.id === id ? guia : g)) : [...prev.guias, guia],
+      provisoes: prev.provisoes.map((p) => (provIds.includes(p.id) ? { ...p, guiaId: id, tipo: "apurada" } : p)),
+      ajustes: prev.ajustes.filter((a) => a.guiaId !== id).concat(ajustes),
+      hist: [H(guiaEd ? "Edição de guia" : "Cadastro de guia", `${guia.imposto} ${impPeriodoLabel(guia.periodo)} — ${impEmpresaNome(guia.empresaId)}`, `Previsto ${BRL(d.previsto + (d.adicional || 0))} · guia ${BRL(guia.valorEfetivo)}${d.justificativa ? ` · ${d.justificativa}` : ""}`), ...prev.hist],
+    }));
+    audit(guiaEd ? "Edição de guia de imposto" : "Guia de imposto", `${guia.imposto} ${impPeriodoLabel(guia.periodo)} — ${impEmpresaNome(guia.empresaId)}`, BRL(d.previsto), BRL(guia.valorEfetivo));
+    setGuiaModal(null);
+  };
+  const cancelarGuia = (gi) => {
+    if (!podeGerenciar) return;
+    if (imp.pagamentos.some((p) => p.guiaId === gi.g.id && !p.estornado)) { window.alert("Há pagamento registrado nesta guia. Estorne os pagamentos antes de cancelar a guia."); return; }
+    if (!window.confirm(`Cancelar a guia ${gi.g.imposto} ${impPeriodoLabel(gi.g.periodo)}? As provisões voltam para a previsão e os ajustes da guia são desfeitos.`)) return;
+    mutar((prev) => ({
+      ...prev,
+      guias: prev.guias.map((g) => (g.id === gi.g.id ? { ...g, status: "cancelada", canceladaEm: Date.now(), canceladaPor: currentUser?.nome || "—" } : g)),
+      provisoes: prev.provisoes.map((p) => (p.guiaId === gi.g.id ? { ...p, guiaId: null, tipo: "estimada" } : p)),
+      ajustes: prev.ajustes.map((a) => (a.guiaId === gi.g.id ? { ...a, status: "cancelado" } : a)),
+      hist: [H("Cancelamento de guia", `${gi.g.imposto} ${impPeriodoLabel(gi.g.periodo)} — ${impEmpresaNome(gi.g.empresaId)}`, BRL(gi.g.valorEfetivo)), ...prev.hist],
+    }));
+  };
+
+  /* ---------- ações: pagamento / estorno ---------- */
+  const registrarPagamento = async (gi, d) => {
+    if (!podePagar) return;
+    const guia = gi.g;
+    const pagId = uid("ipg");
+    let anexos;
+    try { anexos = await impSalvarAnexos(pagId, d.anexos); } catch (e) { window.alert("Não foi possível salvar o comprovante: " + ((e && e.message) || e) + "\nNada foi lançado."); return; }
+    const plano = impPlanejarPagamento(guia, { principal: d.principal, juros: d.juros, multa: d.multa, outros: d.outros, contas: d.contas });
+    const rotulo = `${guia.imposto} — ${impPeriodoLabel(guia.periodo)}`;
+    const novos = plano.linhas.map((l) => ({
+      id: uid("lan"), tipo: "saida", origemTipo: l.conta.investidor ? "CONTA_INVESTIDOR" : "CONTA_EMPRESA",
+      contaId: l.conta.investidor ? null : l.conta.contaId, contaInvestidorId: l.conta.investidor ? l.conta.contaId : null,
+      obraId: l.obraId, data: d.data, valor: l.valor, fornecedor: guia.orgao || "Receita Federal", apropriacao: "Impostos",
+      descricao: `Pagamento de imposto — ${rotulo}`, natureza: "pagamento_imposto", valorAcrescimos: l.acrescimos,
+      impostoGuiaId: guia.id, impostoPagId: pagId, empresaId: guia.empresaId, imposto: guia.imposto, createdAt: Date.now(), ...carimbarCriacao(currentUser),
+    }));
+    const pagamento = {
+      id: pagId, guiaId: guia.id, empresaId: guia.empresaId, imposto: guia.imposto, periodo: guia.periodo, data: d.data,
+      principal: d.principal, juros: d.juros, multa: d.multa, outros: d.outros, total: plano.total, contas: d.contas, porObra: plano.porObra,
+      entryIds: novos.map((e) => e.id), anexos, pagoPor: currentUser?.nome || "—", pagoEm: Date.now(), estornado: false,
+    };
+    const novoSaldo = impArred(gi.saldo - d.principal);
+    setEntries((prev) => [...novos, ...prev]);
+    mutar((prev) => ({ ...prev, pagamentos: [...prev.pagamentos, pagamento], hist: [H("Pagamento de guia", `${rotulo} — ${impEmpresaNome(guia.empresaId)}`, `Principal ${BRL(d.principal)} + acréscimos ${BRL(impArred(d.juros + d.multa + d.outros))} = ${BRL(plano.total)} (${d.contas.map((c) => nomeConta(c.contaId)).join(", ")})`), ...prev.hist] }));
+    if (guia.contaPagarId && novoSaldo <= 0.004) {
+      setContasPagar((prev) => prev.map((c) => (c.id === guia.contaPagarId && !c.pagamento ? {
+        ...c, pagamento: { data: d.data, contaId: d.contas[0].contaId, valorOriginal: guia.valorEfetivo, multa: d.multa, juros: d.juros, outrosAcrescimos: d.outros, descontos: 0, valorFinal: plano.total, rateioPago: [], impostoPagId: pagId },
+      } : c)));
+    }
+    audit("Pagamento de imposto", `${rotulo} — ${impEmpresaNome(guia.empresaId)}`, "—", `${BRL(plano.total)} (${d.contas.map((c) => nomeConta(c.contaId)).join(", ")})`);
+    setPagarGuiaId(null);
+  };
+  const estornarPagamento = (pag) => {
+    if (!podePagar || pag.estornado) return;
+    if (!window.confirm(`Estornar o pagamento de ${BRL(pag.total)} (${pag.imposto} ${impPeriodoLabel(pag.periodo)})?\nSerão criados lançamentos de estorno (os originais permanecem no histórico), o saldo bancário é restituído e a guia volta a ter saldo.`)) return;
+    const ids = new Set(pag.entryIds);
+    const orig = entries.filter((e) => ids.has(e.id));
+    const rev = orig.map((e) => ({
+      ...e, id: uid("lan"), tipo: "entrada", data: hoje, descricao: `Estorno — ${e.descricao}`, natureza: "estorno_pagamento_imposto", estornoDe: e.id, createdAt: Date.now(), ...carimbarCriacao(currentUser),
+    }));
+    setEntries((prev) => [...rev, ...prev.map((e) => (ids.has(e.id) ? { ...e, estornado: true } : e))]);
+    mutar((prev) => ({ ...prev, pagamentos: prev.pagamentos.map((p) => (p.id === pag.id ? { ...p, estornado: true, estornadoEm: Date.now(), estornadoPor: currentUser?.nome || "—" } : p)), hist: [H("Estorno de pagamento de guia", `${pag.imposto} ${impPeriodoLabel(pag.periodo)} — ${impEmpresaNome(pag.empresaId)}`, BRL(pag.total)), ...prev.hist] }));
+    setContasPagar((prev) => prev.map((c) => (c.pagamento?.impostoPagId === pag.id ? { ...c, pagamento: null } : c)));
+    audit("Estorno de pagamento de imposto", `${pag.imposto} ${impPeriodoLabel(pag.periodo)} — ${impEmpresaNome(pag.empresaId)}`, BRL(pag.total), "—");
+  };
+
+  /* ---------- ações: créditos, configuração, competências ---------- */
+  const salvarCredito = async (d) => {
+    const id = uid("icr");
+    let anexos;
+    try { anexos = await impSalvarAnexos(id, d.anexos); } catch (e) { window.alert("Não foi possível salvar o documento: " + ((e && e.message) || e)); return; }
+    mutar((prev) => ({ ...prev, creditos: [...prev.creditos, { ...d, id, anexos, por: currentUser?.nome || "—", em: Date.now() }], hist: [H("Compensação/restituição de INSS", impEmpresaNome(d.empresaId), `${d.tipo} ${BRL(d.valor)}`), ...prev.hist] }));
+    setCredModal(false);
+  };
+  const cfgAtual = (empresaId) => impConfigVigente(imp.config, empresaId, monthKey(hoje));
+  useEffect(() => {
+    const c = cfgAtual(cfgEmpresa);
+    setCfgDraft({ vigenciaInicio: hoje.slice(0, 8) + "01", impostos: c.impostos.map((i) => ({ ...i, aliquota: String(i.aliquota) })), irpjAdicional: { ...c.irpjAdicional, presuncao: String(c.irpjAdicional?.presuncao ?? 0), limiteTrimestral: String(c.irpjAdicional?.limiteTrimestral ?? 0), aliquota: String(c.irpjAdicional?.aliquota ?? 0) } });
+  }, [cfgEmpresa, imp.config.length]);
+  const salvarConfig = () => {
+    if (!podeGerenciar || !cfgDraft) return;
+    const emp = impEmpresa(cfgEmpresa);
+    const reg = {
+      id: uid("icf"), empresaId: cfgEmpresa, vigenciaInicio: cfgDraft.vigenciaInicio, regime: emp.regime,
+      impostos: cfgDraft.impostos.map((i) => ({ ...i, aliquota: Number(i.aliquota) || 0, vencDia: Number(i.vencDia) || 1 })),
+      irpjAdicional: { ...cfgDraft.irpjAdicional, presuncao: Number(cfgDraft.irpjAdicional.presuncao) || 0, limiteTrimestral: Number(cfgDraft.irpjAdicional.limiteTrimestral) || 0, aliquota: Number(cfgDraft.irpjAdicional.aliquota) || 0 },
+      por: currentUser?.nome || "—", em: Date.now(),
+    };
+    mutar((prev) => ({ ...prev, config: [...prev.config.filter((c) => !(c.empresaId === cfgEmpresa && c.vigenciaInicio === reg.vigenciaInicio)), reg], hist: [H("Configuração tributária", `${emp.nome} — vigência ${fmtDate(reg.vigenciaInicio)}`, reg.impostos.map((i) => `${i.codigo} ${i.aliquota}%`).join(" · ")), ...prev.hist] }));
+    audit("Configuração tributária", emp.nome, "—", `vigência ${fmtDate(reg.vigenciaInicio)}`);
+  };
+  const encerrarComp = () => {
+    if (!ehAdmin || !encForm.competencia) return;
+    if (impEncerrada(imp, encForm.empresaId, encForm.competencia)) return;
+    mutar((prev) => ({ ...prev, encerradas: [...prev.encerradas, { ...encForm, por: currentUser?.nome || "—", em: Date.now() }], hist: [H("Encerramento de competência", impEmpresaNome(encForm.empresaId), impCompLabel(encForm.competencia)), ...prev.hist] }));
+  };
+  const reabrirComp = (e) => {
+    if (!ehAdmin || !window.confirm(`Reabrir a competência ${impCompLabel(e.competencia)} de ${impEmpresaNome(e.empresaId)}?`)) return;
+    mutar((prev) => ({ ...prev, encerradas: prev.encerradas.filter((x) => !(x.empresaId === e.empresaId && x.competencia === e.competencia)), hist: [H("Reabertura de competência", impEmpresaNome(e.empresaId), impCompLabel(e.competencia)), ...prev.hist] }));
+  };
+  const baixarDoc = async (owner, a) => { setErroDoc(""); try { await impBaixarAnexo(owner, a); } catch (e) { setErroDoc((e && e.message) || "Não foi possível baixar o arquivo."); } };
+
+  /* ---------- dados derivados para gráficos/relatórios ---------- */
+  const meses = useMemo(() => {
+    const base = new Date(); const out = [];
+    for (let i = 11; i >= 0; i--) { const d = new Date(base.getFullYear(), base.getMonth() - i, 1); out.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`); }
+    return out;
+  }, []);
+  const serieMensal = useMemo(() => meses.map((m) => {
+    let fat = 0;
+    notasVig.filter(fEmp).filter((n) => n.competencia === m).forEach((n) => notaObraShares(n).filter(fObra).forEach((s) => { fat += s.valor; }));
+    const prov = provAtivas.filter((p) => !p.retido && fEmp(p) && fObra(p) && fImp(p) && p.competencia === m).reduce((s, p) => s + p.valor, 0);
+    const pago = pagEntries.filter((e) => fEmp(e) && fObra(e) && fImp(e) && monthKey(e.data) === m).reduce((s, e) => s + sinalPag(e) * ((Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0)), 0);
+    return { mes: m, mesLabel: monthLabel(m), faturamento: impArred(fat), provisionado: impArred(prov), pago: impArred(pago) };
+  }), [imp, entries, filtro.empresa, filtro.obra, filtro.imposto]);
+
+  const desembolso = useMemo(() => {
+    const m0 = monthKey(hoje); const meses3 = [0, 1, 2].map((k) => { const d = new Date(Number(m0.slice(0, 4)), Number(m0.slice(5, 7)) - 1 + k, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; });
+    const tot = Object.fromEntries(meses3.map((m) => [m, 0]));
+    const col = (venc, v) => { let m = monthKey(venc); if (m < m0) m = m0; if (tot[m] !== undefined) tot[m] += v; };
+    guiasInfo.filter(({ g, saldo }) => g.status !== "cancelada" && saldo > 0 && fEmp(g) && fImp(g)).forEach(({ g, saldo }) => col(g.vencimento, saldo));
+    previsoes.forEach((p) => col(p.vencimento, p.previsto + p.adicional));
+    return meses3.map((m) => ({ mes: m, valor: impArred(tot[m]) }));
+  }, [guiasInfo, previsoes, filtro.empresa, filtro.imposto]);
+
+  const linhasObra = obras.filter((o) => trib[o.id] && (!filtro.obra || o.id === filtro.obra)).map((o) => ({ obra: o, t: trib[o.id] }));
+  const porImposto = useMemo(() => IMP_CODIGOS.map((c) => {
+    const provs = provAtivas.filter((p) => p.imposto === c && !p.retido && fEmp(p) && fObra(p));
+    const prov = provs.reduce((s, p) => s + p.valor, 0);
+    const aj = imp.ajustes.filter((a) => a.status !== "cancelado" && a.imposto === c && fEmp(a) && fObra(a)).reduce((s, a) => s + a.valor, 0);
+    const pago = pagEntries.filter((e) => e.imposto === c && fEmp(e) && fObra(e)).reduce((s, e) => s + sinalPag(e) * ((Number(e.valor) || 0) - (Number(e.valorAcrescimos) || 0)), 0);
+    const acr = pagEntries.filter((e) => e.imposto === c && fEmp(e) && fObra(e)).reduce((s, e) => s + sinalPag(e) * (Number(e.valorAcrescimos) || 0), 0);
+    return { codigo: c, prov: impArred(prov), efetivo: impArred(prov + aj), pago: impArred(pago), acr: impArred(acr), pend: impArred(Math.max(0, prov + aj - pago)) };
+  }).filter((r) => r.prov || r.pago || r.acr), [imp, entries, filtro.empresa, filtro.obra]);
+
+  const docs = useMemo(() => {
+    const L = [];
+    imp.notas.forEach((n) => (n.anexos || []).forEach((a) => L.push({ owner: n.id, a, tipo: a.tipoDoc || "Nota fiscal", vinculo: `NF ${n.numero}`, empresaId: n.empresaId, obras: n.obras.map((o) => nomeObra(o.obraId)).join(", "), comp: n.competencia, data: n.emissao })));
+    imp.guias.forEach((g) => (g.anexos || []).forEach((a) => L.push({ owner: g.id, a, tipo: "Guia", vinculo: `Guia ${g.imposto} ${impPeriodoLabel(g.periodo)}`, empresaId: g.empresaId, obras: g.obraRateio.map((r) => nomeObra(r.obraId)).join(", "), comp: g.periodo, data: g.vencimento })));
+    imp.pagamentos.forEach((p) => (p.anexos || []).forEach((a) => L.push({ owner: p.id, a, tipo: "Comprovante", vinculo: `Pagamento ${p.imposto} ${impPeriodoLabel(p.periodo)}`, empresaId: p.empresaId, obras: p.porObra.map((r) => nomeObra(r.obraId)).join(", "), comp: p.periodo, data: p.data })));
+    imp.creditos.forEach((c) => (c.anexos || []).forEach((a) => L.push({ owner: c.id, a, tipo: "Compensação", vinculo: `${c.tipo} INSS`, empresaId: c.empresaId, obras: "—", comp: monthKey(c.data), data: c.data })));
+    return L.filter((d) => fEmp(d)).sort((a, b) => (a.data < b.data ? 1 : -1));
+  }, [imp, filtro.empresa, obras]);
+
+  const gp = guiasInfo.find((x) => x.g.id === pagarGuiaId);
+  const COR = { fat: "var(--gf-accent)", prov: "var(--gf-warn, #C98A00)", pago: "var(--gf-primary)" };
+
+  /* ---------- render ---------- */
+  const ABAS = [["painel", "Painel"], ["notas", "Notas fiscais"], ["guias", "Guias e Pagamentos"], ["config", "Configurações Tributárias"], ["docs", "Histórico de Documentos"], ["relatorios", "Relatórios"]];
+  return (
+    <div className="gf-stack">
+      <div className="gf-toolbar">
+        <h2>Impostos</h2>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {podeGerenciar && <button className="gf-btn gf-btn-primary" onClick={() => setModalNota("nova")}><Plus size={15} /> Nova Nota Fiscal</button>}
+          <button className="gf-btn gf-btn-ghost" onClick={() => setAba("guias")}><Landmark size={15} /> Guias e Pagamentos</button>
+          <button className="gf-btn gf-btn-ghost" onClick={() => setAba("config")}><ShieldCheck size={15} /> Configurações Tributárias</button>
+          <button className="gf-btn gf-btn-ghost" onClick={() => setAba("docs")}><FileText size={15} /> Histórico de Documentos</button>
+          <button className="gf-btn gf-btn-ghost" onClick={() => setAba("relatorios")}><BarChart3 size={15} /> Relatórios</button>
+        </div>
+      </div>
+      <div className="gf-segmented">{ABAS.map(([k, l]) => <button key={k} className={aba === k ? "is-active" : ""} onClick={() => setAba(k)}>{l}</button>)}</div>
+
+      <section className="gf-card">
+        <div className="gf-filters-grid" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+          <select value={filtro.empresa} onChange={(e) => setFiltro({ ...filtro, empresa: e.target.value })}><option value="">Empresa (todas)</option>{IMP_EMPRESAS.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}</select>
+          <select value={filtro.obra} onChange={(e) => setFiltro({ ...filtro, obra: e.target.value })}><option value="">Obra (todas)</option>{obras.map((o) => <option key={o.id} value={o.id}>{o.nome}</option>)}</select>
+          <div style={{ display: "flex", gap: 6 }}><input type="month" title="Competência" value={filtro.comp} onChange={(e) => setFiltro({ ...filtro, comp: e.target.value })} style={{ flex: 1 }} />{filtro.comp && <button className="gf-btn gf-btn-ghost" title="Todas as competências" onClick={() => setFiltro({ ...filtro, comp: "" })}>Todas</button>}</div>
+          <select value={filtro.imposto} onChange={(e) => setFiltro({ ...filtro, imposto: e.target.value })}><option value="">Imposto (todos)</option>{IMP_CODIGOS.map((c) => <option key={c} value={c}>{c}</option>)}</select>
+        </div>
+      </section>
+      {erroDoc && <div className="gf-warn">{erroDoc}</div>}
+
+      {aba === "painel" && (
+        <>
+          <div className="gf-tiles" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+            <div className="gf-tile"><span className="gf-tile-label">Faturamento bruto {filtro.comp ? "do mês" : "(todas)"}</span><span className="gf-tile-value">{BRL(kpi.fat)}</span></div>
+            <div className="gf-tile tone-yellow"><span className="gf-tile-label">Impostos provisionados</span><span className="gf-tile-value">{BRL(kpi.provMes)}</span></div>
+            <div className="gf-tile"><span className="gf-tile-label">Impostos efetivamente pagos</span><span className="gf-tile-value">{BRL(kpi.pagoMes)}</span></div>
+            <div className="gf-tile tone-red"><span className="gf-tile-label">Saldo de impostos a pagar</span><span className="gf-tile-value">{BRL(kpi.saldo)}</span></div>
+          </div>
+          <div className="gf-tiles" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+            <div className="gf-tile"><span className="gf-tile-label">Impostos retidos pelos clientes</span><span className="gf-tile-value">{BRL(kpi.retidos)}</span><span className="gf-muted" style={{ fontSize: 11.5 }}>ISS {BRL(kpi.issRetMes)} · INSS {BRL(kpi.inssRet)}</span></div>
+            <div className="gf-tile"><span className="gf-tile-label">Créditos previdenciários (INSS)</span><span className="gf-tile-value">{BRL(kpi.creditoInss)}</span>{podeGerenciar && <button className="gf-btn gf-btn-ghost" style={{ padding: "2px 8px", marginTop: 4 }} onClick={() => setCredModal(true)}>Registrar compensação</button>}</div>
+            <div className="gf-tile"><span className="gf-tile-label">Carga tributária efetiva</span><span className="gf-tile-value">{kpi.carga === null ? "—" : `${kpi.carga.toFixed(2).replace(".", ",")}%`}</span></div>
+            <div className="gf-tile"><span className="gf-tile-label">Juros e multas acumulados</span><span className="gf-tile-value">{BRL(kpi.acresc)}</span></div>
+          </div>
+
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Faturamento, provisão e pagamento por mês</h2></div>
+            <div className="gf-chart-box">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={serieMensal} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke="var(--gf-border)" vertical={false} />
+                  <XAxis dataKey="mesLabel" tick={{ fontSize: 11, fill: "var(--gf-muted)" }} axisLine={{ stroke: "var(--gf-border)" }} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "var(--gf-muted)" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={44} />
+                  <Tooltip formatter={(v) => BRL(v)} contentStyle={{ fontFamily: "var(--gf-font-mono)", fontSize: 12, borderRadius: 8, border: "1px solid var(--gf-border)" }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="faturamento" name="Faturamento bruto" fill={COR.fat} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="provisionado" name="Provisionado" fill={COR.prov} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="pago" name="Pago" fill={COR.pago} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          <div className="gf-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))", gap: 16 }}>
+            <section className="gf-card">
+              <div className="gf-card-head"><h2>Próximas guias e vencimentos</h2></div>
+              <div className="gf-table-wrap"><ExportableTable className="gf-table">
+                <thead><tr><th>Empresa</th><th>Imposto</th><th>Período</th><th>Vencimento</th><th className="num">Valor</th><th>Situação</th></tr></thead>
+                <tbody>
+                  {guiasInfo.filter(({ g, saldo }) => g.status !== "cancelada" && saldo > 0 && fEmp(g) && fImp(g)).sort((a, b) => (a.g.vencimento < b.g.vencimento ? -1 : 1)).slice(0, 8).map(({ g, saldo }) => (
+                    <tr key={g.id}><td>{impEmpresaNome(g.empresaId)}</td><td>{g.imposto}</td><td>{impPeriodoLabel(g.periodo)}</td><td>{fmtDate(g.vencimento)}</td><td className="num mono">{BRL(saldo)}</td><td>{g.vencimento < hoje ? <Badge tone="red">Vencida</Badge> : <Badge tone="orange">Guia</Badge>}</td></tr>
+                  ))}
+                  {previsoes.slice(0, 6).map((p) => (
+                    <tr key={p.key}><td>{impEmpresaNome(p.empresaId)}</td><td>{p.imposto}</td><td>{impPeriodoLabel(p.periodo)}</td><td>{fmtDate(p.vencimento)}</td><td className="num mono">{BRL(p.previsto + p.adicional)}</td><td><Badge tone="blue">Previsão</Badge></td></tr>
+                  ))}
+                  {guiasInfo.filter(({ g, saldo }) => g.status !== "cancelada" && saldo > 0).length + previsoes.length === 0 && <tr><td colSpan={6}><EmptyState icon={Landmark} title="Nada a vencer" body="Cadastre notas fiscais para gerar as previsões de guias." /></td></tr>}
+                </tbody>
+              </ExportableTable></div>
+            </section>
+            <section className="gf-card">
+              <div className="gf-card-head"><h2>Previsão de desembolso — próximos 3 meses</h2></div>
+              <div className="gf-table-wrap"><ExportableTable className="gf-table">
+                <thead><tr><th>Mês</th><th className="num">Desembolso previsto</th></tr></thead>
+                <tbody>{desembolso.map((d) => <tr key={d.mes}><td style={{ textTransform: "capitalize" }}>{monthLabel(d.mes)}</td><td className="num mono">{BRL(d.valor)}</td></tr>)}</tbody>
+                <tfoot><tr><td><b>Total</b></td><td className="num mono"><b>{BRL(desembolso.reduce((s, d) => s + d.valor, 0))}</b></td></tr></tfoot>
+              </ExportableTable></div>
+              <p className="gf-field-hint" style={{ marginTop: 8 }}>Guias com saldo + previsões ainda sem guia, pelo vencimento configurado. Valores vencidos entram no mês corrente.</p>
+            </section>
+          </div>
+
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Previsão x realização por imposto</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Imposto</th><th className="num">Provisionado (previsão)</th><th className="num">Apurado (guias + ajustes)</th><th className="num">Pago (principal)</th><th className="num">Pendente</th><th className="num">Juros e multas</th></tr></thead>
+              <tbody>
+                {porImposto.length === 0 && <tr><td colSpan={6}><EmptyState icon={Landmark} title="Sem movimentação" body="Ainda não há provisões ou pagamentos de impostos." /></td></tr>}
+                {porImposto.map((r) => <tr key={r.codigo}><td><b>{r.codigo}</b></td><td className="num mono">{BRL(r.prov)}</td><td className="num mono">{BRL(r.efetivo)}</td><td className="num mono">{BRL(r.pago)}</td><td className="num mono neg">{BRL(r.pend)}</td><td className="num mono">{BRL(r.acr)}</td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Resultado tributário por obra</h2></div>
+            <ImpTabelaObras linhas={linhasObra} />
+          </section>
+        </>
+      )}
+
+      {aba === "notas" && (
+        <section className="gf-card">
+          <div className="gf-card-head"><h2>Notas fiscais</h2></div>
+          <div className="gf-table-wrap"><ExportableTable className="gf-table">
+            <thead><tr><th>NF</th><th>Empresa</th><th>Emissão</th><th>Comp.</th><th>Cliente</th><th>Obra(s)</th><th className="num">Bruto</th><th className="num">INSS ret.</th><th className="num">ISS ret.</th><th className="num">Líquido</th><th>Recebimento</th><th>Situação</th><th></th></tr></thead>
+            <tbody>
+              {imp.notas.filter(fEmp).filter((n) => !filtro.obra || n.obras.some((o) => o.obraId === filtro.obra)).filter((n) => fComp(n.competencia)).length === 0 && <tr><td colSpan={13}><EmptyState icon={Receipt} title="Nenhuma nota fiscal" body={'Use "Nova Nota Fiscal" para importar o PDF da NFS-e ou preencher manualmente.'} /></td></tr>}
+              {[...imp.notas].filter(fEmp).filter((n) => !filtro.obra || n.obras.some((o) => o.obraId === filtro.obra)).filter((n) => fComp(n.competencia)).sort((a, b) => (a.emissao < b.emissao ? 1 : -1)).map((n) => {
+                const rec = impArred(entries.filter((e) => (n.recebimentoEntryIds || []).includes(e.id)).reduce((s, e) => s + e.valor, 0));
+                const pendRec = impArred(n.valorLiquido - rec);
+                return (
+                  <tr key={n.id} className={n.status !== "vigente" ? "row-neg" : ""}>
+                    <td><b>{n.numero}</b>{n.serie ? <div className="gf-muted" style={{ fontSize: 11 }}>série {n.serie}</div> : null}</td>
+                    <td>{impEmpresaNome(n.empresaId)}</td><td>{fmtDate(n.emissao)}</td><td>{impCompLabel(n.competencia)}</td><td>{n.tomador || "—"}</td>
+                    <td>{n.obras.map((o) => <div key={o.obraId} style={{ fontSize: 12 }}>{nomeObra(o.obraId)}{n.obras.length > 1 ? ` — ${BRL(o.valor)}` : ""}</div>)}</td>
+                    <td className="num mono">{BRL(n.valorBruto)}</td><td className="num mono">{BRL(n.inssRetido)}</td><td className="num mono">{BRL(n.issRetido)}</td><td className="num mono">{BRL(n.valorLiquido)}</td>
+                    <td>{n.status !== "vigente" ? "—" : Math.abs(pendRec) < 0.005 ? <Badge tone="green">Conciliado</Badge> : <><Badge tone={rec > 0 ? "blue" : "orange"}>{rec > 0 ? "Parcial" : "A receber"}</Badge><div className="gf-muted" style={{ fontSize: 11 }}>falta {BRL(pendRec)}</div></>}</td>
+                    <td><Badge tone={n.status === "vigente" ? "green" : "gray"}>{n.status === "vigente" ? "Vigente" : n.status === "substituida" ? "Substituída" : "Cancelada"}</Badge>{n.substituidaPorId && <div className="gf-muted" style={{ fontSize: 11 }}>por NF {numeroNota(n.substituidaPorId).replace("NF ", "")}</div>}{n.substituiId && <div className="gf-muted" style={{ fontSize: 11 }}>substitui NF {numeroNota(n.substituiId).replace("NF ", "")}</div>}</td>
+                    <td><div className="gf-row-actions">
+                      <button className="gf-icon-btn" title="Provisões da nota" onClick={() => setDetNota(n)}><Eye size={14} /></button>
+                      {podeGerenciar && n.status === "vigente" && <button className="gf-icon-btn" title="Conciliar recebimento" onClick={() => setConcNota(n)}><Check size={14} /></button>}
+                      {podeGerenciar && n.status === "vigente" && <button className="gf-icon-btn" title="Editar" onClick={() => setModalNota(n)}><Pencil size={14} /></button>}
+                      {podeGerenciar && n.status === "vigente" && <button className="gf-icon-btn" title="Cancelar nota" onClick={() => cancelarNota(n)}><Trash2 size={14} /></button>}
+                    </div></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </ExportableTable></div>
+        </section>
+      )}
+
+      {aba === "guias" && (
+        <>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Previsão de guias (provisões ainda sem guia)</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Empresa</th><th>Imposto</th><th>Período</th><th className="num">Notas</th><th className="num">Provisionado</th><th className="num">Adicional IRPJ est.</th><th>Vencimento previsto</th><th></th></tr></thead>
+              <tbody>
+                {previsoes.length === 0 && <tr><td colSpan={8}><EmptyState icon={Landmark} title="Nenhuma previsão pendente" body="As provisões de notas confirmadas aparecem aqui, agrupadas por empresa, imposto e período." /></td></tr>}
+                {previsoes.map((p) => (
+                  <React.Fragment key={p.key}>
+                    <tr><td>{impEmpresaNome(p.empresaId)}</td><td><b>{p.imposto}</b></td><td>{impPeriodoLabel(p.periodo)}</td><td className="num mono">{p.notas}</td><td className="num mono">{BRL(p.previsto)}</td><td className="num mono">{p.adicional ? BRL(p.adicional) : "—"}</td><td>{fmtDate(p.vencimento)}</td>
+                      <td><div className="gf-row-actions"><button className="gf-btn gf-btn-ghost" style={{ padding: "2px 8px" }} onClick={() => setPrevAberta(prevAberta === p.key ? null : p.key)}>{prevAberta === p.key ? "Ocultar notas" : "Ver notas"}</button>{podeGerenciar && <button className="gf-btn gf-btn-primary" style={{ padding: "4px 10px" }} onClick={() => abrirGuia(p)}>Cadastrar guia</button>}</div></td></tr>
+                    {prevAberta === p.key && p.provs.map((pv) => <tr key={pv.id} style={{ background: "#F7F9F8" }}><td></td><td colSpan={2} style={{ paddingLeft: 24 }}>{numeroNota(pv.notaId)} — {nomeObra(pv.obraId)}</td><td></td><td className="num mono">{BRL(pv.valor)}</td><td colSpan={3} className="gf-muted">base {BRL(pv.base)} × {pv.aliquota}%</td></tr>)}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Guias cadastradas e pagamentos</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Empresa</th><th>Imposto</th><th>Período</th><th>Venc.</th><th className="num">Provisionado</th><th className="num">Guia</th><th className="num">Divergência</th><th className="num">Pago</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
+              <tbody>
+                {guiasFiltradas.length === 0 && <tr><td colSpan={11}><EmptyState icon={Landmark} title="Nenhuma guia cadastrada" body={'Cadastre a guia enviada pela contabilidade a partir da previsão acima.'} /></td></tr>}
+                {guiasFiltradas.sort((a, b) => (a.g.vencimento < b.g.vencimento ? 1 : -1)).map((gi) => {
+                  const { g } = gi; const prevTot = impArred((g.valorPrevisto || 0) + (g.adicionalEstimado || 0)); const dif = impArred(g.valorEfetivo - prevTot);
+                  const pags = imp.pagamentos.filter((p) => p.guiaId === g.id);
+                  return (
+                    <React.Fragment key={g.id}>
+                      <tr className={gi.st === "cancelada" ? "row-neg" : ""}>
+                        <td>{impEmpresaNome(g.empresaId)}</td><td><b>{g.imposto}</b></td><td>{impPeriodoLabel(g.periodo)}</td><td>{fmtDate(g.vencimento)}</td>
+                        <td className="num mono">{BRL(prevTot)}</td><td className="num mono">{BRL(g.valorEfetivo)}</td>
+                        <td className={`num mono ${Math.abs(dif) > 0.004 ? "neg" : ""}`}>{BRL(dif)}{prevTot > 0 && Math.abs(dif) > 0.004 ? <div style={{ fontSize: 11 }}>{((dif / prevTot) * 100).toFixed(2).replace(".", ",")}%</div> : null}</td>
+                        <td className="num mono">{BRL(gi.pago)}</td><td className="num mono">{BRL(gi.saldo)}</td>
+                        <td><Badge tone={IMP_ST_TONE[gi.st]}>{IMP_ST_LABEL[gi.st]}</Badge>{gi.st !== "cancelada" && gi.saldo > 0 && g.vencimento < hoje && <div><Badge tone="red">Vencida</Badge></div>}</td>
+                        <td><div className="gf-row-actions">
+                          {gi.st !== "cancelada" && podePagar && gi.saldo > 0.004 && <button className="gf-btn gf-btn-primary" style={{ padding: "4px 10px" }} onClick={() => setPagarGuiaId(g.id)}><CircleDollarSign size={14} /> Registrar pagamento</button>}
+                          {pags.length > 0 && <button className="gf-icon-btn" title="Pagamentos da guia" onClick={() => setGuiaAberta(guiaAberta === g.id ? null : g.id)}><Eye size={14} /></button>}
+                          {gi.st !== "cancelada" && podeGerenciar && <button className="gf-icon-btn" title="Editar guia" onClick={() => editarGuia(gi)}><Pencil size={14} /></button>}
+                          {gi.st !== "cancelada" && podeGerenciar && <button className="gf-icon-btn" title="Cancelar guia" onClick={() => cancelarGuia(gi)}><Trash2 size={14} /></button>}
+                        </div></td>
+                      </tr>
+                      {guiaAberta === g.id && pags.map((p) => (
+                        <tr key={p.id} style={{ background: "#F7F9F8" }}>
+                          <td></td><td colSpan={3} style={{ paddingLeft: 24 }}>Pago em {fmtDate(p.data)} — {p.contas.map((c) => `${nomeConta(c.contaId)} ${BRL(c.valor)}`).join(", ")}{p.estornado && <Badge tone="gray" style={{ marginLeft: 6 }}>Estornado</Badge>}</td>
+                          <td colSpan={3} className="gf-muted">principal {BRL(p.principal)} · juros {BRL(p.juros)} · multa {BRL(p.multa)}{p.outros ? ` · outros ${BRL(p.outros)}` : ""}</td>
+                          <td className="num mono">{BRL(p.total)}</td><td></td><td></td>
+                          <td>{podePagar && !p.estornado && <button className="gf-icon-btn" title="Estornar pagamento" onClick={() => estornarPagamento(p)}><Undo2 size={14} /></button>}</td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+        </>
+      )}
+
+      {aba === "config" && cfgDraft && (
+        <>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Configurações tributárias</h2></div>
+            <div className="gf-segmented" style={{ marginBottom: 10 }}>{IMP_EMPRESAS.map((e) => <button key={e.id} className={cfgEmpresa === e.id ? "is-active" : ""} onClick={() => setCfgEmpresa(e.id)}>{e.nome}</button>)}</div>
+            <p className="gf-field-hint">Regime: <b>{impEmpresa(cfgEmpresa).regime}</b>. {cfgEmpresa === "glover_gestao" ? "Configuração independente da Glover Engenharia — as alíquotas do Lucro Presumido não se aplicam. Cadastre a alíquota efetiva do DAS (por anexo/faixa, conforme a contabilidade) para passar a provisionar." : "Premissas iniciais de gestão — valide com a contabilidade. Alterar gera uma nova vigência e não modifica competências já provisionadas."}</p>
+            <div className="gf-table-wrap"><ExportableTable exportavel={false} className="gf-table">
+              <thead><tr><th>Imposto</th><th className="num">Alíquota (%)</th><th>Periodicidade</th><th className="num">Dia do vencimento (mês seguinte)</th><th>Órgão arrecadador</th></tr></thead>
+              <tbody>{cfgDraft.impostos.map((i, k) => (
+                <tr key={i.codigo}>
+                  <td><b>{i.nome || i.codigo}</b></td>
+                  <td className="num"><input type="number" step="0.01" min="0" value={i.aliquota} disabled={!podeGerenciar} style={{ width: 90 }} onChange={(e) => setCfgDraft((d) => ({ ...d, impostos: d.impostos.map((x, n) => (n === k ? { ...x, aliquota: e.target.value } : x)) }))} /></td>
+                  <td><select value={i.periodicidade} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, impostos: d.impostos.map((x, n) => (n === k ? { ...x, periodicidade: e.target.value } : x)) }))}><option value="mensal">Mensal</option><option value="trimestral">Trimestral</option></select></td>
+                  <td className="num"><input type="number" min="1" max="31" value={i.vencDia} disabled={!podeGerenciar} style={{ width: 70 }} onChange={(e) => setCfgDraft((d) => ({ ...d, impostos: d.impostos.map((x, n) => (n === k ? { ...x, vencDia: e.target.value } : x)) }))} /></td>
+                  <td><input value={i.orgao || ""} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, impostos: d.impostos.map((x, n) => (n === k ? { ...x, orgao: e.target.value } : x)) }))} /></td>
+                </tr>
+              ))}</tbody>
+            </ExportableTable></div>
+            {cfgEmpresa === "glover_eng" && (
+              <div className="gf-form-grid gf-modal-form" style={{ marginTop: 10 }}>
+                <Field label="Adicional de IRPJ"><select value={cfgDraft.irpjAdicional.ativo ? "1" : "0"} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, irpjAdicional: { ...d.irpjAdicional, ativo: e.target.value === "1" } }))}><option value="1">Calcular no trimestre</option><option value="0">Não calcular</option></select></Field>
+                <Field label="Base de presunção do IRPJ (%)"><input type="number" step="0.01" value={cfgDraft.irpjAdicional.presuncao} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, irpjAdicional: { ...d.irpjAdicional, presuncao: e.target.value } }))} /></Field>
+                <Field label="Limite trimestral isento (R$)" hint="R$ 20.000 por mês"><input type="number" step="0.01" value={cfgDraft.irpjAdicional.limiteTrimestral} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, irpjAdicional: { ...d.irpjAdicional, limiteTrimestral: e.target.value } }))} /></Field>
+                <Field label="Alíquota do adicional (%)" hint="Rateado entre as obras pela base tributável do trimestre"><input type="number" step="0.01" value={cfgDraft.irpjAdicional.aliquota} disabled={!podeGerenciar} onChange={(e) => setCfgDraft((d) => ({ ...d, irpjAdicional: { ...d.irpjAdicional, aliquota: e.target.value } }))} /></Field>
+              </div>
+            )}
+            {podeGerenciar && (
+              <div className="gf-form-actions" style={{ marginTop: 10 }}>
+                <Field label="Vale a partir de"><input type="date" value={cfgDraft.vigenciaInicio} onChange={(e) => setCfgDraft((d) => ({ ...d, vigenciaInicio: e.target.value }))} /></Field>
+                <button className="gf-btn gf-btn-primary" onClick={salvarConfig}>Salvar nova vigência</button>
+              </div>
+            )}
+          </section>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Vigências cadastradas</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Empresa</th><th>Vigência a partir de</th><th>Alíquotas</th><th>Cadastrada por</th></tr></thead>
+              <tbody>
+                <tr><td colSpan={4} className="gf-muted">Padrão inicial do sistema (sem alteração) vale para qualquer competência anterior à primeira vigência cadastrada.</td></tr>
+                {[...imp.config].sort((a, b) => (a.vigenciaInicio < b.vigenciaInicio ? 1 : -1)).map((c) => <tr key={c.id}><td>{impEmpresaNome(c.empresaId)}</td><td>{fmtDate(c.vigenciaInicio)}</td><td>{c.impostos.map((i) => `${i.codigo} ${i.aliquota}%`).join(" · ")}</td><td>{c.por} — {nowStampFromTs(c.em)}</td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Competências encerradas</h2></div>
+            <p className="gf-field-hint">Competência encerrada não aceita lançar, editar ou cancelar notas (e, portanto, provisões). Alterações de alíquota nunca recalculam competências já provisionadas.</p>
+            {ehAdmin && (
+              <div className="gf-form-actions" style={{ marginBottom: 10 }}>
+                <select value={encForm.empresaId} onChange={(e) => setEncForm({ ...encForm, empresaId: e.target.value })}>{IMP_EMPRESAS.map((e) => <option key={e.id} value={e.id}>{e.nome}</option>)}</select>
+                <input type="month" value={encForm.competencia} onChange={(e) => setEncForm({ ...encForm, competencia: e.target.value })} />
+                <button className="gf-btn gf-btn-primary" onClick={encerrarComp}>Encerrar competência</button>
+              </div>
+            )}
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Empresa</th><th>Competência</th><th>Encerrada por</th><th></th></tr></thead>
+              <tbody>
+                {imp.encerradas.length === 0 && <tr><td colSpan={4} className="gf-muted">Nenhuma competência encerrada.</td></tr>}
+                {imp.encerradas.map((e) => <tr key={e.empresaId + e.competencia}><td>{impEmpresaNome(e.empresaId)}</td><td>{impCompLabel(e.competencia)}</td><td>{e.por} — {nowStampFromTs(e.em)}</td><td>{ehAdmin && <button className="gf-btn gf-btn-ghost" style={{ padding: "2px 8px" }} onClick={() => reabrirComp(e)}>Reabrir</button>}</td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+        </>
+      )}
+
+      {aba === "docs" && (
+        <>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Banco de documentos</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>Data</th><th>Tipo</th><th>Vínculo</th><th>Empresa</th><th>Obra(s)</th><th>Competência / período</th><th>Arquivo</th></tr></thead>
+              <tbody>
+                {docs.length === 0 && <tr><td colSpan={7}><EmptyState icon={FileText} title="Nenhum documento" body="PDFs de notas, guias, comprovantes e documentos de compensação aparecem aqui." /></td></tr>}
+                {docs.map((d, i) => <tr key={i}><td>{fmtDate(d.data)}</td><td><Badge tone="blue">{d.tipo}</Badge></td><td>{d.vinculo}</td><td>{impEmpresaNome(d.empresaId)}</td><td>{d.obras}</td><td>{String(d.comp).includes("-T") ? impPeriodoLabel(d.comp) : impCompLabel(d.comp)}</td><td><button className="gf-btn gf-btn-ghost" style={{ padding: "2px 8px" }} onClick={() => baixarDoc(d.owner, d.a)}><Download size={13} /> {d.a.nome}</button></td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Histórico de alterações</h2></div>
+            <div className="gf-table-wrap" style={{ maxHeight: 420 }}><ExportableTable className="gf-table">
+              <thead><tr><th>Data/hora</th><th>Usuário</th><th>Ação</th><th>Referência</th><th>Detalhe</th></tr></thead>
+              <tbody>
+                {imp.hist.length === 0 && <tr><td colSpan={5} className="gf-muted">Sem registros.</td></tr>}
+                {imp.hist.slice(0, 300).map((h) => <tr key={h.id}><td className="mono">{nowStampFromTs(h.em)}</td><td>{h.por}</td><td>{h.acao}</td><td>{h.ref}</td><td className="gf-td-desc" title={h.detalhe}>{h.detalhe}</td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+        </>
+      )}
+
+      {aba === "relatorios" && (
+        <>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Resultado tributário por obra</h2></div>
+            <ImpTabelaObras linhas={linhasObra} />
+          </section>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Retenções por nota fiscal</h2></div>
+            <div className="gf-table-wrap"><ExportableTable className="gf-table">
+              <thead><tr><th>NF</th><th>Empresa</th><th>Comp.</th><th>Obra(s)</th><th className="num">Bruto</th><th className="num">INSS retido (crédito)</th><th className="num">ISS retido (custo)</th><th className="num">Outras</th><th className="num">Líquido previsto</th><th>Situação</th></tr></thead>
+              <tbody>
+                {imp.notas.filter(fEmp).filter((n) => !filtro.obra || n.obras.some((o) => o.obraId === filtro.obra)).filter((n) => fComp(n.competencia)).map((n) => <tr key={n.id}><td>{n.numero}</td><td>{impEmpresaNome(n.empresaId)}</td><td>{impCompLabel(n.competencia)}</td><td>{n.obras.map((o) => nomeObra(o.obraId)).join(", ")}</td><td className="num mono">{BRL(n.valorBruto)}</td><td className="num mono">{BRL(n.inssRetido)}</td><td className="num mono">{BRL(n.issRetido)}</td><td className="num mono">{BRL(n.outrosRetidos)}</td><td className="num mono">{BRL(n.valorLiquido)}</td><td>{n.status}</td></tr>)}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+          <section className="gf-card">
+            <div className="gf-card-head"><h2>Provisões</h2></div>
+            <div className="gf-table-wrap" style={{ maxHeight: 460 }}><ExportableTable className="gf-table">
+              <thead><tr><th>Empresa</th><th>Obra</th><th>NF</th><th>Imposto</th><th>Comp.</th><th className="num">Base</th><th className="num">Alíq.</th><th className="num">Valor</th><th>Natureza</th><th>Situação</th></tr></thead>
+              <tbody>
+                {provAtivas.filter((p) => fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).map((p) => {
+                  const gi = p.guiaId ? guiasInfo.find((x) => x.g.id === p.guiaId) : null;
+                  const sit = p.retido ? "Retido pelo tomador" : gi ? (gi.st === "paga" ? "Paga" : gi.st === "parcial" ? "Parcialmente paga" : "Em guia") : "Provisionado";
+                  return <tr key={p.id}><td>{impEmpresaNome(p.empresaId)}</td><td>{nomeObra(p.obraId)}</td><td>{numeroNota(p.notaId)}</td><td>{p.imposto}</td><td>{impCompLabel(p.competencia)}</td><td className="num mono">{BRL(p.base)}</td><td className="num mono">{p.aliquota}%</td><td className="num mono">{BRL(p.valor)}</td><td>{p.tipo === "apurada" ? "Apurada" : "Estimada"}</td><td>{sit}</td></tr>;
+                })}
+              </tbody>
+            </ExportableTable></div>
+          </section>
+        </>
+      )}
+
+      {modalNota && <ImpNotaModal nota={modalNota === "nova" ? null : modalNota} obras={obras} imp={imp} onClose={() => setModalNota(null)} onSave={salvarNota} />}
+      {concNota && <ImpConciliarModal nota={concNota} entries={entries} imp={imp} obras={obras} onClose={() => setConcNota(null)} onSave={(ids) => salvarConciliacao(concNota, ids)} />}
+      {guiaModal && <ImpGuiaModal guia={guiaModal.guia} sugestao={guiaModal.sugestao} contasPagar={contasPagar} onClose={() => setGuiaModal(null)} onSave={(d) => salvarGuia(guiaModal.sugestao, d, guiaModal.guia)} />}
+      {gp && <ImpPagarModal guia={gp.g} saldo={gp.saldo} accounts={accounts.filter((a) => a.status === "Ativa" && !isFatDiretoAccount(a))} contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")} onClose={() => setPagarGuiaId(null)} onConfirm={(d) => registrarPagamento(gp, d)} />}
+      {credModal && <ImpCreditoModal empresas={IMP_EMPRESAS} onClose={() => setCredModal(false)} onSave={salvarCredito} />}
+      {detNota && (
+        <Modal title={`Provisões — NF ${detNota.numero}`} onClose={() => setDetNota(null)} width={760}>
+          <div className="gf-detail-meta" style={{ gridTemplateColumns: "repeat(4,1fr)" }}>
+            <div><span>Bruto</span><b className="mono">{BRL(detNota.valorBruto)}</b></div><div><span>INSS retido</span><b className="mono">{BRL(detNota.inssRetido)}</b></div>
+            <div><span>ISS retido</span><b className="mono">{BRL(detNota.issRetido)}</b></div><div><span>Líquido previsto</span><b className="mono">{BRL(detNota.valorLiquido)}</b></div>
+          </div>
+          <div className="gf-table-wrap" style={{ marginTop: 10 }}><ExportableTable exportavel={false} className="gf-table">
+            <thead><tr><th>Obra</th><th>Imposto</th><th>Período</th><th className="num">Base</th><th className="num">Alíq.</th><th className="num">Valor</th><th>Situação</th></tr></thead>
+            <tbody>{imp.provisoes.filter((p) => p.notaId === detNota.id && p.status !== "cancelado").map((p) => <tr key={p.id}><td>{nomeObra(p.obraId)}</td><td>{p.imposto}</td><td>{impPeriodoLabel(p.periodo)}</td><td className="num mono">{BRL(p.base)}</td><td className="num mono">{p.aliquota}%</td><td className="num mono">{BRL(p.valor)}</td><td>{p.retido ? "ISS retido pelo tomador (sem guia própria)" : p.guiaId ? "Em guia" : "Provisionado"}</td></tr>)}</tbody>
+          </ExportableTable></div>
+          <p className="gf-field-hint" style={{ marginTop: 8 }}>O INSS retido ({BRL(detNota.inssRetido)}) é crédito previdenciário — não é custo da obra. Provisões não movimentam contas bancárias.</p>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function ImpTabelaObras({ linhas }) {
+  const pct = (v) => (v === null ? "—" : `${v.toFixed(2).replace(".", ",")}%`);
+  return (
+    <div className="gf-table-wrap"><ExportableTable className="gf-table">
+      <thead><tr><th>Obra</th><th className="num">Faturamento bruto</th><th className="num">ISS retido</th><th className="num">Crédito INSS</th><th className="num">Impostos provisionados</th><th className="num">Impostos pagos</th><th className="num">Pendentes</th><th className="num">Ajustes</th><th className="num">Juros e multas</th><th className="num">Custo tributário total</th><th className="num">% s/ faturamento</th></tr></thead>
+      <tbody>
+        {linhas.length === 0 && <tr><td colSpan={11}><EmptyState icon={Building2} title="Sem dados tributários" body="Cadastre notas fiscais vinculadas às obras." /></td></tr>}
+        {linhas.map(({ obra, t }) => <tr key={obra.id}><td>{obra.nome}</td><td className="num mono">{BRL(t.faturamentoBruto)}</td><td className="num mono">{BRL(t.issRetido)}</td><td className="num mono">{BRL(t.inssRetido)}</td><td className="num mono">{BRL(t.provisionado)}</td><td className="num mono">{BRL(t.pago)}</td><td className="num mono neg">{BRL(t.pendente)}</td><td className="num mono">{BRL(t.ajustes)}</td><td className="num mono">{BRL(t.acrescimos)}</td><td className="num mono"><b>{BRL(t.custoTributario)}</b></td><td className="num mono">{pct(t.pctFaturamento)}</td></tr>)}
+      </tbody>
+      {linhas.length > 1 && <tfoot><tr><td><b>Total</b></td>{["faturamentoBruto", "issRetido", "inssRetido", "provisionado", "pago", "pendente", "ajustes", "acrescimos", "custoTributario"].map((k) => <td key={k} className="num mono"><b>{BRL(impArred(linhas.reduce((s, l) => s + l.t[k], 0)))}</b></td>)}<td></td></tr></tfoot>}
+    </ExportableTable></div>
   );
 }
 
