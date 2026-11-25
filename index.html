@@ -1995,6 +1995,7 @@ export default function App() {
               accounts={accounts} contasInvestidores={contasInvestidores} obras={obras}
               entries={entries} setEntries={setEntries} contasPagar={contasPagar} setContasPagar={setContasPagar}
               imp={imp} setImp={setImp} currentUser={currentUser} logAudit={logAudit}
+              funcionarios={funcionarios} apontamentos={apontamentosFunc} feriados={feriadosFunc}
             />
           )}
           {page === "relatoriosobra" && !ehInvestidor && (
@@ -14384,7 +14385,9 @@ const IMP_EMPRESAS = [
   { id: "glover_eng", nome: "Glover Engenharia", cnpj: "38.257.092/0001-62", regime: "Lucro Presumido" },
   { id: "glover_gestao", nome: "Glover Gestão e Planejamento", cnpj: "", regime: "Simples Nacional" },
 ];
-const IMP_CODIGOS = ["ISS", "PIS", "COFINS", "IRPJ", "CSLL", "DAS"];
+const IMP_CODIGOS = ["ISS", "PIS", "COFINS", "IRPJ", "CSLL", "DAS", "FGTS"];
+// FGTS não é provisionado por nota fiscal: o valor da guia do mês é informado e rateado pelas diárias apontadas em Quinzena Funcionários.
+const IMP_FGTS = { orgao: "Caixa Econômica Federal (FGTS)", vencDia: 20 };
 const IMP_CONFIG_PADRAO = {
   glover_eng: {
     regime: "Lucro Presumido",
@@ -14471,6 +14474,23 @@ function impRateioGuia(provs, valorEfetivo) {
   const rows = ids.map((id) => ({ centroCusto: id, percentual: totalBase > 0 ? (base[id] / totalBase) * 100 : 100 / ids.length }));
   const ef = computeRateioValores(rows, impArred(valorEfetivo));
   return ids.map((id, i) => ({ obraId: id, base: impArred(base[id]), percentual: rows[i].percentual, previsto: prev[id], efetivo: ef[i].valor }));
+}
+
+// FGTS: rateio do valor da guia entre as obras pelo valor das diárias pagas no mês (diária, noturna, meia diária e bônus de feriado).
+function impRateioFgts(competencia, valor, funcionarios, apontamentos, feriados) {
+  const ini = `${competencia}-01`, fim = `${competencia}-31`;
+  const base = {}, dias = {};
+  (funcionarios || []).forEach((f) => {
+    const r = qzCalcularPeriodo(f, ini, fim, apontamentos || [], feriados || []);
+    Object.keys(r.porObra).forEach((id) => { base[id] = impArred((base[id] || 0) + r.porObra[id]); });
+  });
+  const funcIds = new Set((funcionarios || []).map((f) => f.id));
+  (apontamentos || []).forEach((a) => { if (funcIds.has(a.funcId) && a.data >= ini && a.data <= fim && !a.falta && a.obraId) dias[a.obraId] = (dias[a.obraId] || 0) + (a.meia ? 0.5 : 1); });
+  const ids = Object.keys(base).filter((id) => base[id] > 0);
+  const totalBase = impArred(ids.reduce((t, id) => t + base[id], 0));
+  const rows = ids.map((id) => ({ centroCusto: id, percentual: totalBase > 0 ? (base[id] / totalBase) * 100 : 0 }));
+  const ef = computeRateioValores(rows, impArred(valor));
+  return { totalBase, rateio: ids.map((id, i) => ({ obraId: id, dias: dias[id] || 0, base: base[id], percentual: rows[i].percentual, previsto: ef[i].valor, efetivo: ef[i].valor })) };
 }
 
 // Plano de lançamentos de um pagamento de guia (principal/juros/multa/outros rateados entre obras; total repartido entre contas).
@@ -14825,6 +14845,53 @@ function ImpGuiaModal({ guia, sugestao, contasPagar, onClose, onSave }) {
   );
 }
 
+function ImpFgtsModal({ guia, funcionarios, apontamentos, feriados, nomeObra, temPagamento, onClose, onSave }) {
+  const hoje = todayISO();
+  const [f, setF] = useState({
+    competencia: guia?.periodo || monthKey(hoje), valor: guia ? String(guia.valorEfetivo) : "", vencimento: guia?.vencimento || "", venc0: !!guia, anexos: (guia?.anexos || []).map((a) => ({ ...a })), obs: guia?.justificativa || "",
+  });
+  const [erro, setErro] = useState("");
+  const upd = (p) => { setF((x) => ({ ...x, ...p })); setErro(""); };
+  const vencAuto = impVencimentoPrevisto(f.competencia, IMP_FGTS.vencDia);
+  const venc = f.venc0 ? f.vencimento : vencAuto;
+  const valor = Number(f.valor) || 0;
+  const calc = useMemo(() => impRateioFgts(f.competencia, valor, funcionarios, apontamentos, feriados), [f.competencia, valor, funcionarios, apontamentos, feriados]);
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.competencia) return setErro("Informe a competência.");
+    if (!(valor > 0)) return setErro("Informe o valor da guia do FGTS.");
+    if (!venc) return setErro("Informe o vencimento.");
+    if (!calc.rateio.length) return setErro("Não há diárias apontadas em Quinzena Funcionários nesta competência para ratear o FGTS.");
+    onSave({ competencia: f.competencia, valorEfetivo: impArred(valor), vencimento: venc, anexos: f.anexos, justificativa: f.obs.trim(), rateio: calc.rateio });
+  };
+  return (
+    <Modal title={guia ? "Editar guia do FGTS" : "Guia do FGTS"} onClose={onClose} width={780}>
+      <form onSubmit={submit} className="gf-form-grid gf-modal-form">
+        <Field label="Competência"><input type="month" value={f.competencia} disabled={!!guia} onChange={(e) => upd({ competencia: e.target.value })} /></Field>
+        <Field label="Valor da guia do FGTS (R$)" hint={temPagamento ? "Já há pagamento: o valor não pode mais ser alterado" : "Valor total informado pela contabilidade/Caixa"}><input type="number" step="0.01" min="0.01" value={f.valor} readOnly={temPagamento} onChange={(e) => upd({ valor: e.target.value })} /></Field>
+        <Field label="Vencimento"><input type="date" value={venc} onChange={(e) => upd({ vencimento: e.target.value, venc0: true })} /></Field>
+        <Field label="Observação"><input value={f.obs} onChange={(e) => upd({ obs: e.target.value })} /></Field>
+        <Field label="PDF da guia" className="gf-span-2"><FdAnexosField anexos={f.anexos} onChange={(v) => upd({ anexos: v })} /></Field>
+        <div className="gf-span-2">
+          <span className="gf-field-label" style={{ display: "block", marginBottom: 6 }}>Rateio pelas diárias do mês (Quinzena Funcionários) — considera o valor da diária paga a cada funcionário</span>
+          <div className="gf-table-wrap">
+            <ExportableTable exportavel={false} className="gf-table">
+              <thead><tr><th>Obra</th><th className="num">Diárias</th><th className="num">Valor das diárias</th><th className="num">%</th><th className="num">FGTS rateado</th></tr></thead>
+              <tbody>
+                {calc.rateio.length === 0 && <tr><td colSpan={5} className="gf-muted">Nenhuma diária apontada nesta competência.</td></tr>}
+                {calc.rateio.map((r) => <tr key={r.obraId}><td>{nomeObra(r.obraId)}</td><td className="num mono">{String(r.dias).replace(".", ",")}</td><td className="num mono">{BRL(r.base)}</td><td className="num mono">{r.percentual.toFixed(2).replace(".", ",")}%</td><td className="num mono">{BRL(r.efetivo)}</td></tr>)}
+              </tbody>
+              {calc.rateio.length > 0 && <tfoot><tr><td><b>Total</b></td><td className="num mono"><b>{String(calc.rateio.reduce((t, r) => t + r.dias, 0)).replace(".", ",")}</b></td><td className="num mono"><b>{BRL(calc.totalBase)}</b></td><td></td><td className="num mono"><b>{BRL(impArred(calc.rateio.reduce((t, r) => t + r.efetivo, 0)))}</b></td></tr></tfoot>}
+            </ExportableTable>
+          </div>
+        </div>
+        {erro && <div className="gf-warn gf-span-2">{erro}</div>}
+        <div className="gf-form-actions gf-span-2"><button type="button" className="gf-btn gf-btn-ghost" onClick={onClose}>Cancelar</button><button type="submit" className="gf-btn gf-btn-primary">Salvar guia do FGTS</button></div>
+      </form>
+    </Modal>
+  );
+}
+
 function ImpPagarModal({ guia, saldo, accounts, contasInvestidores = [], onClose, onConfirm }) {
   const [data, setData] = useState(todayISO());
   const [principal, setPrincipal] = useState(String(saldo));
@@ -14915,7 +14982,7 @@ const impEncerrada = (imp, empresaId, comp) => (imp.encerradas || []).some((e) =
 const IMP_ST_TONE = { aberta: "orange", parcial: "blue", paga: "green", cancelada: "gray" };
 const IMP_ST_LABEL = { aberta: "Em aberto", parcial: "Parcialmente paga", paga: "Paga", cancelada: "Cancelada" };
 
-function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEntries, contasPagar, setContasPagar, imp: impRaw, setImp, currentUser, logAudit }) {
+function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEntries, contasPagar, setContasPagar, imp: impRaw, setImp, currentUser, logAudit, funcionarios = [], apontamentos = [], feriados = [] }) {
   const imp = useMemo(() => impNormalizar(impRaw), [impRaw]);
   const podeGerenciar = can(currentUser, "impostos_gerenciar");
   const podePagar = impPodePagar(currentUser);
@@ -14928,6 +14995,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
   const [guiaModal, setGuiaModal] = useState(null);
   const [pagarGuiaId, setPagarGuiaId] = useState(null);
   const [credModal, setCredModal] = useState(false);
+  const [fgtsModal, setFgtsModal] = useState(null);
   const [detNota, setDetNota] = useState(null);
   const [guiaAberta, setGuiaAberta] = useState(null);
   const [prevAberta, setPrevAberta] = useState(null);
@@ -15058,6 +15126,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
   const abrirGuia = (gp) => setGuiaModal({ guia: null, sugestao: { ...gp, nomeObra, numeroNota, temPagamento: false } });
   const editarGuia = (gi) => {
     const g = gi.g;
+    if (g.imposto === "FGTS") { setFgtsModal({ guia: g, temPagamento: gi.pago > 0 }); return; }
     const provs = imp.provisoes.filter((p) => g.provisaoIds.includes(p.id));
     setGuiaModal({ guia: g, sugestao: { empresaId: g.empresaId, imposto: g.imposto, periodo: g.periodo, provs, adicional: g.adicionalEstimado || 0, vencimento: g.vencimento, orgao: g.orgao, nomeObra, numeroNota, temPagamento: gi.pago > 0 } });
   };
@@ -15087,6 +15156,33 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
     audit(guiaEd ? "Edição de guia de imposto" : "Guia de imposto", `${guia.imposto} ${impPeriodoLabel(guia.periodo)} — ${impEmpresaNome(guia.empresaId)}`, BRL(d.previsto), BRL(guia.valorEfetivo));
     setGuiaModal(null);
   };
+  const salvarFgts = async (d, guiaEd) => {
+    if (!podeGerenciar) return;
+    const empresaId = "glover_eng";
+    if (impEncerrada(imp, empresaId, d.competencia)) { window.alert("Esta competência está encerrada para a empresa."); return; }
+    const dup = imp.guias.find((g) => g.id !== guiaEd?.id && g.status !== "cancelada" && g.empresaId === empresaId && g.imposto === "FGTS" && g.periodo === d.competencia);
+    if (dup) { window.alert(`Já existe uma guia do FGTS cadastrada para ${impCompLabel(d.competencia)}. Cancele ou edite a existente.`); return; }
+    const id = guiaEd?.id || uid("gui");
+    let anexos;
+    try { anexos = await impSalvarAnexos(id, d.anexos); } catch (e) { window.alert("Não foi possível salvar o PDF: " + ((e && e.message) || e)); return; }
+    const provs = d.rateio.map((r) => ({
+      id: uid("prv"), empresaId, obraId: r.obraId, notaId: null, imposto: "FGTS", competencia: d.competencia, periodicidade: "mensal", periodo: d.competencia,
+      tipo: "apurada", guiaId: id, criadoEm: Date.now(), base: r.base, aliquota: 0, valor: r.efetivo, retido: false, status: "provisionado", origem: "fgts_diarias",
+    }));
+    const guia = {
+      id, empresaId, imposto: "FGTS", periodo: d.competencia, periodicidade: "mensal", valorPrevisto: d.valorEfetivo, adicionalEstimado: 0, valorEfetivo: d.valorEfetivo,
+      vencimento: d.vencimento, orgao: IMP_FGTS.orgao, justificativa: d.justificativa, contaPagarId: null, provisaoIds: provs.map((p) => p.id), obraRateio: d.rateio, status: "ativa", anexos, origem: "fgts_diarias",
+      criadoPor: guiaEd?.criadoPor || currentUser?.nome || "—", criadoEm: guiaEd?.criadoEm || Date.now(), ...(guiaEd ? { editadoPor: currentUser?.nome || "—", editadoEm: Date.now() } : {}),
+    };
+    mutar((prev) => ({
+      ...prev,
+      guias: guiaEd ? prev.guias.map((g) => (g.id === id ? guia : g)) : [...prev.guias, guia],
+      provisoes: prev.provisoes.map((p) => (guiaEd && p.guiaId === id && p.status !== "cancelado" ? { ...p, status: "cancelado", canceladoEm: Date.now(), canceladoMotivo: "Guia do FGTS recalculada" } : p)).concat(provs),
+      hist: [H(guiaEd ? "Edição de guia do FGTS" : "Cadastro de guia do FGTS", `FGTS ${impPeriodoLabel(d.competencia)} — ${impEmpresaNome(empresaId)}`, `Guia ${BRL(d.valorEfetivo)} rateada por diárias: ${d.rateio.map((r) => `${nomeObra(r.obraId)} ${BRL(r.efetivo)}`).join(" · ")}`), ...prev.hist],
+    }));
+    audit(guiaEd ? "Edição de guia do FGTS" : "Guia do FGTS", `FGTS ${impPeriodoLabel(d.competencia)}`, guiaEd ? BRL(guiaEd.valorEfetivo) : "—", BRL(d.valorEfetivo));
+    setFgtsModal(null);
+  };
   const cancelarGuia = (gi) => {
     if (!podeGerenciar) return;
     if (imp.pagamentos.some((p) => p.guiaId === gi.g.id && !p.estornado)) { window.alert("Há pagamento registrado nesta guia. Estorne os pagamentos antes de cancelar a guia."); return; }
@@ -15094,7 +15190,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
     mutar((prev) => ({
       ...prev,
       guias: prev.guias.map((g) => (g.id === gi.g.id ? { ...g, status: "cancelada", canceladaEm: Date.now(), canceladaPor: currentUser?.nome || "—" } : g)),
-      provisoes: prev.provisoes.map((p) => (p.guiaId === gi.g.id ? { ...p, guiaId: null, tipo: "estimada" } : p)),
+      provisoes: prev.provisoes.map((p) => (p.guiaId === gi.g.id ? (gi.g.imposto === "FGTS" ? { ...p, status: "cancelado", canceladoEm: Date.now(), canceladoMotivo: "Guia do FGTS cancelada" } : { ...p, guiaId: null, tipo: "estimada" }) : p)),
       ajustes: prev.ajustes.map((a) => (a.guiaId === gi.g.id ? { ...a, status: "cancelado" } : a)),
       hist: [H("Cancelamento de guia", `${gi.g.imposto} ${impPeriodoLabel(gi.g.periodo)} — ${impEmpresaNome(gi.g.empresaId)}`, BRL(gi.g.valorEfetivo)), ...prev.hist],
     }));
@@ -15383,7 +15479,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
           </section>
 
           <section className="gf-card">
-            <div className="gf-card-head"><h2>Guias cadastradas e pagamentos</h2></div>
+            <div className="gf-card-head"><h2>Guias cadastradas e pagamentos</h2>{podeGerenciar && <button className="gf-btn gf-btn-primary" onClick={() => setFgtsModal({ guia: null, temPagamento: false })}><Plus size={14} /> Guia do FGTS (Glover Engenharia)</button>}</div>
             <div className="gf-table-wrap"><ExportableTable className="gf-table">
               <thead><tr><th>Empresa</th><th>Imposto</th><th>Período</th><th>Venc.</th><th className="num">Provisionado</th><th className="num">Guia</th><th className="num">Divergência</th><th className="num">Pago</th><th className="num">Saldo</th><th>Situação</th><th></th></tr></thead>
               <tbody>
@@ -15428,6 +15524,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
           <section className="gf-card">
             <div className="gf-card-head"><h2>Configurações tributárias</h2></div>
             <div className="gf-segmented" style={{ marginBottom: 10 }}>{IMP_EMPRESAS.map((e) => <button key={e.id} className={cfgEmpresa === e.id ? "is-active" : ""} onClick={() => setCfgEmpresa(e.id)}>{e.nome}</button>)}</div>
+            {cfgEmpresa === "glover_eng" && <p className="gf-field-hint"><b>FGTS:</b> não tem alíquota — o valor da guia de cada mês é informado em Guias e Pagamentos e rateado entre as obras pelo valor das diárias apontadas em Quinzena Funcionários.</p>}
             <p className="gf-field-hint">Regime: <b>{impEmpresa(cfgEmpresa).regime}</b>. {cfgEmpresa === "glover_gestao" ? "Configuração independente da Glover Engenharia — as alíquotas do Lucro Presumido não se aplicam. Cadastre a alíquota efetiva do DAS (por anexo/faixa, conforme a contabilidade) para passar a provisionar." : "Premissas iniciais de gestão — valide com a contabilidade. Alterar gera uma nova vigência e não modifica competências já provisionadas."}</p>
             <div className="gf-table-wrap"><ExportableTable exportavel={false} className="gf-table">
               <thead><tr><th>Imposto</th><th className="num">Alíquota (%)</th><th>Periodicidade</th><th className="num">Dia do vencimento (mês seguinte)</th><th>Órgão arrecadador</th></tr></thead>
@@ -15547,6 +15644,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
       {concNota && <ImpConciliarModal nota={concNota} entries={entries} imp={imp} obras={obras} onClose={() => setConcNota(null)} onSave={(ids) => salvarConciliacao(concNota, ids)} />}
       {guiaModal && <ImpGuiaModal guia={guiaModal.guia} sugestao={guiaModal.sugestao} contasPagar={contasPagar} onClose={() => setGuiaModal(null)} onSave={(d) => salvarGuia(guiaModal.sugestao, d, guiaModal.guia)} />}
       {gp && <ImpPagarModal guia={gp.g} saldo={gp.saldo} accounts={accounts.filter((a) => a.status === "Ativa" && !isFatDiretoAccount(a))} contasInvestidores={contasInvestidores.filter((c) => c.status === "Ativa")} onClose={() => setPagarGuiaId(null)} onConfirm={(d) => registrarPagamento(gp, d)} />}
+      {fgtsModal && <ImpFgtsModal guia={fgtsModal.guia} temPagamento={fgtsModal.temPagamento} funcionarios={funcionarios} apontamentos={apontamentos} feriados={feriados} nomeObra={nomeObra} onClose={() => setFgtsModal(null)} onSave={(d) => salvarFgts(d, fgtsModal.guia)} />}
       {credModal && <ImpCreditoModal empresas={IMP_EMPRESAS} onClose={() => setCredModal(false)} onSave={salvarCredito} />}
       {detNota && (
         <Modal title={`Provisões — NF ${detNota.numero}`} onClose={() => setDetNota(null)} width={760}>
