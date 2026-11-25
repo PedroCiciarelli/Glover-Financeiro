@@ -333,8 +333,9 @@ const isInvestidor = (u) => !!u && u.papel === "investidor";
 const GESTOR_PAGES = ["planejamentosemanal", "relatoriosobra", "obrasgerenciamento", "faturamentodireto", "programacaopagamentos"];
 const GESTOR_PERM_KEYS = Object.keys(GESTOR_PERMS).filter((k) => GESTOR_PERMS[k]);
 const isGestor = (u) => !!u && u.papel === "gestor_obra";
-// Acesso extra, opcional e por usuário: Painel de Obras somente leitura (só das obras marcadas em gestorObras).
-const gestorPages = (u) => (u && u.painelObrasLeitura ? [...GESTOR_PAGES, "obras"] : GESTOR_PAGES);
+// Acesso extra, opcional e por usuário: Painel de Obras somente leitura, apenas das obras listadas em painelObras
+// (independente de gestorObras, que continua valendo para as demais páginas do gestor).
+const gestorPages = (u) => (u && (u.painelObras || []).length ? [...GESTOR_PAGES, "obras"] : GESTOR_PAGES);
 
 function can(user, key) {
   if (!user || !user.ativo) return false;
@@ -1876,7 +1877,7 @@ export default function App() {
           )}
           {page === "obras" && (
             <ObrasPage
-              obras={obrasEscopo} setObras={setObras} obraStats={obraStats} obraSemObra={ehInvestidor || ehGestor ? { ...obraSemObra, count: 0 } : obraSemObra}
+              obras={ehGestor ? obras.filter((o) => (currentUser.painelObras || []).includes(o.id)) : obrasEscopo} setObras={setObras} obraStats={obraStats} obraSemObra={ehInvestidor || ehGestor ? { ...obraSemObra, count: 0 } : obraSemObra}
               modoInvestidor={ehInvestidor} somenteLeitura={ehInvestidor || ehGestor}
               entries={entries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
@@ -9281,8 +9282,8 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
         setErro("Já existe um usuário com este nome. O investidor entra digitando o nome, então ele precisa ser único."); return;
       }
     }
-    const { investidorObraId, investidorContaId, gestorObras, painelObrasLeitura, ...resto } = f;
-    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}), ...(ehGes ? { gestorObras: gestorObras || [], painelObrasLeitura: !!painelObrasLeitura } : {}) });
+    const { investidorObraId, investidorContaId, gestorObras, painelObras, painelObrasLeitura, ...resto } = f;
+    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}), ...(ehGes ? { gestorObras: gestorObras || [], painelObras: painelObras || [] } : {}) });
   };
 
   return (
@@ -9346,10 +9347,16 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
                 </label>
               ))}
             </div>
-            <label className="gf-checkbox gf-perm-item" style={{ marginTop: 12 }}>
-              <input type="checkbox" checked={!!f.painelObrasLeitura} onChange={() => upd({ painelObrasLeitura: !f.painelObrasLeitura })} />
-              <span><b>Painel de Obras — somente visualização</b> (apenas das obras marcadas acima; sem editar, criar ou arquivar)</span>
-            </label>
+            <span className="gf-field-label" style={{ display: "block", margin: "12px 0 6px" }}>Painel de Obras — somente visualização (obras específicas)</span>
+            <div className="gf-hint" style={{ marginBottom: 6 }}>Independe da lista acima: marque apenas as obras cujo painel este usuário poderá consultar (sem editar, criar ou arquivar). Nenhuma marcada = sem acesso ao Painel de Obras.</div>
+            <div className="gf-perm-grid">
+              {obras.map((o) => (
+                <label className="gf-checkbox gf-perm-item" key={o.id}>
+                  <input type="checkbox" checked={(f.painelObras || []).includes(o.id)} onChange={() => setF((s) => { const a = s.painelObras || []; return { ...s, painelObras: a.includes(o.id) ? a.filter((x) => x !== o.id) : [...a, o.id] }; })} />
+                  <span>{o.nome}{o.arquivada ? " (concluída)" : ""}</span>
+                </label>
+              ))}
+            </div>
             <span className="gf-field-label" style={{ display: "block", margin: "12px 0 6px" }}>Permissões nas páginas liberadas</span>
             <div className="gf-perm-grid">
               {GESTOR_PERM_KEYS.map((k) => (
