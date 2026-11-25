@@ -1808,7 +1808,7 @@ export default function App() {
     socios: "socios_acessar", aprovacoes: "lancamentos_aprovar", usuarios: "usuarios_gerenciar",
     contasinvestidores: "investidores_visualizar", planejamentosemanal: "planejamento_visualizar", relatoriosobra: "relatorios_obra_visualizar", faturamentodireto: "fatdireto_visualizar", impostos: "impostos_visualizar", programacaopagamentos: "progpag_visualizar", fechamentoquinzenas: "quinzenas_visualizar",
   };
-  if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page])) {
+  if (!ehInvestidor && NAV_PERMS[page] && !can(currentUser, NAV_PERMS[page]) && !(ehGestor && page === "obras" && gestorPages(currentUser).includes("obras"))) {
     return (
       <div className="gf-app">
         <style>{CSS}</style>
