@@ -333,6 +333,8 @@ const isInvestidor = (u) => !!u && u.papel === "investidor";
 const GESTOR_PAGES = ["planejamentosemanal", "relatoriosobra", "obrasgerenciamento", "faturamentodireto", "programacaopagamentos"];
 const GESTOR_PERM_KEYS = Object.keys(GESTOR_PERMS).filter((k) => GESTOR_PERMS[k]);
 const isGestor = (u) => !!u && u.papel === "gestor_obra";
+// Acesso extra, opcional e por usuário: Painel de Obras somente leitura (só das obras marcadas em gestorObras).
+const gestorPages = (u) => (u && u.painelObrasLeitura ? [...GESTOR_PAGES, "obras"] : GESTOR_PAGES);
 
 function can(user, key) {
   if (!user || !user.ativo) return false;
@@ -1489,7 +1491,7 @@ export default function App() {
   const ehInvestidor = isInvestidor(currentUser);
   const ehGestor = isGestor(currentUser);
   const page = ehInvestidor && !INVESTIDOR_PAGES.includes(pageRaw) ? "obras"
-    : ehGestor && !GESTOR_PAGES.includes(pageRaw) ? "planejamentosemanal" : pageRaw;
+    : ehGestor && !gestorPages(currentUser).includes(pageRaw) ? "planejamentosemanal" : pageRaw;
 
   const logAudit = (entry) => {
     setAuditLog((prev) => [{
@@ -1874,8 +1876,8 @@ export default function App() {
           )}
           {page === "obras" && (
             <ObrasPage
-              obras={obrasEscopo} setObras={setObras} obraStats={obraStats} obraSemObra={ehInvestidor ? { ...obraSemObra, count: 0 } : obraSemObra}
-              modoInvestidor={ehInvestidor}
+              obras={obrasEscopo} setObras={setObras} obraStats={obraStats} obraSemObra={ehInvestidor || ehGestor ? { ...obraSemObra, count: 0 } : obraSemObra}
+              modoInvestidor={ehInvestidor} somenteLeitura={ehInvestidor || ehGestor}
               entries={entries} apropriacoes={apropriacoes} setApropriacoes={setApropriacoes}
               contasPagar={contasPagar} orcamentoItens={orcamentoItens} setOrcamentoItens={setOrcamentoItens}
               accounts={accounts}
@@ -2051,7 +2053,7 @@ function Sidebar({ page, setPage, currentUser }) {
     { id: "aprovacoes", label: "Aprovação de Lançamentos", icon: ClipboardCheck, perm: "lancamentos_aprovar" },
     { id: "usuarios", label: "Usuários", icon: ShieldCheck, perm: "usuarios_gerenciar" },
   ].filter((it) => (isInvestidor(currentUser) ? INVESTIDOR_PAGES.includes(it.id)
-    : isGestor(currentUser) ? GESTOR_PAGES.includes(it.id) && can(currentUser, it.perm)
+    : isGestor(currentUser) ? gestorPages(currentUser).includes(it.id) && (it.id === "obras" || can(currentUser, it.perm))
     : (!it.perm || can(currentUser, it.perm))));
   return (
     <nav className="gf-sidebar">
@@ -3740,7 +3742,7 @@ function TransferInvestidorModal({ contas, accounts, obras, investidorComposicao
 
 const PIE_COLORS = ["#2F8F5B", "#0E3B2E", "#7FB69A", "#B23A34", "#C98A2B", "#5D7566", "#3E6B57", "#9AA39B", "#1D5A45", "#84A98C", "#4A5259"];
 
-function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, currentUser, modoInvestidor = false }) {
+function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriacoes, setApropriacoes, contasPagar, orcamentoItens, setOrcamentoItens, accounts, contasInvestidores, investidorComposicao, movimentosInvestidores, retiradasInvestidores, currentUser, modoInvestidor = false, somenteLeitura: soLeitura = false }) {
   const [showNew, setShowNew] = useState(false);
   const [editingObra, setEditingObra] = useState(null);
   const [detailObraId, setDetailObraId] = useState(null);
@@ -3802,7 +3804,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
       <div className="gf-toolbar">
         <h2>Obras</h2>
         <div className="gf-toolbar-actions">
-          {!modoInvestidor && <button
+          {!modoInvestidor && !soLeitura && <button
             type="button"
             className={`gf-btn gf-btn-ghost gf-archive-trigger${arquivoDragOver ? " gf-archive-trigger-dragover" : ""}`}
             title="Arraste uma obra até aqui para arquivá-la, ou clique para ver as obras concluídas/arquivadas"
@@ -3952,7 +3954,7 @@ function ObrasPage({ obras, setObras, obraStats, obraSemObra, entries, apropriac
           allEntries={entries} accounts={accounts}
           contasInvestidores={contasInvestidores} investidorComposicao={investidorComposicao}
           movimentosInvestidores={movimentosInvestidores} retiradasInvestidores={retiradasInvestidores}
-          somenteLeitura={modoInvestidor}
+          somenteLeitura={modoInvestidor || soLeitura}
         />
       )}
     </div>
@@ -9279,8 +9281,8 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
         setErro("Já existe um usuário com este nome. O investidor entra digitando o nome, então ele precisa ser único."); return;
       }
     }
-    const { investidorObraId, investidorContaId, gestorObras, ...resto } = f;
-    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}), ...(ehGes ? { gestorObras: gestorObras || [] } : {}) });
+    const { investidorObraId, investidorContaId, gestorObras, painelObrasLeitura, ...resto } = f;
+    onSave({ ...resto, nome: f.nome.trim(), ...(ehInv ? { investidorObraId, investidorContaId } : {}), ...(ehGes ? { gestorObras: gestorObras || [], painelObrasLeitura: !!painelObrasLeitura } : {}) });
   };
 
   return (
@@ -9344,6 +9346,10 @@ function UsuarioModal({ usuario, usuarios = [], obras = [], contasInvestidores =
                 </label>
               ))}
             </div>
+            <label className="gf-checkbox gf-perm-item" style={{ marginTop: 12 }}>
+              <input type="checkbox" checked={!!f.painelObrasLeitura} onChange={() => upd({ painelObrasLeitura: !f.painelObrasLeitura })} />
+              <span><b>Painel de Obras — somente visualização</b> (apenas das obras marcadas acima; sem editar, criar ou arquivar)</span>
+            </label>
             <span className="gf-field-label" style={{ display: "block", margin: "12px 0 6px" }}>Permissões nas páginas liberadas</span>
             <div className="gf-perm-grid">
               {GESTOR_PERM_KEYS.map((k) => (
