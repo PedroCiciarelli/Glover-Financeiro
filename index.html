@@ -1660,22 +1660,22 @@ export default function App() {
   const obraStats = useMemo(() => {
     const map = {};
     obras.forEach((o) => (map[o.id] = { receitas: 0, despesas: 0, count: 0 }));
-    // Impostos (modelo híbrido): faturamento = valor bruto das NFs; custo tributário = provisões + ajustes + juros/multas.
-    // Pagamentos de guias (natureza "pagamento_imposto") movimentam o banco mas não somam de novo como despesa;
-    // entradas conciliadas com uma NF já estão dentro do faturamento bruto da nota.
-    const { por: tribMap, linked } = impTributos(imp, entries);
+    // Impostos: receita da obra vem SOMENTE dos lançamentos de entrada (quando o dinheiro cai na conta); notas fiscais
+    // não geram receita. O custo tributário = provisões + ajustes + juros/multas. Pagamentos de guias (natureza
+    // "pagamento_imposto") movimentam o banco mas não somam de novo como despesa.
+    const { por: tribMap } = impTributos(imp, entries);
     entries.forEach((e) => {
       if (!map[e.obraId]) return;
       map[e.obraId].count += 1;
       if (e.natureza === "pagamento_imposto" || e.natureza === "estorno_pagamento_imposto") return;
-      if (e.tipo === "entrada") { if (!linked.has(e.id)) map[e.obraId].receitas += Number(e.valor) || 0; }
+      if (e.tipo === "entrada") map[e.obraId].receitas += Number(e.valor) || 0;
       else map[e.obraId].despesas += Number(e.valor) || 0;
     });
     obras.forEach((o) => {
       const s = map[o.id];
       const t = tribMap[o.id];
       s.trib = t || null;
-      if (t) { s.receitas += t.faturamentoBruto; s.despesas += t.custoTributario; }
+      if (t) s.despesas += t.custoTributario;
       s.resultado = s.receitas - s.despesas;
       s.margem = s.receitas > 0 ? (s.resultado / s.receitas) * 100 : null;
     });
@@ -4127,7 +4127,7 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
                 <h4 className="gf-chart-title">Resultado tributário da obra</h4>
                 <div className="gf-account-rows gf-detail-stats">
                   <div><span>Faturamento bruto</span><b className="mono">{BRL(stats.trib.faturamentoBruto)}</b></div>
-                  <div><span>ISS retido (custo)</span><b className="mono">{BRL(stats.trib.issRetido)}</b></div>
+                  <div><span>ISS retido (informativo)</span><b className="mono">{BRL(stats.trib.issRetido)}</b></div>
                   <div><span>Crédito INSS retido</span><b className="mono">{BRL(stats.trib.inssRetido)}</b></div>
                   <div><span>Impostos provisionados</span><b className="mono">{BRL(stats.trib.provisionado)}</b></div>
                   <div><span>Impostos pagos</span><b className="mono">{BRL(stats.trib.pago)}</b></div>
@@ -4137,7 +4137,7 @@ function ObraDetail({ obra, stats, entries, apropriacoes, setApropriacoes, onClo
                   <div><span>Custo tributário total</span><b className="mono">{BRL(stats.trib.custoTributario)}</b></div>
                   <div><span>% sobre o faturamento</span><b className="mono">{stats.trib.pctFaturamento === null ? "—" : `${stats.trib.pctFaturamento.toFixed(2).replace(".", ",")}%`}</b></div>
                 </div>
-                <p className="gf-field-hint">Receitas e despesas acima consideram o faturamento bruto das notas e a provisão de impostos (resultado econômico). Os gráficos abaixo mostram o fluxo de caixa (lançamentos), onde os impostos aparecem quando pagos.</p>
+                <p className="gf-field-hint">A receita da obra considera apenas os recebimentos lançados (entradas); o faturamento bruto das notas é informativo e não vira receita. As despesas incluem o custo tributário (provisões, ajustes e juros/multas).</p>
               </>
             )}
             <div className="gf-field" style={{ maxWidth: 260, margin: "4px 0 14px" }}>
@@ -14538,7 +14538,7 @@ function impTributos(imp, entries) {
   });
   Object.values(por).forEach((t) => {
     Object.keys(t).forEach((k) => { t[k] = impArred(t[k]); });
-    t.custoTributario = impArred(t.provisionado + t.issRetido + t.ajustes + t.acrescimos);
+    t.custoTributario = impArred(t.provisionado + t.ajustes + t.acrescimos); // ISS retido é informativo: a entrada recebida já vem líquida dele
     t.pendente = impArred(Math.max(0, t.provisionado + t.ajustes - t.pago));
     t.pctFaturamento = t.faturamentoBruto > 0 ? (t.custoTributario / t.faturamentoBruto) * 100 : null;
   });
@@ -15039,7 +15039,7 @@ function ImpostosPage({ accounts, contasInvestidores = [], obras, entries, setEn
     const acresc = pagEntries.filter((e) => fEmp(e) && fObra(e) && fImp(e)).reduce((s, e) => s + sinalPag(e) * (Number(e.valorAcrescimos) || 0), 0);
     const inssTot = notasVig.filter(fEmp).reduce((s, n) => s + notaObraShares(n).filter(fObra).reduce((t, x) => t + x.inss, 0), 0);
     const compens = imp.creditos.filter(fEmp).reduce((s, c) => s + c.valor, 0);
-    const custo = impArred(provAtivas.filter((p) => fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).reduce((s, p) => s + p.valor, 0));
+    const custo = impArred(provAtivas.filter((p) => !p.retido && fEmp(p) && fObra(p) && fImp(p) && fComp(p.competencia)).reduce((s, p) => s + p.valor, 0));
     return {
       fat: impArred(fat), provMes: impArred(provMes), pagoMes: impArred(pagoMes), saldo: impArred(Math.max(0, provTot + ajTot - pagoTot)),
       retidos: impArred(issRetMes + inssRet), issRetMes: impArred(issRetMes), inssRet: impArred(inssRet), creditoInss: impArred(inssTot - compens),
@@ -15667,7 +15667,7 @@ function ImpTabelaObras({ linhas }) {
   const pct = (v) => (v === null ? "—" : `${v.toFixed(2).replace(".", ",")}%`);
   return (
     <div className="gf-table-wrap"><ExportableTable className="gf-table">
-      <thead><tr><th>Obra</th><th className="num">Faturamento bruto</th><th className="num">ISS retido</th><th className="num">Crédito INSS</th><th className="num">Impostos provisionados</th><th className="num">Impostos pagos</th><th className="num">Pendentes</th><th className="num">Ajustes</th><th className="num">Juros e multas</th><th className="num">Custo tributário total</th><th className="num">% s/ faturamento</th></tr></thead>
+      <thead><tr><th>Obra</th><th className="num">Faturamento bruto</th><th className="num">ISS retido (informativo)</th><th className="num">Crédito INSS</th><th className="num">Impostos provisionados</th><th className="num">Impostos pagos</th><th className="num">Pendentes</th><th className="num">Ajustes</th><th className="num">Juros e multas</th><th className="num">Custo tributário total</th><th className="num">% s/ faturamento</th></tr></thead>
       <tbody>
         {linhas.length === 0 && <tr><td colSpan={11}><EmptyState icon={Building2} title="Sem dados tributários" body="Cadastre notas fiscais vinculadas às obras." /></td></tr>}
         {linhas.map(({ obra, t }) => <tr key={obra.id}><td>{obra.nome}</td><td className="num mono">{BRL(t.faturamentoBruto)}</td><td className="num mono">{BRL(t.issRetido)}</td><td className="num mono">{BRL(t.inssRetido)}</td><td className="num mono">{BRL(t.provisionado)}</td><td className="num mono">{BRL(t.pago)}</td><td className="num mono neg">{BRL(t.pendente)}</td><td className="num mono">{BRL(t.ajustes)}</td><td className="num mono">{BRL(t.acrescimos)}</td><td className="num mono"><b>{BRL(t.custoTributario)}</b></td><td className="num mono">{pct(t.pctFaturamento)}</td></tr>)}
